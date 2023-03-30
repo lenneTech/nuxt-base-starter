@@ -122,11 +122,17 @@ async function create() {
 
   if (!projectName) {
     console.error("Please provide a valid project name.");
+    process.exit(-1);
     return;
   }
 
   const currentDir = process.cwd();
   const projectDir = path.resolve(currentDir, projectName);
+
+  if (fs.existsSync(projectDir)) {
+    console.log(`❌  Directory with name ${projectName} already exists.`);
+    process.exit(-1);
+  }
 
   // Create Nuxt Initial Project
   console.log("Initializing Nuxt ...");
