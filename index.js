@@ -1,4 +1,5 @@
 #!/usr/bin/node
+
 async function create() {
   const ViteConfig =
     "import { URL, fileURLToPath } from 'node:url'\n" +
