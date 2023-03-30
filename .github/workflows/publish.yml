@@ -5,9 +5,6 @@ on:
     tags:
       - 'v*'
 
-env:
-  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -22,12 +19,3 @@ jobs:
         with:
           access: public
           token: ${{ secrets.NPM_TOKEN }}
-      - name: Deploy notification
-        if: always()
-        uses: adamkdean/simple-slack-notify@master
-        with:
-          channel: '#deployments'
-          status: ${{ job.status }}
-          success_text: 'Version (#${{github.ref_name}}) von @lenne.tech/nuxt-base-starter wurde erfolgreich released.'
-          failure_text: 'Release (#${{github.ref_name}}) von @lenne.tech/nuxt-base-starter ist fehlgeschlagen.'
-          cancelled_text: 'Release (#${{github.ref_name}}) von @lenne.tech/nuxt-base-starter wurde abgebrochen.'
