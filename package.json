@@ -1,5 +1,5 @@
 {
-  "name": "@lenne.tech/nuxt-starter",
+  "name": "@lenne.tech/nuxt-base-starter",
   "version": "0.0.1",
   "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, @lenne.tech/nuxt-base, Storybook, Unit Tests, Cypress etc.",
   "main": "index.js",
