@@ -1,112 +1,111 @@
 #!/usr/bin/node
-
-const ViteConfig =
-  "import { URL, fileURLToPath } from 'node:url'\n" +
-  "import { defineConfig } from 'vite'\n" +
-  "import AutoImport from 'unplugin-auto-import/vite'\n" +
-  "import Components from 'unplugin-vue-components/vite'\n" +
-  "\n" +
-  "// https://vitejs.dev/config/\n" +
-  "export default defineConfig({\n" +
-  "  plugins: [\n" +
-  "    AutoImport({\n" +
-  "      imports: ['vue', 'vue-router'],\n" +
-  "      dirs: ['./composables'],\n" +
-  "      vueTemplate: true\n" +
-  "    }),\n" +
-  "    Components({\n" +
-  "      dirs: [\n" +
-  "        './components/'\n" +
-  "        // Component folders that should be auto-imported\n" +
-  "      ],\n" +
-  "      dts: true,\n" +
-  "      directoryAsNamespace: true\n" +
-  "    })\n" +
-  "  ],\n" +
-  "  resolve: {\n" +
-  "    alias: {\n" +
-  "      '~': fileURLToPath(new URL('./', import.meta.url))\n" +
-  "      // Add any other aliases you use in your code base\n" +
-  "      // https://nuxt.com/docs/api/configuration/nuxt-config/#alias\n" +
-  "    }\n" +
-  "  }\n" +
-  "})";
-
-const StoryBookConfig =
-  "import path from 'path'\n" +
-  "import { loadConfigFromFile, mergeConfig } from 'vite'\n" +
-  "\n" +
-  "/** @type { import('@storybook/vue3-vite').StorybookConfig } */\n" +
-  "export default {\n" +
-  "  // Other configuration options\n" +
-  "\n" +
-  "  async viteFinal(baseConfig) {\n" +
-  "    const { config: userConfig } = await loadConfigFromFile(\n" +
-  '      path.resolve(__dirname, "../vite.config.ts")\n' +
-  "    )\n" +
-  "\n" +
-  "    return mergeConfig(baseConfig, userConfig)\n" +
-  "  }\n" +
-  "}\n";
-
-const NuxtConfig =
-  "// https://nuxt.com/docs/api/configuration/nuxt-config\n" +
-  "export default defineNuxtConfig({\n" +
-  "  srcDir: './src',\n" +
-  "  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],\n" +
-  "  imports: {\n" +
-  "    dirs: ['./states', './stores'],\n" +
-  "  },\n" +
-  "})";
-
-const VitestConfig =
-  "import { defineConfig } from 'vite'\n" +
-  "import vue from '@vitejs/plugin-vue'\n" +
-  "\n" +
-  "export default defineConfig({\n" +
-  "  plugins: [vue()],\n" +
-  "  test: {\n" +
-  "    globals: true,\n" +
-  "    environment: 'jsdom',\n" +
-  "  },\n" +
-  "})";
-
-const HelloWorldSpec =
-  "import { describe, it, expect } from 'vitest'\n" +
-  "import { mount } from '@vue/test-utils'\n" +
-  "\n" +
-  "import HelloWorld from '../components/hello-world.vue'\n" +
-  "\n" +
-  "describe('HelloWorld', () => {\n" +
-  "  it('is a Vue instance', () => {\n" +
-  "    const wrapper = mount(HelloWorld)\n" +
-  "    expect(wrapper.vm).toBeTruthy()\n" +
-  "  })\n" +
-  "})";
-
-const HelloWorldComponent =
-  '<script setup lang="ts">\n' +
-  "</script>\n" +
-  "\n" +
-  "<template>\n" +
-  "  <h1\n" +
-  '    class="text-transparent text-2xl bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600"\n' +
-  "  >\n" +
-  "    Hello World\n" +
-  "  </h1>\n" +
-  "</template>\n";
-
-const IndexPage =
-  "<template>\n" +
-  '  <div class="flex h-screen items-center justify-center flex-col">\n' +
-  '    <h1 class="font-extrabold text-transparent text-8xl bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">\n' +
-  "      Lenne Nuxt Starter\n" +
-  "    </h1>\n" +
-  "    <HelloWorld></HelloWorld>\n" +
-  "  </div>\n" +
-  "</template>\n";
-
 async function create() {
+  const ViteConfig =
+    "import { URL, fileURLToPath } from 'node:url'\n" +
+    "import { defineConfig } from 'vite'\n" +
+    "import AutoImport from 'unplugin-auto-import/vite'\n" +
+    "import Components from 'unplugin-vue-components/vite'\n" +
+    "\n" +
+    "// https://vitejs.dev/config/\n" +
+    "export default defineConfig({\n" +
+    "  plugins: [\n" +
+    "    AutoImport({\n" +
+    "      imports: ['vue', 'vue-router'],\n" +
+    "      dirs: ['./composables'],\n" +
+    "      vueTemplate: true\n" +
+    "    }),\n" +
+    "    Components({\n" +
+    "      dirs: [\n" +
+    "        './components/'\n" +
+    "        // Component folders that should be auto-imported\n" +
+    "      ],\n" +
+    "      dts: true,\n" +
+    "      directoryAsNamespace: true\n" +
+    "    })\n" +
+    "  ],\n" +
+    "  resolve: {\n" +
+    "    alias: {\n" +
+    "      '~': fileURLToPath(new URL('./', import.meta.url))\n" +
+    "      // Add any other aliases you use in your code base\n" +
+    "      // https://nuxt.com/docs/api/configuration/nuxt-config/#alias\n" +
+    "    }\n" +
+    "  }\n" +
+    "})";
+
+  const StoryBookConfig =
+    "import path from 'path'\n" +
+    "import { loadConfigFromFile, mergeConfig } from 'vite'\n" +
+    "\n" +
+    "/** @type { import('@storybook/vue3-vite').StorybookConfig } */\n" +
+    "export default {\n" +
+    "  // Other configuration options\n" +
+    "\n" +
+    "  async viteFinal(baseConfig) {\n" +
+    "    const { config: userConfig } = await loadConfigFromFile(\n" +
+    '      path.resolve(__dirname, "../vite.config.ts")\n' +
+    "    )\n" +
+    "\n" +
+    "    return mergeConfig(baseConfig, userConfig)\n" +
+    "  }\n" +
+    "}\n";
+
+  const NuxtConfig =
+    "// https://nuxt.com/docs/api/configuration/nuxt-config\n" +
+    "export default defineNuxtConfig({\n" +
+    "  srcDir: './src',\n" +
+    "  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],\n" +
+    "  imports: {\n" +
+    "    dirs: ['./states', './stores'],\n" +
+    "  },\n" +
+    "})";
+
+  const VitestConfig =
+    "import { defineConfig } from 'vite'\n" +
+    "import vue from '@vitejs/plugin-vue'\n" +
+    "\n" +
+    "export default defineConfig({\n" +
+    "  plugins: [vue()],\n" +
+    "  test: {\n" +
+    "    globals: true,\n" +
+    "    environment: 'jsdom',\n" +
+    "  },\n" +
+    "})";
+
+  const HelloWorldSpec =
+    "import { describe, it, expect } from 'vitest'\n" +
+    "import { mount } from '@vue/test-utils'\n" +
+    "\n" +
+    "import HelloWorld from '../components/hello-world.vue'\n" +
+    "\n" +
+    "describe('HelloWorld', () => {\n" +
+    "  it('is a Vue instance', () => {\n" +
+    "    const wrapper = mount(HelloWorld)\n" +
+    "    expect(wrapper.vm).toBeTruthy()\n" +
+    "  })\n" +
+    "})";
+
+  const HelloWorldComponent =
+    '<script setup lang="ts">\n' +
+    "</script>\n" +
+    "\n" +
+    "<template>\n" +
+    "  <h1\n" +
+    '    class="text-transparent text-2xl bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600"\n' +
+    "  >\n" +
+    "    Hello World\n" +
+    "  </h1>\n" +
+    "</template>\n";
+
+  const IndexPage =
+    "<template>\n" +
+    '  <div class="flex h-screen items-center justify-center flex-col">\n' +
+    '    <h1 class="font-extrabold text-transparent text-8xl bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">\n' +
+    "      Lenne Nuxt Starter\n" +
+    "    </h1>\n" +
+    "    <HelloWorld></HelloWorld>\n" +
+    "  </div>\n" +
+    "</template>\n";
+
   const spawn = require("cross-spawn");
   const fs = require("fs");
   const fsPromises = require("fs/promises");
