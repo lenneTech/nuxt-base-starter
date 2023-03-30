@@ -3,6 +3,9 @@
   "version": "0.0.2",
   "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, @lenne.tech/nuxt-base, Storybook, Unit Tests, Cypress etc.",
   "main": "index.js",
+  "scripts": {
+    "prepublishOnly": "npm i"
+  },
   "bin": {
     "create-lenne-nuxt": "./index.js"
   },

@@ -1,3 +1,5 @@
+#!/usr/bin/node
+
 const ViteConfig =
   "import { URL, fileURLToPath } from 'node:url'\n" +
   "import { defineConfig } from 'vite'\n" +
