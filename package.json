@@ -1,13 +1,13 @@
 {
-  "name": "nuxt-starter",
-  "version": "1.0.0",
-  "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Prettier and @lenne.tech/nuxt-base",
+  "name": "@lenne.tech/nuxt-starter",
+  "version": "0.0.1",
+  "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, @lenne.tech/nuxt-base, Storybook, Unit Tests, Cypress etc.",
   "main": "index.js",
   "bin": {
     "create-lenne-nuxt": "./index.js"
   },
   "author": "lenne.Tech GmbH",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "cross-spawn": "7.0.3"
   },

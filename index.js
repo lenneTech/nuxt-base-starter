@@ -1,7 +1,3 @@
-#!/usr/bin/env node
-
-// Usage: npx create-my-template my-app
-
 const ViteConfig =
   "import { URL, fileURLToPath } from 'node:url'\n" +
   "import { defineConfig } from 'vite'\n" +
