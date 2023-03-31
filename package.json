@@ -1,10 +1,10 @@
 {
   "name": "create-nuxt-base",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, @lenne.tech/nuxt-base, Storybook, Unit Tests, Cypress etc.",
   "main": "index.js",
   "bin": {
-    "nuxt-base-starter": "./index.js"
+    "create-nuxt-base": "./index.js"
   },
   "author": "lenne.Tech GmbH",
   "license": "MIT",

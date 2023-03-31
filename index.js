@@ -22,7 +22,7 @@ async function create() {
     process.exit(-1);
   }
 
-  await copyFiles("./nuxt-base-template", projectDir);
+  await copyFiles(__dirname + "/nuxt-base-template", projectDir);
 
   const projectPackageJson = require(path.join(projectDir, "package.json"));
 
