@@ -5,6 +5,21 @@ async function create() {
   const fs = require("fs");
   const path = require("path");
   const childProcess = require("child_process");
+  const pjson = require('./package.json');
+
+  console.log('ℹ️ create-nuxt-base started in version ', pjson.version);
+
+  const packageInfos = await getPackageData(pjson.name);
+
+  if (packageInfos) {
+    const latestVersion = packageInfos['dist-tags'].latest;
+
+    if (latestVersion !== pjson.version) {
+      console.log('📣 Its a newer version of create-nuxt-base available!', pjson.version);
+      console.log('Your version', pjson.version);
+      console.log('Available version', latestVersion);
+    }
+  }
 
   const projectName = process.argv[2];
 
@@ -110,6 +125,30 @@ async function copyFiles(from, to) {
     console.error(err);
     process.exit(-1);
   }
+}
+
+function getPackageData(packageName) {
+  const https = require('https');
+
+  return new Promise((resolve, reject) => {
+    https
+      .get('https://registry.npmjs.org/' + packageName, (resp) => {
+        let data = '';
+
+        // A chunk of data has been received.
+        resp.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        // The whole response has been received. Print out the result.
+        resp.on('end', () => {
+          resolve(JSON.parse(data));
+        });
+      })
+      .on('error', (err) => {
+        reject(err);
+      });
+  });
 }
 
 create();
