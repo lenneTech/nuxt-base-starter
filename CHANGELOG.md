@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.7](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.6...v0.1.7) (2023-03-31)
+
+
+### Features
+
+* Add webhook url secret ([5719919](https://github.com/lenneTech/nuxt-base-starter/commit/57199194d95aa15783d1f04a2216db1580f493d4))
+
 ### [0.1.6](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.5...v0.1.6) (2023-03-31)
 
 
