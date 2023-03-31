@@ -19,3 +19,12 @@ jobs:
         with:
           access: public
           token: ${{ secrets.NPM_TOKEN }}
+      - name: Deploy notification
+        if: always()
+        uses: adamkdean/simple-slack-notify@master
+        with:
+          channel: '#deployments'
+          status: ${{ job.status }}
+          success_text: 'Version (#${{github.ref_name}}) von create-nuxt-base wurde erfolgreich released.'
+          failure_text: 'Release (#${{github.ref_name}}) von create-nuxt-base ist fehlgeschlagen.'
+          cancelled_text: 'Release (#${{github.ref_name}}) von create-nuxt-base wurde abgebrochen.'
