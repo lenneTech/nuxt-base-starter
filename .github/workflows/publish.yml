@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+env:
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
 jobs:
   publish:
     runs-on: ubuntu-latest
