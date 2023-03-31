@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.8](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.7...v0.1.8) (2023-03-31)
+
+
+### Features
+
+* Add version check ([fe85709](https://github.com/lenneTech/nuxt-base-starter/commit/fe857099af96fa3fda0e06faecbd483e59f279fd))
+* Remove package-lock.json ([149a88a](https://github.com/lenneTech/nuxt-base-starter/commit/149a88ab9917a9738ed5916a3604dd50557405d8))
+
 ### [0.1.7](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.6...v0.1.7) (2023-03-31)
 
 
