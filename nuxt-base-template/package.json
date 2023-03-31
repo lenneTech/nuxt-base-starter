@@ -16,10 +16,8 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "@lenne.tech/nuxt-base": "1.1.4",
-    "@pinia/nuxt": "0.4.7",
+    "@lenne.tech/nuxt-base": "latest",
     "@vueuse/core": "9.13.0",
-    "pinia": "2.0.33"
   },
   "devDependencies": {
     "@antfu/eslint-config": "0.35.2",
