@@ -1,0 +1,27 @@
+{
+"nuxt.isNuxtApp": true,
+  "editor.formatOnSave": true,
+  "eslint.alwaysShowStatus": true,
+  "eslint.options": {
+      "extensions": [
+          ".html",
+          ".js",
+          ".vue",
+          ".jsx"
+      ]
+  },
+  "eslint.validate": [
+      "html",
+      "vue",
+      "javascript",
+      "javascriptreact",
+  ],
+  "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+  },
+  "[javascript]": {
+      "editor.formatOnSave": false
+  },
+  "eslint.format.enable": true,
+  "css.validate": false,
+}

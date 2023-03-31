@@ -1,0 +1,62 @@
+{
+  "name": "nuxt-base-template",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test": "vitest",
+    "cy:open": "npx cypress open",
+    "lint": "eslint --ext .ts,.js,.vue .",
+    "lint:fix": "eslint --ext .ts,.js,.vue . --fix",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "@lenne.tech/nuxt-base": "1.1.4",
+    "@pinia/nuxt": "0.4.7",
+    "@vueuse/core": "9.13.0",
+    "pinia": "2.0.33"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "0.35.2",
+    "@badeball/cypress-cucumber-preprocessor": "16.0.1",
+    "@cypress/webpack-preprocessor": "5.17.0",
+    "@nuxt/test-utils": "3.3.2",
+    "@nuxtjs/eslint-config-typescript": "12.0.0",
+    "@nuxtjs/tailwindcss": "6.6.5",
+    "@storybook/addon-essentials": "7.0.0-rc.10",
+    "@storybook/addon-interactions": "7.0.0-rc.10",
+    "@storybook/addon-links": "7.0.0-rc.10",
+    "@storybook/blocks": "7.0.0-rc.10",
+    "@storybook/testing-library": "0.0.14-next.1",
+    "@storybook/vue3": "7.0.0-rc.10",
+    "@storybook/vue3-vite": "7.0.0-rc.10",
+    "@vitejs/plugin-vue": "4.1.0",
+    "@vue/test-utils": "2.3.2",
+    "cypress": "12.9.0",
+    "eslint": "8.34.0",
+    "eslint-plugin-vitest": "0.0.57",
+    "husky": "8.0.3",
+    "jsdom": "21.1.1",
+    "nuxt": "3.3.2",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "storybook": "7.0.0-rc.10",
+    "ts-loader": "9.4.2",
+    "typescript": "4.9.5",
+    "vitest": "0.29.8"
+  },
+  "cypress-cucumber-preprocessor": {
+    "nonGlobalStepDefinitions": true,
+    "json": {
+      "enabled": true
+    },
+    "stepDefinitions": [
+      "cypress/integrations/**/*.{js,ts}"
+    ]
+  }
+}
