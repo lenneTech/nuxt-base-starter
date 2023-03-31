@@ -53,7 +53,7 @@ async function create() {
   await waitForSpawn(preCommitHook);
 
   const gitAdd = childProcess.exec("git add .husky/pre-commit");
-  await waitForChildProcess(gitAdd);
+  waitForChildProcess(gitAdd);
 
   console.log("Building Project ...");
   const npmRunBuild = spawn("npm", ["run", "build"], { stdio: "inherit" });
