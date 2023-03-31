@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.6](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.5...v0.1.6) (2023-03-31)
+
+
+### Features
+
+* Change default host ([b026fed](https://github.com/lenneTech/nuxt-base-starter/commit/b026fed7eaf8c5964bac5cc4a5c37074878a8d30))
+
 ### [0.1.5](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.4...v0.1.5) (2023-03-31)
 
 
