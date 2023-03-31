@@ -1,6 +1,6 @@
 {
-  "name": "@lenne.tech/nuxt-base-starter",
-  "version": "0.0.9",
+  "name": "create-nuxt-base",
+  "version": "0.1.0",
   "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, @lenne.tech/nuxt-base, Storybook, Unit Tests, Cypress etc.",
   "main": "index.js",
   "bin": {
@@ -9,7 +9,8 @@
   "author": "lenne.Tech GmbH",
   "license": "MIT",
   "dependencies": {
-    "cross-spawn": "7.0.3"
+    "cross-spawn": "7.0.3",
+    "fs-extra": "11.1.1"
   },
   "devDependencies": {
     "prettier": "2.8.7"
