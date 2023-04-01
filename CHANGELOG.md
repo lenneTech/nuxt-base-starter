@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.12](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.11...v0.1.12) (2023-04-01)
+
+
+### Features
+
+* Add some usefull scripts ([05102f9](https://github.com/lenneTech/nuxt-base-starter/commit/05102f91fcf098aef211db9c15b583bb7fd0aacf))
+* Set nuxt-base watch prop default to false ([48189ea](https://github.com/lenneTech/nuxt-base-starter/commit/48189ea30501b698e2edb7d4cdfc56006964839f))
+
 ### [0.1.11](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.10...v0.1.11) (2023-04-01)
 
 
