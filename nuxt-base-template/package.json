@@ -2,6 +2,7 @@
   "name": "nuxt-base-template",
   "private": true,
   "scripts": {
+    "reinit": "rm -rf node_modules && rm -rf package-lock.json && npx nuxt cleanup && npm cache clean --force && npm i",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
@@ -13,7 +14,10 @@
     "cy:open": "npx cypress open",
     "lint": "eslint --ext .ts,.js,.vue .",
     "lint:fix": "eslint --ext .ts,.js,.vue . --fix",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "release": "standard-version && git push --follow-tags origin main",
+    "release:minor": "standard-version --release-as minor && git push --follow-tags origin main",
+    "release:major": "standard-version --release-as major && git push --follow-tags origin main"
   },
   "dependencies": {
     "@lenne.tech/nuxt-base": "latest",
@@ -45,6 +49,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "storybook": "7.0.0-rc.10",
+    "standard-version": "9.5.0",
     "ts-loader": "9.4.2",
     "typescript": "4.9.5",
     "vitest": "0.29.8"
