@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.10](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.9...v0.1.10) (2023-04-01)
+
+
+### Bug Fixes
+
+* fix package.json ([d277732](https://github.com/lenneTech/nuxt-base-starter/commit/d277732b5c2af1c8dd6d5eed7f10875016ddebe2))
+
 ### [0.1.9](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.8...v0.1.9) (2023-04-01)
 
 
