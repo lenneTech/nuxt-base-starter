@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.9](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.8...v0.1.9) (2023-04-01)
+
+
+### Features
+
+* Add pinia ([230246a](https://github.com/lenneTech/nuxt-base-starter/commit/230246ab16c16122255ad697dfc506fc417a2649))
+
 ### [0.1.8](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.7...v0.1.8) (2023-03-31)
 
 
