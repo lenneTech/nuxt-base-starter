@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.16](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.15...v0.1.16) (2023-06-12)
+
+
+### Bug Fixes
+
+* fix vueuse integration ([0fdc1ee](https://github.com/lenneTech/nuxt-base-starter/commit/0fdc1ee1365bade6157620c307c7efe6080a4f4f))
+
 ### [0.1.15](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.14...v0.1.15) (2023-06-12)
 
 
