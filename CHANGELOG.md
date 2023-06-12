@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.14](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.13...v0.1.14) (2023-06-12)
+
+
+### Features
+
+* remove storybook and add updates ([af33d31](https://github.com/lenneTech/nuxt-base-starter/commit/af33d317717ee0c3109b1730708ebd863293485a))
+
 ### [0.1.13](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.12...v0.1.13) (2023-04-23)
 
 ### [0.1.12](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.11...v0.1.12) (2023-04-01)
