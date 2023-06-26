@@ -2,6 +2,7 @@
   "name": "nuxt-base-template",
   "private": true,
   "scripts": {
+    "init": "npm install",
     "reinit": "rm -rf node_modules && rm -rf package-lock.json && npx nuxt cleanup && npm cache clean --force && npm i",
     "build": "nuxt build",
     "start": "nuxt dev --port 3100",
