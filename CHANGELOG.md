@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.18](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.17...v0.1.18) (2023-06-26)
+
+
+### Features
+
+* add init command ([defa0a4](https://github.com/lenneTech/nuxt-base-starter/commit/defa0a46b4d9d0fa0448afddcb2db25d41252159))
+
 ### [0.1.17](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.16...v0.1.17) (2023-06-26)
 
 ### [0.1.16](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.15...v0.1.16) (2023-06-12)
