@@ -1,4 +1,3 @@
 {
-    "extends": "@antfu",
-    "plugins": ["vitest"]
+    "extends": "@lenne.tech/vue"
 }
