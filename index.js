@@ -22,11 +22,11 @@ async function create() {
   }
 
   const projectName = process.argv[2];
+  const autoStart = process.argv[3] === 'auto-start';
 
   if (!projectName) {
     console.error("Please provide a valid project name.");
     process.exit(-1);
-    return;
   }
 
   const currentDir = process.cwd();
@@ -58,36 +58,29 @@ async function create() {
   const npmInstall = spawn("npm", ["install"], { stdio: "inherit" });
   await waitForSpawn(npmInstall);
 
-  const preCommitHook = spawn("npx", [
-    "npx",
-    "husky",
-    "add",
-    ".husky/pre-commit",
-    '"npm run lint"',
-  ]);
-  await waitForSpawn(preCommitHook);
-
-  const gitAdd = childProcess.exec("git add .husky/pre-commit");
-  waitForChildProcess(gitAdd);
-
-  console.log("Building Project ...");
-  const npmRunBuild = spawn("npm", ["run", "build"], { stdio: "inherit" });
-  await waitForSpawn(npmRunBuild)
-    .then(() => console.log("✅  Project was successfully built"))
-    .catch(() => console.log("❌  Error while building the project"));
-
   console.log("Success! Your new project is ready. 🎉");
-  console.log(`Created ${projectName} at ${projectDir} 💾`);
-  console.log(`Launching ${projectName} in: 3 💥`);
-  await waitForMS(1000);
-  console.log(`Launching ${projectName} in: 2 🔥`);
-  await waitForMS(1000);
-  console.log(`Launching ${projectName} in: 1 🧨`);
-  await waitForMS(1000);
-  console.log(`Launching ${projectName} ...  🚀`);
-  await waitForMS(1000);
-  const npmRunDev = spawn("npm", ["run", "dev"], { stdio: "inherit" });
-  await waitForSpawn(npmRunDev);
+
+  if (autoStart) {
+    console.log("Building Project ...");
+    const npmRunBuild = spawn("npm", ["run", "build"], { stdio: "inherit" });
+    await waitForSpawn(npmRunBuild)
+      .then(() => console.log("✅  Project was successfully built"))
+      .catch(() => console.log("❌  Error while building the project"));
+  
+    
+    console.log(`Created ${projectName} at ${projectDir} 💾`);
+    console.log(`Launching ${projectName} in: 3 💥`);
+    await waitForMS(1000);
+    console.log(`Launching ${projectName} in: 2 🔥`);
+    await waitForMS(1000);
+    console.log(`Launching ${projectName} in: 1 🧨`);
+    await waitForMS(1000);
+    console.log(`Launching ${projectName} ...  🚀`);
+    await waitForMS(1000);
+    const npmRunDev = spawn("npm", ["run", "dev"], { stdio: "inherit" });
+    await waitForSpawn(npmRunDev);
+  }
+
 }
 
 function waitForSpawn(spawn) {
