@@ -77,7 +77,7 @@ async function create() {
     await waitForMS(1000);
     console.log(`Launching ${projectName} ...  🚀`);
     await waitForMS(1000);
-    const npmRunDev = spawn("npm", ["run", "dev"], { stdio: "inherit" });
+    const npmRunDev = spawn("npm", ["run", "start"], { stdio: "inherit" });
     await waitForSpawn(npmRunDev);
   }
 
