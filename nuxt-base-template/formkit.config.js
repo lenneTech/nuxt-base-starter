@@ -5,13 +5,13 @@ import formkitTheme from './formkit-theme.js'
 import { addAsteriskPlugin } from '~/forms/plugins/asterisk-plugin';
 import { scrollToErrors } from '~/forms/plugins/scroll-error-plugin';
 import { createInput } from '@formkit/vue';
+import { valueChangesPlugin } from "~/forms/plugins/value-changes-plugin";
 
 import InputImage from "~/forms/inputs/InputImage.vue";
 import InputTags from "~/forms/inputs/InputTags.vue";
 import InputFreeTags from "~/forms/inputs/InputFreeTags.vue";
 import InputCheckbox from "~/forms/inputs/InputCheckbox.vue";
 import InputToggle from "~/forms/inputs/InputToggle.vue";
-import {valueChangesPlugin} from "~/forms/plugins/value-changes-plugin";
 
 export default {
   locales: { de },
@@ -21,9 +21,7 @@ export default {
     image: createInput(InputImage),
     tags: createInput(InputTags),
     freeTags: createInput(InputFreeTags),
-    perimeter: createInput(InputPerimeter),
     checkbox: createInput(InputCheckbox),
-    autocomplete: createInput(InputAutoComplete),
     toggle: createInput(InputToggle),
   },
   icons: {
