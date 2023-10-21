@@ -5,34 +5,34 @@
         @apply transition-colors duration-300;
     }
     h1 {
-        @apply text-[32px] text-rm-gray-6 leading-[140%] lg:text-[66px] lg:leading-[140%] font-bold font-montserrat;
+        @apply text-[32px] leading-[140%] lg:text-[66px] lg:leading-[140%] font-bold;
     }
     h2 {
-        @apply text-[28px] text-rm-gray-6 leading-[140%] lg:text-[51px] lg:leading-[140%] font-semibold font-montserrat;
+        @apply text-[28px] leading-[140%] lg:text-[51px] lg:leading-[140%] font-semibold;
     }
     h3 {
-        @apply text-[21px] text-rm-gray-6 leading-[140%] lg:text-[39px] lg:leading-[140%] font-bold font-montserrat;
+        @apply text-[21px] leading-[140%] lg:text-[39px] lg:leading-[140%] font-bold;
     }
     h4 {
-        @apply text-[18px] text-rm-gray-6 leading-[140%] lg:text-[30px] lg:leading-[140%] font-bold font-montserrat;
+        @apply text-[18px] leading-[140%] lg:text-[30px] lg:leading-[140%] font-bold;
     }
     h5 {
-        @apply text-[15px] text-rm-gray-6 leading-[140%] lg:text-[23px] lg:leading-[140%] font-bold font-montserrat;
+        @apply text-[15px] leading-[140%] lg:text-[23px] lg:leading-[140%] font-bold;
     }
     h6 {
-        @apply text-[16px] text-rm-gray-6 leading-[140%] lg:text-[18px] lg:leading-[140%] font-bold font-montserrat;
+        @apply text-[16px] leading-[140%] lg:text-[18px] lg:leading-[140%] font-bold;
     }
     p {
-        @apply text-[15px] text-rm-gray-6 leading-[140%] lg:text-[18px] lg:leading-[140%];
+        @apply text-[15px] leading-[140%] lg:text-[18px] lg:leading-[140%];
     }
     small {
-        @apply text-[14px] text-rm-gray-6 leading-[140%] lg:text-[16px] lg:leading-[140%];
+        @apply text-[14px] leading-[140%] lg:text-[16px] lg:leading-[140%];
     }
     a {
-        @apply text-[15px] text-rm-gray-6 leading-[140%] lg:text-[18px] lg:leading-[140%];
+        @apply text-[15px] leading-[140%] lg:text-[18px] lg:leading-[140%];
     }
     button {
-        @apply text-[15px] text-rm-gray-6 leading-[140%] lg:text-[18px] lg:leading-[140%] font-semibold;
+        @apply text-[15px] leading-[140%] lg:text-[18px] lg:leading-[140%] font-semibold;
     }
 }
 
