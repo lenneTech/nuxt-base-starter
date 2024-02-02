@@ -7,6 +7,8 @@
     "create-nuxt-base": "./index.js"
   },
   "scripts": {
+    "prettier": "prettier \"*.{js,json,yml,md,html,ts}\" .",
+    "format": "npm run prettier -- --write",
     "release": "standard-version && git push --follow-tags origin main",
     "release:minor": "standard-version --release-as minor && git push --follow-tags origin main",
     "release:major": "standard-version --release-as major && git push --follow-tags origin main"

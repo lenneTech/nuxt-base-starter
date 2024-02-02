@@ -15,7 +15,7 @@ let durationLeft = props.duration - (500 + 130);
 onMounted(() => {
   const interval = setInterval(() => {
     durationLeft -= 30;
-    process.value = durationLeft / props.duration * 100;
+    process.value = (durationLeft / props.duration) * 100;
   }, 30);
   setTimeout(() => {
     clearInterval(interval);
@@ -41,17 +41,18 @@ const accentColor: Record<typeof props.type, string> = {
 <template>
   <div
     :style="`--accent-color: ${accentColor[props.type]}`"
-    class="pointer-events-auto relative  w-full max-w-sm overflow-hidden rounded-lg bg-white dark:bg-gray-950 shadow-lg ring-1 ring-black ring-opacity-5 z-[99999px]"
+    class="pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-lg bg-white dark:bg-gray-950 shadow-lg ring-1 ring-black ring-opacity-5 z-[99999px]"
   >
     <div
       :style="{
-        width: `${process}%`,
-      }" class="bg-[--accent-color] h-[5px] duration-100 transition-[width] w-[width] absolute bottom-0"
+        width: `${process}%`
+      }"
+      class="bg-[--accent-color] h-[5px] duration-100 transition-[width] w-[width] absolute bottom-0"
     ></div>
-    <div class="p-4 ">
+    <div class="p-4">
       <div class="flex items-start">
         <div class="flex-shrink-0">
-          <span :class="icon[props.type]" class=" h-6 w-6 text-[--accent-color]"></span>
+          <span :class="icon[props.type]" class="h-6 w-6 text-[--accent-color]"></span>
         </div>
         <div class="ml-3 w-0 flex-1 pt-0.5">
           <p class="text-sm font-semibold text-gray-900 dark:text-white">

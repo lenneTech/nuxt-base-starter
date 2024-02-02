@@ -1,8 +1,8 @@
 <template>
   <NuxtLayout>
-    <BaseModalContainer />
-    <BaseNotificationContainer />
-    <NuxtLoadingIndicator />
+    <ModalContainer />
+    <NotificationContainer />
+    <BaseContextMenuContainer />
     <NuxtPage />
   </NuxtLayout>
 </template>

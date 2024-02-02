@@ -8,9 +8,9 @@ const props = withDefaults(
     href?: string;
     to?: RouteLocationRaw;
     appearance?: 'regular' | 'outline' | 'none';
-    size?: 'sm' | 'md' | 'lg' | 'auto' | 'calendar';
-    color?: 'primary' | 'secondary' | 'green' | 'yellow' | 'lightgrey' | 'lightprimary' | 'danger';
-    textColor?: 'white' | 'black' | 'primary' | 'fullblack' | 'gray' | '';
+    size?: 'sm' | 'md' | 'lg' | 'auto';
+    color?: 'primary' | 'secondary' | 'green' | 'yellow' | 'lightprimary' | 'danger';
+    textColor?: 'white' | 'black' | 'primary' | 'gray' | '';
     type?: 'submit' | 'button';
     loading?: boolean;
     loadingText?: string;
@@ -25,20 +25,19 @@ const props = withDefaults(
     loading: false,
     loadingText: 'Loading',
     block: false,
-  },
+  }
 );
 
 const appearanceClasses: Record<typeof props.appearance, string> = {
-  regular: 'rounded-full text-white',
+  regular: 'rounded-md text-white',
   outline:
-    'rounded-full border border-primary bg-white hover:bg-primary-500 text-primary hover:text-white disabled:bg-transparent disabled:text-gray-400 disabled:border-gray-200',
-  none: 'bg-transparent border-transparent hover:text-primary-500 text-black hover:bg-transparent',
+    'rounded-md border border-primary bg-background hover:bg-primary-500 text-primary hover:text-white disabled:bg-transparent disabled:text-gray-400 disabled:border-gray-200',
+  none: 'bg-transparent border-transparent hover:text-primary-500 text-foreground hover:bg-transparent',
 };
 
 const sizeClasses: Record<typeof props.size, string> = {
-  sm: 'min-w-[110px] py-1.5 px-4 text-sm',
-  calendar: 'min-w-[23%] py-1.5 px-5 text-base',
-  md: 'min-w-[200px] py-2 px-3 text-base',
+  sm: 'min-w-[100px] py-1.5 px-1.5 text-sm',
+  md: 'min-w-[100px] py-1.5 px-2 text-base',
   lg: 'min-w-[240px] py-3 px-4 text-lg',
   auto: 'text-sm lg:text-lg',
 };
@@ -49,14 +48,12 @@ const colorClasses: Record<typeof props.color, string> = {
   green: 'bg-green-500 hover:bg-green-400 text-green-50',
   yellow: 'bg-yellow-500 hover:bg-yellow-400 text-yellow-950',
   danger: 'bg-red-500 hover:bg-red-400 text-red-950',
-  lightgrey: 'bg-slate-100 text-slate-200',
   lightprimary: 'bg-primary-300 text-primary-50',
 };
 
 const textColorClasses: Record<typeof props.textColor, string> = {
   white: 'text-white',
-  black: 'text-black dark:text-white',
-  fullblack: 'text-black dark:text-black',
+  black: 'text-black',
   primary: 'text-primary',
   gray: 'text-gray-400',
   '': '',

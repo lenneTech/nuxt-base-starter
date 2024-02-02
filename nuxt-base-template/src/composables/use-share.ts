@@ -1,5 +1,5 @@
-import { ModalShare } from '#components';
 import { useModal } from '~/composables/use-modal';
+import ModalShare from '~/components/ModalShare.vue';
 
 export function useShare() {
   const route = useRoute();
@@ -12,7 +12,7 @@ export function useShare() {
         text: text ?? window.location.origin,
       });
     } else {
-      useModal().open({ component: ModalShare, size: 'md', data: { link: url ?? window.location.origin } });
+      useModal().open({ component: ModalShare, size: 'md', data: { link: url ?? window.location.origin, name: window.name } });
     }
   }
 

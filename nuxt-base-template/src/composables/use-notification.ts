@@ -18,7 +18,7 @@ export function useNotification() {
   };
 
   const remove = (uuid: string) => {
-    notifications.value = notifications.value.filter(n => n.uuid !== uuid);
+    notifications.value = notifications.value.filter((n) => n.uuid !== uuid);
   };
 
   return {

@@ -1,19 +1,33 @@
 import type { ExtractedRouteMethod, NitroFetchOptions, NitroFetchRequest, TypedInternalResponse } from 'nitropack';
 
-export function useAuthFetch<DefaultT = unknown, DefaultR extends NitroFetchRequest = NitroFetchRequest, T = DefaultT, R extends NitroFetchRequest = DefaultR, O extends NitroFetchOptions<R> = NitroFetchOptions<R>>(request: R, opts?: O): Promise<TypedInternalResponse<R, T, ExtractedRouteMethod<R, O>>>  {
+export function useAuthFetch<
+  DefaultT = unknown,
+  DefaultR extends NitroFetchRequest = NitroFetchRequest,
+  T = DefaultT,
+  R extends NitroFetchRequest = DefaultR,
+  O extends NitroFetchOptions<R> = NitroFetchOptions<R>
+>(request: R, opts?: O): Promise<TypedInternalResponse<R, T, ExtractedRouteMethod<R, O>>> {
   const { requestNewToken } = useAuth();
+  const { accessTokenState } = useAuthState();
   const config = useRuntimeConfig();
 
   // @ts-expect-error - because of nice types from ofetch <3
   return $fetch(request, {
     ...opts,
     baseURL: config.public.apiUrl,
-    retry: 3,
-    async onRequest({ request, options }) {
-      const { token } = await requestNewToken();
-      options.headers = {
-        'Authorization': 'Bearer ' + token,
-      };
+    async onRequest(data: any) {
+      if (accessTokenState.value) {
+        data.options.headers = {
+          ...data.options.headers,
+          Authorization: `Bearer ${accessTokenState.value}`,
+        };
+      }
     },
+    onResponseError: async () => {
+      await requestNewToken();
+    },
+    retry: 3,
+    retryDelay: 500,
+    retryStatusCodes: [401],
   });
 }

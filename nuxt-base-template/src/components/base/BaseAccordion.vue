@@ -2,19 +2,25 @@
 import { computed, ref } from 'vue';
 import { useElementSize } from '@vueuse/core';
 
-const props = withDefaults(defineProps<{
-  expanded?: boolean;
-}>(), {
-  expanded: false,
-});
+const props = withDefaults(
+  defineProps<{
+    expanded?: boolean;
+  }>(),
+  {
+    expanded: false,
+  }
+);
 
 const show = ref(false);
 const contents = ref<HTMLElement>();
 
-watch(() => props.expanded, () => {
-  show.value = props.expanded;
-}, { immediate: true });
-
+watch(
+  () => props.expanded,
+  () => {
+    show.value = props.expanded;
+  },
+  { immediate: true }
+);
 
 const { height: targetHeight } = useElementSize(contents, undefined, {
   box: 'border-box',
@@ -31,10 +37,7 @@ const height = computed(() => (show.value ? targetHeight.value : 0));
       </div>
 
       <div class="relative ml-auto flex items-center justify-center">
-        <span
-          :class="{ 'rotate-180': show, 'rotate-45': !show }"
-          class="i-bi-x h-5 w-5 text-gray-900 transition-transform duration-500 md:h-6 md:w-6 dark:bg-white"
-        ></span>
+        <span :class="{ 'rotate-180': show, 'rotate-45': !show }" class="i-bi-x h-5 w-5 text-gray-900 transition-transform duration-500 md:h-6 md:w-6 dark:bg-white"></span>
       </div>
     </div>
 

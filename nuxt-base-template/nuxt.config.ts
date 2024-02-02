@@ -7,31 +7,46 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@lenne.tech/nuxt-base',
     '@vueuse/nuxt',
-    '@formkit/nuxt',
-    '@kevinmarrec/nuxt-pwa',
     '@nuxtjs/google-fonts',
     '@nuxtjs/color-mode',
+    '@nuxt/image',
+    'nuxt-simple-robots',
+    '@nuxtjs/sitemap',
+    '@nuxtjs/plausible',
   ],
+  plausible: {
+    apiHost: '',
+  },
   experimental: {
-    typedPages: true,
+    asyncContext: true,
     renderJsonPayloads: false,
+    typedPages: true,
+  },
+  sitemap: {
+    exclude: ['/app/**'],
+  },
+  image: {
+    ipx: {
+      maxAge: 2592000,
+    },
+    provider: 'ipx',
   },
   nuxtBase: {
-    host: 'http://localhost:3000/graphql',
-    schema: '../api/schema.gql',
-    storagePrefix: 'rk',
     generateTypes: process.env['GENERATE_TYPES'] === '1',
-    apollo: {
-      authType: 'Bearer',
-      authHeader: 'Authorization',
-      tokenStorage: 'cookie',
-      proxyCookies: true,
-    },
+    host: process.env.API_URL + '/graphql',
+    schema: process.env.API_SCHEMA,
+    storagePrefix: process.env.STORAGE_PREFIX,
   },
   app: {
     head: {
       title: 'Nuxt Base Starter',
       viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
+    },
+  },
+  runtimeConfig: {
+    public: {
+      apiUrl: process.env.API_URL,
+      webPushKey: process.env.WEB_PUSH_KEY,
     },
   },
   devServer: {

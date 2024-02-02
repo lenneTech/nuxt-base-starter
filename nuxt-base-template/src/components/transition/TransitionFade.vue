@@ -1,11 +1,14 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
-  startDuration?: number | `${number}`;
-  leaveDuration?: number | `${number}`;
-}>(), {
-  startDuration: 100,
-  leaveDuration: 100,
-});
+const props = withDefaults(
+  defineProps<{
+    startDuration?: number | `${number}`;
+    leaveDuration?: number | `${number}`;
+  }>(),
+  {
+    startDuration: 100,
+    leaveDuration: 100,
+  }
+);
 </script>
 
 <template>

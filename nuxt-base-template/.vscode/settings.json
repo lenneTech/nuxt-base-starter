@@ -3,26 +3,16 @@
   "editor.formatOnSave": true,
   "eslint.alwaysShowStatus": true,
   "eslint.options": {
-      "extensions": [
-          ".html",
-          ".js",
-          ".vue",
-          ".jsx"
-      ]
+    "extensions": [".html", ".js", ".vue", ".jsx"]
   },
-  "eslint.validate": [
-      "html",
-      "vue",
-      "javascript",
-      "javascriptreact",
-  ],
+  "eslint.validate": ["html", "vue", "javascript", "javascriptreact"],
   "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": true
+    "source.fixAll.eslint": true
   },
   "[javascript]": {
-      "editor.formatOnSave": false
+    "editor.formatOnSave": false
   },
   "eslint.format.enable": true,
   "css.validate": false,
-  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint"
 }
