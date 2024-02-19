@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.2](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.1...v0.2.2) (2024-02-19)
+
+
+### Features
+
+* update packages ([442eb2d](https://github.com/lenneTech/nuxt-base-starter/commit/442eb2d83ba0c01159440685d7dbcc63aefb08e6))
+
+
+### Bug Fixes
+
+* fix missing div before layout to prevent errors ([626dc2b](https://github.com/lenneTech/nuxt-base-starter/commit/626dc2b82e7c955eda57572ec59b14a5049b4bd5))
+
 ### [0.2.1](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.0...v0.2.1) (2024-02-02)
 
 ## [0.2.0](https://github.com/lenneTech/nuxt-base-starter/compare/v0.1.23...v0.2.0) (2024-02-02)
