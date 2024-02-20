@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.3](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.2...v0.2.3) (2024-02-20)
+
+
+### Features
+
+* Remove components because of new cli components command ([6380979](https://github.com/lenneTech/nuxt-base-starter/commit/6380979ba7ca46ce6058f4e1dea4e511d1d0ea9d))
+
+
+### Bug Fixes
+
+* fix scripts ([107aa14](https://github.com/lenneTech/nuxt-base-starter/commit/107aa1459f327543bfad03b236f9dc6cdbbc52f6))
+
 ### [0.2.2](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.1...v0.2.2) (2024-02-19)
 
 
