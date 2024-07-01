@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.5](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.4...v0.2.5) (2024-07-01)
+
+
+### Features
+
+* add useFormHelper ([af4323d](https://github.com/lenneTech/nuxt-base-starter/commit/af4323d821df736d016ac34b5d7f0fd4072e8092))
+* update packages ([b4cf384](https://github.com/lenneTech/nuxt-base-starter/commit/b4cf38415e5471ac100eba0eb05054dce2c9bd4d))
+
 ### [0.2.4](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.3...v0.2.4) (2024-05-29)
 
 ### [0.2.3](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.2...v0.2.3) (2024-02-20)
