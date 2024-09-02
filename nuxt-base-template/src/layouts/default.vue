@@ -1,13 +1,8 @@
-<script setup lang="ts">
-import { useGlobalMutationLoading, useGlobalQueryLoading } from '@vue/apollo-composable';
-
-const queryLoading = useGlobalQueryLoading();
-const mutationLoading = useGlobalMutationLoading();
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <div>
-    <NuxtLoadingIndicator :loading="queryLoading || mutationLoading" />
+    <NuxtLoadingIndicator />
     <slot></slot>
   </div>
 </template>

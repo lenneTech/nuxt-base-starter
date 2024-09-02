@@ -2,7 +2,7 @@ import { callWithNuxt, defineNuxtPlugin, useNuxtApp, useRuntimeConfig } from 'nu
 import { ofetch } from 'ofetch';
 
 export default defineNuxtPlugin({
-  enforce: 'post',
+  dependsOn: ['cookies', 'graphql-meta'], // from nuxt-base
   name: 'auth-server',
   async setup() {
     const _nuxt = useNuxtApp();
