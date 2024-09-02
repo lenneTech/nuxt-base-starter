@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.6](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.5...v0.2.6) (2024-09-02)
+
+
+### Features
+
+* update packages ([282e866](https://github.com/lenneTech/nuxt-base-starter/commit/282e866e323999eeb58be7edcd8d2f4b560da612))
+
 ### [0.2.5](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.4...v0.2.5) (2024-07-01)
 
 
