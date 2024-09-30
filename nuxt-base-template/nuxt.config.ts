@@ -44,7 +44,8 @@ export default defineNuxtConfig({
 
   nuxtBase: {
     generateTypes: process.env['GENERATE_TYPES'] === '1',
-    host: process.env.API_URL + '/graphql',
+    gqlHost: process.env.API_URL + '/graphql',
+    host: process.env.API_URL,
     schema: process.env.API_SCHEMA,
     storagePrefix: process.env.STORAGE_PREFIX,
   },

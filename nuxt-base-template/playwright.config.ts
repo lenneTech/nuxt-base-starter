@@ -1,7 +1,8 @@
-import { fileURLToPath } from 'node:url'
-import { defineConfig, devices } from '@playwright/test'
-import type { ConfigOptions } from '@nuxt/test-utils/playwright'
-import { isCI, isWindows } from 'std-env'
+import type { ConfigOptions } from '@nuxt/test-utils/playwright';
+
+import { defineConfig, devices } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
+import { isCI, isWindows } from 'std-env';
 
 const devicesToTest = [
   'Desktop Chrome',
@@ -14,30 +15,51 @@ const devicesToTest = [
   // Test against branded browsers.
   // { ...devices['Desktop Edge'], channel: 'msedge' },
   // { ...devices['Desktop Chrome'], channel: 'chrome' },
-] satisfies Array<string | typeof devices[string]>
+] satisfies Array<(typeof devices)[string] | string>;
 
 /* See https://playwright.dev/docs/test-configuration. */
 export default defineConfig<ConfigOptions>({
-  testDir: './tests',
-  /* Run tests in files in parallel */
-  fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!isCI,
-  /* Retry on CI only */
-  retries: isCI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: isCI ? 1 : undefined,
-  timeout: isWindows ? 60000 : undefined,
+  /* Run tests in files in parallel */
+  fullyParallel: true,
+  projects: devicesToTest.map((p) => (typeof p === 'string' ? { name: p, use: devices[p] } : p)),
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
+  /* Retry on CI only */
+  retries: isCI ? 2 : 0,
+  testDir: './tests',
+  timeout: 5 * 60 * 1000,
+  timeout: isWindows ? 60000 : undefined,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    baseURL: 'http://localhost:3001',
+
+    launchOptions: {
+      // Slows down Playwright operations by the specified amount of milliseconds
+      slowMo: 10,
+    },
+
+    // Use German language
+    locale: 'de',
     /* Nuxt configuration options */
     nuxt: {
+      host: 'http://localhost:3001',
       rootDir: fileURLToPath(new URL('.', import.meta.url)),
     },
+    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
+    trace: 'on-first-retry',
   },
-  projects: devicesToTest.map(p => typeof p === 'string' ? ({ name: p, use: devices[p] }) : p),
-})
+  webServer: [
+    {
+      command: 'npm run start',
+      reuseExistingServer: !process.env.CI,
+      stderr: 'pipe',
+      stdout: 'pipe',
+      timeout: 120 * 1000,
+      url: 'http://localhost:3001',
+    },
+  ],
+  /* Opt out of parallel tests on CI. */
+  workers: isCI ? 1 : undefined,
+});
