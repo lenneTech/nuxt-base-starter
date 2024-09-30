@@ -7,13 +7,14 @@ export default defineNuxtConfig({
   srcDir: './src',
 
   modules: [
+    '@nuxt/test-utils/module',
     '@nuxtjs/tailwindcss',
     '@lenne.tech/nuxt-base',
     '@vueuse/nuxt',
     '@nuxtjs/google-fonts',
     '@nuxtjs/color-mode',
     '@nuxt/image',
-    'nuxt-simple-robots',
+    '@nuxtjs/robots',
     '@nuxtjs/sitemap',
     '@nuxtjs/plausible',
   ],
