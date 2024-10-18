@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.9](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.8...v0.2.9) (2024-10-18)
+
+
+### Bug Fixes
+
+* fix e2e test handling and update packages ([54237a9](https://github.com/lenneTech/nuxt-base-starter/commit/54237a9a3d3cac617fc36de1a2f47dfb50ca9ba9))
+* fix wrong env variable in plugin ([c0f9716](https://github.com/lenneTech/nuxt-base-starter/commit/c0f9716ceb366d0e196ddd30adf2468d887284e7))
+
 ### [0.2.8](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.7...v0.2.8) (2024-09-30)
 
 
