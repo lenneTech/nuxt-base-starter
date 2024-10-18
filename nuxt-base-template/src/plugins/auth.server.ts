@@ -17,7 +17,7 @@ export default defineNuxtPlugin({
 
     let token = accessTokenState.value;
     if (isTokenExpired(accessTokenState.value)) {
-      const refreshTokenResult = await ofetch(config.public.host, {
+      const refreshTokenResult = await ofetch(config.public.gqlHost, {
         body: JSON.stringify({
           query: 'mutation refreshToken {refreshToken {token, refreshToken}}',
           variables: {},
@@ -29,7 +29,7 @@ export default defineNuxtPlugin({
       }).catch((err) => {
         console.error('2.auth.server.ts::refreshToken::catch', err.data);
         clearSession();
-        navigateTo('/auth/login');
+        navigateTo('/auth');
       });
 
       const data = refreshTokenResult?.data?.refreshToken;
@@ -38,14 +38,14 @@ export default defineNuxtPlugin({
         token = data?.token;
       } else {
         clearSession();
-        await navigateTo('/auth/login');
+        await navigateTo('/auth');
       }
     }
 
     if (token && payload?.id) {
-      const userResult = await ofetch(config.public.host, {
+      const userResult = await ofetch(config.public.gqlHost, {
         body: JSON.stringify({
-          query: 'query getUser($id: String!){' + 'getUser(id: $id){' + 'id ' + 'avatar ' + 'firstName ' + 'lastName ' + 'email ' + 'gender ' + 'roles ' + '}}',
+          query: 'query getUser($id: String!){' + 'getUser(id: $id){' + 'id ' + 'firstName ' + 'lastName ' + 'email ' + 'roles ' + '}}',
           variables: {
             id: payload.id,
           },
@@ -60,7 +60,7 @@ export default defineNuxtPlugin({
 
       if (userResult?.errors) {
         clearSession();
-        navigateTo('/auth/login');
+        navigateTo('/auth');
         return;
       }
 
