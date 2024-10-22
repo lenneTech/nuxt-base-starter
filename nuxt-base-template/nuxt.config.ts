@@ -59,7 +59,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiUrl: process.env.API_URL,
+      gqlHost: process.env.API_URL + '/graphql',
+      host: process.env.API_URL,
       webPushKey: process.env.WEB_PUSH_KEY,
     },
   },
