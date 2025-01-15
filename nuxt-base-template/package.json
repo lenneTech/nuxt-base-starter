@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "init": "npm install",
-    "reinit": "npx rimraf package-lock.json && npx nuxt cleanup && npx rimraf node_modules && npm cache clean --force && npx yes | npm i",
+    "reinit": "npx rimraf package-lock.json && npx nuxt cleanup && npx rimraf node_modules && npm cache clean --force && npm i",
     "build": "nuxt build",
     "app:build": "npm run build",
     "build:develop": "nuxt build",
@@ -37,7 +37,7 @@
     "@vueuse/nuxt": "11.1.0",
     "ios-pwa-splash": "1.0.0",
     "pinia": "2.2.4",
-    "rimraf": "^6.0.1",
+    "rimraf": "6.0.1",
     "tailwind-merge": "2.5.4",
     "vee-validate": "4.14.3"
   },
