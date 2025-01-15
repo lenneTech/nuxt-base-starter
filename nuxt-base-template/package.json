@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "init": "npm install",
-    "reinit": "rm -rf node_modules && rm -rf package-lock.json && yes | npx nuxt cleanup && npm cache clean --force && npm i",
+    "reinit": "npx rimraf package-lock.json && npx nuxt cleanup && npx rimraf node_modules && npm cache clean --force && npm i",
     "build": "nuxt build",
     "app:build": "npm run build",
     "build:develop": "nuxt build",
@@ -14,8 +14,8 @@
     "start:test": "node .output/server/index.mjs",
     "start:prod": "node .output/server/index.mjs",
     "start:tunnel": "nuxt dev --tunnel",
-    "start:extern": "HOST=0.0.0.0 nuxt dev",
-    "generate-types": "rm -rf ./src/base && GENERATE_TYPES=1 nuxt dev",
+    "start:extern": "npx cross-env HOST=0.0.0.0 nuxt dev",
+    "generate-types": "npx rimraf ./src/base && npx cross-env GENERATE_TYPES=1 nuxt dev",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -24,7 +24,7 @@
     "test": "echo 'No test specified' && exit 0",
     "lint": "eslint --ext .ts,.js,.vue .",
     "lint:fix": "eslint --ext .ts,.js,.vue . --fix",
-    "postbuild": "cd .output/server/node_modules/tslib; npm pkg set 'exports[.].import.node'='./tslib.es6.mjs'"
+    "postbuild": "node postbuild.js"
   },
   "dependencies": {
     "@egoist/tailwindcss-icons": "1.8.1",
@@ -37,6 +37,7 @@
     "@vueuse/nuxt": "11.1.0",
     "ios-pwa-splash": "1.0.0",
     "pinia": "2.2.4",
+    "rimraf": "6.0.1",
     "tailwind-merge": "2.5.4",
     "vee-validate": "4.14.3"
   },

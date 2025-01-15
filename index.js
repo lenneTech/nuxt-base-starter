@@ -58,7 +58,7 @@ async function create() {
   const npmInstall = spawn('npm', ['install'], { stdio: 'inherit' });
   await waitForSpawn(npmInstall);
 
-  const removeGit = spawn('rm', ['-rf', '.git'], { stdio: 'inherit' });
+  const removeGit = spawn('npx', ['rimraf', '.git'], { stdio: 'inherit' });
   await waitForSpawn(removeGit);
 
   console.log('Success! Your new project is ready. 🎉');
