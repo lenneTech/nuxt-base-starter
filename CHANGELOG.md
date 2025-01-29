@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.10...v0.3.0) (2025-01-29)
+
+
+### Features
+
+* **TEC-33:** Bump eslint/vue to 1.0.3 ([#4](https://github.com/lenneTech/nuxt-base-starter/issues/4)) ([28ad752](https://github.com/lenneTech/nuxt-base-starter/commit/28ad752737318593327370cded573e0060d4571e))
+
+
+### Bug Fixes
+
+* **TEC-20:** fix scripts not working on windows ([#3](https://github.com/lenneTech/nuxt-base-starter/issues/3)) ([c2f4676](https://github.com/lenneTech/nuxt-base-starter/commit/c2f467682be7eb136e158c0820fbb7f33c04559b))
+
 ### [0.2.10](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.9...v0.2.10) (2024-10-22)
 
 
