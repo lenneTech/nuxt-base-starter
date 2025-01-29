@@ -4,9 +4,9 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
   setLocale({
     // use constant translation keys for messages without values
     mixed: {
-      required: 'Dieses Feld ist erforderlich.',
       default: 'Dieses Feld ist ungültig.',
       notType: 'Dieses Feld ist ungültig.',
+      required: 'Dieses Feld ist erforderlich.',
     },
     string: {
       email: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.',

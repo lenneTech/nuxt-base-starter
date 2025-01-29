@@ -27,9 +27,7 @@ export function useFormHelper() {
           close();
         },
         data: {
-          text:
-            'Sind  Sie sich sicher, dass Sie den Vorgang abbrechen möchten?\n' +
-            'Es befinden sich ungesicherte Daten auf dieser Seite.',
+          text: 'Sind  Sie sich sicher, dass Sie den Vorgang abbrechen möchten?\n' + 'Es befinden sich ungesicherte Daten auf dieser Seite.',
           title: 'Vorsicht, ungesicherte Daten!',
         },
       });

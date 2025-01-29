@@ -1,19 +1,19 @@
 interface Modal<T> {
-  component: any;
-  data?: T;
-  size?: 'sm' | 'md' | 'lg' | 'auto';
   closable?: boolean;
+  component: any;
   confirm?: (confirmed: boolean) => void;
+  data?: T;
+  size?: 'auto' | 'lg' | 'md' | 'sm';
 }
 
 export interface ModalContext<T = object> {
+  closable?: boolean;
   component: any;
+  confirm?: (confirmed: boolean) => void;
   data?: T;
   show: boolean;
   showInner: boolean;
-  size?: 'sm' | 'md' | 'lg' | 'auto';
-  closable?: boolean;
-  confirm?: (confirmed: boolean) => void;
+  size?: 'auto' | 'lg' | 'md' | 'sm';
 }
 
 const modalState = <T>() => useState<ModalContext<T> | null>(() => null);
@@ -78,7 +78,7 @@ export function useModal<T = object>() {
 
   return {
     activeModal: modal,
-    open,
     close,
+    open,
   };
 }
