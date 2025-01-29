@@ -1,10 +1,10 @@
 import { randomUUID } from 'uncrypto';
 
 interface Notification {
-  title: string;
-  text?: string;
-  type: 'success' | 'error' | 'warning' | 'info';
   duration?: number;
+  text?: string;
+  title: string;
+  type: 'error' | 'info' | 'success' | 'warning';
 }
 
 const notificationState = () => useState<Array<Notification & { uuid: string }>>(() => []);
@@ -22,8 +22,8 @@ export function useNotification() {
   };
 
   return {
+    notifications,
     notify,
     remove,
-    notifications,
   };
 }

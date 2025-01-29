@@ -22,7 +22,7 @@ watch(
     if (current.values().next().value && !debugWord.value.includes(current.values().next().value)) {
       debugWord.value += current.values().next().value;
     }
-  }
+  },
 );
 
 const handleError = () => clearError({ redirect: '/' });
