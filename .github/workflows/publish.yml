@@ -13,15 +13,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Use Node.js 18
-        uses: actions/setup-node@v1
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Use Node LTS ✨
+        uses: actions/setup-node@v4
         with:
-          node-version: 18.14.1
-      - run: npm install
-      - uses: JS-DevTools/npm-publish@v1
+          node-version: lts/*
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      - name: Install dependencies 📦️
+        run: pnpm install --frozen-lockfile
+
+      - name: Build 🔨
+        run: pnpm build
+
+      - uses: simenandre/publish-with-pnpm@v2
         with:
-          access: public
-          token: ${{ secrets.NPM_TOKEN }}
+          npm-auth-token: ${{ secrets.NPM_TOKEN }}
+
       - name: Deploy notification
         if: always()
         uses: adamkdean/simple-slack-notify@master

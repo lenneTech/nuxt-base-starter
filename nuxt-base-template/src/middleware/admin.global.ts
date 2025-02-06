@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware((to) => {
   const { currentUserState } = useAuthState();
 
   if (to.fullPath.startsWith('/app/admin')) {

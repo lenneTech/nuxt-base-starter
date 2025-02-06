@@ -1,6 +1,6 @@
 import { setLocale } from 'yup';
 
-export default defineNuxtPlugin(async (_nuxtApp) => {
+export default defineNuxtPlugin(async () => {
   setLocale({
     // use constant translation keys for messages without values
     mixed: {

@@ -3,12 +3,16 @@
   "version": "0.3.0",
   "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, @lenne.tech/nuxt-base, Unit Tests, Cypress etc.",
   "main": "index.js",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
   "bin": {
     "create-nuxt-base": "./index.js"
   },
   "scripts": {
     "prettier": "prettier \"*.{js,json,yml,md,html,ts}\" .",
-    "format": "npm run prettier -- --write",
+    "format": "pnpm prettier -- --write",
     "release": "standard-version && git push --follow-tags origin main",
     "release:minor": "standard-version --release-as minor && git push --follow-tags origin main",
     "release:major": "standard-version --release-as major && git push --follow-tags origin main"
@@ -16,11 +20,11 @@
   "author": "lenne.Tech GmbH",
   "license": "MIT",
   "dependencies": {
-    "cross-spawn": "7.0.3",
-    "fs-extra": "11.2.0"
+    "cross-spawn": "7.0.6",
+    "fs-extra": "11.3.0"
   },
   "devDependencies": {
-    "prettier": "3.3.3",
+    "prettier": "3.4.2",
     "standard-version": "9.5.0"
   }
 }

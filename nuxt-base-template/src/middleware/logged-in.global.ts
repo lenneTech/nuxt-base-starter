@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware((to) => {
   const { accessTokenState } = useAuthState();
 
   if (to.fullPath === '/auth' || to.fullPath === '/auth/register') {

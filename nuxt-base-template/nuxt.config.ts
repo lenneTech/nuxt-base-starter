@@ -1,42 +1,15 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from '@tailwindcss/vite'
+
 export default defineNuxtConfig({
-  app: {
-    head: {
-      title: 'Nuxt Base Starter',
-      viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
-    },
-  },
+  ssr: true,
 
-  colorMode: {
-    classSuffix: '',
-  },
+  spaLoadingTemplate: false,
 
-  compatibilityDate: '2024-09-05',
-
-  devServer: {
-    port: 3001,
-  },
-
-  experimental: {
-    asyncContext: true,
-    renderJsonPayloads: false,
-    typedPages: true,
-  },
-
-  image: {
-    ipx: {
-      maxAge: 2592000,
-    },
-    provider: 'ipx',
-  },
-
-  imports: {
-    dirs: ['./states', './stores', './forms', './interfaces', './base', './plugins'],
-  },
+  srcDir: './src',
 
   modules: [
     '@nuxt/test-utils/module',
-    '@nuxtjs/tailwindcss',
     '@lenne.tech/nuxt-base',
     '@vueuse/nuxt',
     '@nuxtjs/google-fonts',
@@ -47,6 +20,35 @@ export default defineNuxtConfig({
     '@nuxtjs/plausible',
   ],
 
+  css: ['~/assets/css/tailwind.css'],
+
+  vite: {
+    plugins: [tailwindcss()],
+  },
+
+  plausible: {
+    apiHost: '',
+  },
+
+  compatibilityDate: '2024-09-05',
+
+  experimental: {
+    asyncContext: true,
+    renderJsonPayloads: false,
+    typedPages: true,
+  },
+
+  sitemap: {
+    exclude: ['/app/**'],
+  },
+
+  image: {
+    ipx: {
+      maxAge: 2592000,
+    },
+    provider: 'ipx',
+  },
+
   nuxtBase: {
     generateTypes: process.env['GENERATE_TYPES'] === '1',
     gqlHost: process.env.API_URL + '/graphql',
@@ -55,8 +57,11 @@ export default defineNuxtConfig({
     storagePrefix: process.env.STORAGE_PREFIX,
   },
 
-  plausible: {
-    apiHost: '',
+  app: {
+    head: {
+      title: 'Nuxt Base Starter',
+      viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
+    },
   },
 
   runtimeConfig: {
@@ -67,13 +72,13 @@ export default defineNuxtConfig({
     },
   },
 
-  sitemap: {
-    exclude: ['/app/**'],
+  devServer: {
+    port: 3001,
   },
 
-  spaLoadingTemplate: false,
-
-  srcDir: './src',
+  colorMode: {
+    classSuffix: '',
+  },
 
   // googleFonts: {
   //   families: {
@@ -85,7 +90,9 @@ export default defineNuxtConfig({
   //   stylePath: '~/assets/css/fonts.css',
   // },
 
-  ssr: true,
+  imports: {
+    dirs: ['./states', './stores', './forms', './interfaces', './base', './plugins'],
+  },
 
   telemetry: false,
 });

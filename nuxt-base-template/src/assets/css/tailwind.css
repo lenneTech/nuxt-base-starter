@@ -1,4 +1,52 @@
-@tailwind base;
+@import 'tailwindcss';
+
+@config "../../../tailwind.config.js";
+
+@plugin '@tailwindcss/typography';
+@plugin '@tailwindcss/forms';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-primary-50: #f3faf7;
+  --color-primary-100: #d6f1e7;
+  --color-primary-200: #ade2d0;
+  --color-primary-300: #7cccb3;
+  --color-primary-400: #57b39a;
+  --color-primary-500: #37957d;
+  --color-primary-600: #2a7765;
+  --color-primary-700: #256052;
+  --color-primary-800: #224d45;
+  --color-primary-900: #20413a;
+  --color-primary-950: #0d2621;
+  --color-primary: #57b39a;
+
+  --color-background: #ffffff;
+  --color-foreground: #000000;
+  --color-border: hsl(0 0% 0% / 0.5);
+  --color-hover: hsl(0 0% 100% / 0.2);
+  --color-active: hsl(0 0% 100% / 0.2);
+
+  --breakpoint-3xl: 2400px;
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
 
 @layer base {
   body {
@@ -35,9 +83,6 @@
     @apply text-[15px] leading-[140%] lg:text-[18px] lg:leading-[140%];
   }
 }
-
-@tailwind components;
-@tailwind utilities;
 
 html,
 body {

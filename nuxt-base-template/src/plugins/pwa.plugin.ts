@@ -1,4 +1,4 @@
-export default defineNuxtPlugin(async (_nuxtApp) => {
+export default defineNuxtPlugin(async () => {
   const applicationServerKey = useRuntimeConfig().public.webPushKey as string;
   const permissionState = ref<PermissionState>('prompt');
   const subscription = ref<PushSubscription | null>(null);
@@ -25,7 +25,9 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
         body,
         method: 'POST',
       });
-    } catch (error) {}
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async function refreshPermissionState() {
@@ -35,8 +37,8 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
         applicationServerKey,
         userVisibleOnly: true,
       });
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
     }
   }
 
@@ -62,7 +64,9 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
           body,
           method: 'DELETE',
         });
-      } catch (error) {}
+      } catch (e) {
+        console.error(e);
+      }
       subscription.value = null;
     }
   }

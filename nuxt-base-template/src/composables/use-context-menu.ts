@@ -1,7 +1,7 @@
-const contextMenuState = <T>() => useState<any | null>(() => null);
+const contextMenuState = () => useState<any | null>(() => null);
 
-export function useContextMenu<T = object>() {
-  const menu = contextMenuState<T>();
+export function useContextMenu() {
+  const menu = contextMenuState();
 
   const open = (config: { items: any[] }) => {
     menu.value = Object.assign(config, { show: true });
