@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.5](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.4...v0.3.5) (2025-02-06)
+
+
+### Bug Fixes
+
+* **TEC-46:** Ensure .gitignore is copied during setup ([f579ce0](https://github.com/lenneTech/nuxt-base-starter/commit/f579ce0d59c7ffc2da8e4c50c3405fefaf181ede))
+
 ### [0.3.4](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.3...v0.3.4) (2025-02-06)
 
 
