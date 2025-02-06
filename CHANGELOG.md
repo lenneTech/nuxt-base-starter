@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.0...v0.3.1) (2025-02-06)
+
+
+### Features
+
+* Update to tailwind v4 and change from npm to pnpm ([7457db9](https://github.com/lenneTech/nuxt-base-starter/commit/7457db9ac296ace89e39b4e7e916ee8d25c2eda7))
+
 ## [0.3.0](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.10...v0.3.0) (2025-01-29)
 
 
