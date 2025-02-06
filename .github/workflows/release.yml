@@ -11,11 +11,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 3
+
       - name: Create release notes
         run: diff --changed-group-format='%>' --unchanged-group-format='' <( git show HEAD~1:CHANGELOG.md ) CHANGELOG.md > RELEASE_NOTES.md || true
+
       - uses: ncipollo/release-action@v1
         with:
           bodyFile: 'RELEASE_NOTES.md'
