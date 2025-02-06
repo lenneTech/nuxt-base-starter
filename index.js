@@ -39,6 +39,9 @@ async function create() {
 
   await copyFiles(__dirname + '/nuxt-base-template', projectDir);
 
+  // Copy .gitignore
+  await copyFiles(__dirname + '/nuxt-base-template/.gitignore', projectDir + '/.gitignore');
+
   // Copy .env
   await copyFiles(__dirname + '/nuxt-base-template/.env.example', projectDir + '/.env');
 
