@@ -37,13 +37,17 @@ async function create() {
     process.exit(-1);
   }
 
-  await copyFiles(__dirname + '/nuxt-base-template', projectDir);
+  await copyFiles(__dirname + '/nuxt-base-template', projectDir, 'Copied nuxt base template successfully!');
 
   // Copy .gitignore
-  await copyFiles(__dirname + '/nuxt-base-template/.gitignore', projectDir + '/.gitignore');
+  await writeFile(
+    projectDir + '/.gitignore',
+    await getRemoteContent('https://raw.githubusercontent.com/lenneTech/nuxt-base-starter/refs/heads/main/nuxt-base-template/.gitignore'),
+    'Copied .gitignore successfully!'
+  );
 
   // Copy .env
-  await copyFiles(__dirname + '/nuxt-base-template/.env.example', projectDir + '/.env');
+  await copyFiles(__dirname + '/nuxt-base-template/.env.example', projectDir + '/.env', 'Copied .env successfully!');
 
   const projectPackageJson = require(path.join(projectDir, 'package.json'));
 
@@ -113,15 +117,48 @@ function waitForChildProcess(process) {
   });
 }
 
-async function copyFiles(from, to) {
+async function copyFiles(from, to, msg) {
   const fse = require('fs-extra');
   try {
     await fse.copy(from, to);
-    console.log('Copied nuxt base template successfully!');
+    console.log(msg);
   } catch (err) {
     console.error(err);
     process.exit(-1);
   }
+}
+
+async function writeFile(path, content, msg) {
+  try {
+    const fs = require('node:fs');
+    await fs.writeFile(path, content, (err) => err && console.error(err));
+    console.log(msg);
+  } catch (error) {
+    console.error(`Failed to write to ${path}:`, error);
+    process.exit(-1);
+  }
+}
+
+async function getRemoteContent(url) {
+  const https = require('node:https');
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          resolve(data);
+        } else {
+          reject(new Error(`Failed to fetch content: ${res.statusCode} ${res.statusMessage}`));
+        }
+      });
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
+
 }
 
 function getPackageData(packageName) {
