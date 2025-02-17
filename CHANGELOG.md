@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.7](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.6...v0.3.7) (2025-02-17)
+
+
+### Bug Fixes
+
+* change commands from npm to pnpm ([0e513ee](https://github.com/lenneTech/nuxt-base-starter/commit/0e513eeb14c122cdbeb76fb2344ac60dd731d8bd))
+
 ### [0.3.6](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.5...v0.3.6) (2025-02-17)
 
 
