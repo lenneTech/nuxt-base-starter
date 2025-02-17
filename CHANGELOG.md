@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.6](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.5...v0.3.6) (2025-02-17)
+
+
+### Bug Fixes
+
+* **DEV-55:** Add remote .gitignore and custom messages ([cd8ca5c](https://github.com/lenneTech/nuxt-base-starter/commit/cd8ca5c92905c87c794703434c4b555c3cbd60e5))
+* **DEV-56:** Postbuild hook stopping process ([ee93a71](https://github.com/lenneTech/nuxt-base-starter/commit/ee93a7146c08cb4c4e70f2454e56bfcb3e1435ed))
+
 ### [0.3.5](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.4...v0.3.5) (2025-02-06)
 
 
