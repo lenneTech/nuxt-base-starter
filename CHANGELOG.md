@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.9](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.8...v0.3.9) (2025-02-17)
+
+
+### Bug Fixes
+
+* add missing .npmrc ([47f9bab](https://github.com/lenneTech/nuxt-base-starter/commit/47f9bab4920153fb711ac0fdba43811295e33d82))
+
 ### [0.3.8](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.7...v0.3.8) (2025-02-17)
 
 
