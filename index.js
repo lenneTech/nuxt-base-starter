@@ -46,6 +46,13 @@ async function create() {
     'Copied .gitignore successfully!'
   );
 
+  // Copy .npmrc
+  await writeFile(
+      projectDir + '/.npmrc',
+      await getRemoteContent('https://raw.githubusercontent.com/lenneTech/nuxt-base-starter/refs/heads/main/nuxt-base-template/.npmrc'),
+      'Copied .npmrc successfully!'
+  );
+
   // Copy .env
   await copyFiles(__dirname + '/nuxt-base-template/.env.example', projectDir + '/.env', 'Copied .env successfully!');
 
