@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.10](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.9...v0.3.10) (2025-02-20)
+
+
+### Bug Fixes
+
+* Fix tailwind error, build error and add dayjs and seo modules ([b1cf768](https://github.com/lenneTech/nuxt-base-starter/commit/b1cf7688091d02a09619c9524376481d286b5b5b))
+
 ### [0.3.9](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.8...v0.3.9) (2025-02-17)
 
 
