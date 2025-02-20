@@ -27,8 +27,7 @@
     "app:e2e": "playwright test",
     "test": "echo 'No test specified' && exit 0",
     "lint": "eslint 'src/**/*.{ts,js,vue}'",
-    "lint:fix": "eslint 'src/**/*.{ts,js,vue}' --fix",
-    "postbuild": "node postbuild.js"
+    "lint:fix": "eslint 'src/**/*.{ts,js,vue}' --fix"
   },
   "dependencies": {
     "@egoist/tailwindcss-icons": "1.9.0",
@@ -52,8 +51,7 @@
     "@nuxtjs/color-mode": "3.5.2",
     "@nuxtjs/google-fonts": "3.2.0",
     "@nuxtjs/plausible": "1.2.0",
-    "@nuxtjs/robots": "5.2.2",
-    "@nuxtjs/sitemap": "7.2.5",
+    "@nuxtjs/seo": "2.2.0",
     "@nuxtjs/tailwindcss": "6.13.1",
     "@playwright/test": "1.50.1",
     "@tailwindcss/forms": "0.5.10",
@@ -61,6 +59,7 @@
     "@tailwindcss/typography": "0.5.16",
     "@types/node": "22.13.4",
     "@vitejs/plugin-vue": "5.2.1",
+    "dayjs-nuxt": "2.1.11",
     "@vue/test-utils": "2.4.6",
     "eslint": "9.20.1",
     "jsdom": "26.0.0",

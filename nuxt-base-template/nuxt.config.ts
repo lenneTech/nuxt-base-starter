@@ -44,11 +44,22 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/google-fonts',
     '@nuxtjs/color-mode',
+    'dayjs-nuxt',
     '@nuxt/image',
-    '@nuxtjs/robots',
-    '@nuxtjs/sitemap',
     '@nuxtjs/plausible',
+    '@nuxtjs/seo',
   ],
+
+  // sets the default renderer to chromium
+  ogImage: {
+    defaults: {
+      renderer: 'chromium',
+    },
+  },
+
+  robots: {
+    disallow: ['/app', '/auth', '/admin'],
+  },
 
   nuxtBase: {
     disableGraphql: false,
@@ -72,7 +83,12 @@ export default defineNuxtConfig({
   },
 
   sitemap: {
-    exclude: ['/app/**'],
+    exclude: ['/app/**', '/auth/**'],
+  },
+
+  site: {
+    name: 'Nuxt Base Starter',
+    url: process.env.SITE_URL,
   },
 
   spaLoadingTemplate: false,
@@ -94,6 +110,9 @@ export default defineNuxtConfig({
   telemetry: false,
 
   vite: {
+    build: {
+      cssMinify: 'lightningcss',
+    },
     plugins: [tailwindcss()],
   },
 });
