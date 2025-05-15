@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.11](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.10...v0.3.11) (2025-05-15)
+
+
+### Bug Fixes
+
+* Update dependencies and upgrade prettier to 3.5.3 ([90bdc13](https://github.com/lenneTech/nuxt-base-starter/commit/90bdc13942b222431d624ae8fda5ba3b35fe5edc))
+* Update dependencies to latest versions ([6f0dd69](https://github.com/lenneTech/nuxt-base-starter/commit/6f0dd696965642324e2fb4e00b2ce66ae371c833))
+
 ### [0.3.10](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.9...v0.3.10) (2025-02-20)
 
 
