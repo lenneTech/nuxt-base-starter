@@ -29,7 +29,6 @@ export default defineConfig<ConfigOptions>({
   /* Retry on CI only */
   retries: isCI ? 2 : 0,
   testDir: './tests',
-  timeout: 5 * 60 * 1000,
   timeout: isWindows ? 60000 : undefined,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {

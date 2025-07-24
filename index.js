@@ -43,14 +43,14 @@ async function create() {
   await writeFile(
     projectDir + '/.gitignore',
     await getRemoteContent('https://raw.githubusercontent.com/lenneTech/nuxt-base-starter/refs/heads/main/nuxt-base-template/.gitignore'),
-    'Copied .gitignore successfully!'
+    'Copied .gitignore successfully!',
   );
 
   // Copy .npmrc
   await writeFile(
-      projectDir + '/.npmrc',
-      await getRemoteContent('https://raw.githubusercontent.com/lenneTech/nuxt-base-starter/refs/heads/main/nuxt-base-template/.npmrc'),
-      'Copied .npmrc successfully!'
+    projectDir + '/.npmrc',
+    await getRemoteContent('https://raw.githubusercontent.com/lenneTech/nuxt-base-starter/refs/heads/main/nuxt-base-template/.npmrc'),
+    'Copied .npmrc successfully!',
   );
 
   // Copy .env
@@ -149,23 +149,24 @@ async function writeFile(path, content, msg) {
 async function getRemoteContent(url) {
   const https = require('node:https');
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', (chunk) => {
-        data += chunk;
+    https
+      .get(url, (res) => {
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        res.on('end', () => {
+          if (res.statusCode === 200) {
+            resolve(data);
+          } else {
+            reject(new Error(`Failed to fetch content: ${res.statusCode} ${res.statusMessage}`));
+          }
+        });
+      })
+      .on('error', (err) => {
+        reject(err);
       });
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          resolve(data);
-        } else {
-          reject(new Error(`Failed to fetch content: ${res.statusCode} ${res.statusMessage}`));
-        }
-      });
-    }).on('error', (err) => {
-      reject(err);
-    });
   });
-
 }
 
 function getPackageData(packageName) {

@@ -1,7 +1,7 @@
 export default defineNuxtPlugin(async () => {
   const applicationServerKey = useRuntimeConfig().public.webPushKey as string;
   const permissionState = ref<PermissionState>('prompt');
-  const subscription = ref<PushSubscription | null>(null);
+  const subscription = ref<null | PushSubscription>(null);
 
   if (process.client) {
     const iosPWASplash = (await import('ios-pwa-splash')).default;

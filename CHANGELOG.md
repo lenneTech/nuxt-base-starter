@@ -4,164 +4,141 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [0.3.11](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.10...v0.3.11) (2025-05-15)
 
-
 ### Bug Fixes
 
-* Update dependencies and upgrade prettier to 3.5.3 ([90bdc13](https://github.com/lenneTech/nuxt-base-starter/commit/90bdc13942b222431d624ae8fda5ba3b35fe5edc))
-* Update dependencies to latest versions ([6f0dd69](https://github.com/lenneTech/nuxt-base-starter/commit/6f0dd696965642324e2fb4e00b2ce66ae371c833))
+- Update dependencies and upgrade prettier to 3.5.3 ([90bdc13](https://github.com/lenneTech/nuxt-base-starter/commit/90bdc13942b222431d624ae8fda5ba3b35fe5edc))
+- Update dependencies to latest versions ([6f0dd69](https://github.com/lenneTech/nuxt-base-starter/commit/6f0dd696965642324e2fb4e00b2ce66ae371c833))
 
 ### [0.3.10](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.9...v0.3.10) (2025-02-20)
 
-
 ### Bug Fixes
 
-* Fix tailwind error, build error and add dayjs and seo modules ([b1cf768](https://github.com/lenneTech/nuxt-base-starter/commit/b1cf7688091d02a09619c9524376481d286b5b5b))
+- Fix tailwind error, build error and add dayjs and seo modules ([b1cf768](https://github.com/lenneTech/nuxt-base-starter/commit/b1cf7688091d02a09619c9524376481d286b5b5b))
 
 ### [0.3.9](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.8...v0.3.9) (2025-02-17)
 
-
 ### Bug Fixes
 
-* add missing .npmrc ([47f9bab](https://github.com/lenneTech/nuxt-base-starter/commit/47f9bab4920153fb711ac0fdba43811295e33d82))
+- add missing .npmrc ([47f9bab](https://github.com/lenneTech/nuxt-base-starter/commit/47f9bab4920153fb711ac0fdba43811295e33d82))
 
 ### [0.3.8](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.7...v0.3.8) (2025-02-17)
 
-
 ### Features
 
-* update packages ([786c54c](https://github.com/lenneTech/nuxt-base-starter/commit/786c54c26a074d8cef31805fe5d7737f2a966d35))
+- update packages ([786c54c](https://github.com/lenneTech/nuxt-base-starter/commit/786c54c26a074d8cef31805fe5d7737f2a966d35))
 
 ### [0.3.7](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.6...v0.3.7) (2025-02-17)
 
-
 ### Bug Fixes
 
-* change commands from npm to pnpm ([0e513ee](https://github.com/lenneTech/nuxt-base-starter/commit/0e513eeb14c122cdbeb76fb2344ac60dd731d8bd))
+- change commands from npm to pnpm ([0e513ee](https://github.com/lenneTech/nuxt-base-starter/commit/0e513eeb14c122cdbeb76fb2344ac60dd731d8bd))
 
 ### [0.3.6](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.5...v0.3.6) (2025-02-17)
 
-
 ### Bug Fixes
 
-* **DEV-55:** Add remote .gitignore and custom messages ([cd8ca5c](https://github.com/lenneTech/nuxt-base-starter/commit/cd8ca5c92905c87c794703434c4b555c3cbd60e5))
-* **DEV-56:** Postbuild hook stopping process ([ee93a71](https://github.com/lenneTech/nuxt-base-starter/commit/ee93a7146c08cb4c4e70f2454e56bfcb3e1435ed))
+- **DEV-55:** Add remote .gitignore and custom messages ([cd8ca5c](https://github.com/lenneTech/nuxt-base-starter/commit/cd8ca5c92905c87c794703434c4b555c3cbd60e5))
+- **DEV-56:** Postbuild hook stopping process ([ee93a71](https://github.com/lenneTech/nuxt-base-starter/commit/ee93a7146c08cb4c4e70f2454e56bfcb3e1435ed))
 
 ### [0.3.5](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.4...v0.3.5) (2025-02-06)
 
-
 ### Bug Fixes
 
-* **TEC-46:** Ensure .gitignore is copied during setup ([f579ce0](https://github.com/lenneTech/nuxt-base-starter/commit/f579ce0d59c7ffc2da8e4c50c3405fefaf181ede))
+- **TEC-46:** Ensure .gitignore is copied during setup ([f579ce0](https://github.com/lenneTech/nuxt-base-starter/commit/f579ce0d59c7ffc2da8e4c50c3405fefaf181ede))
 
 ### [0.3.4](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.3...v0.3.4) (2025-02-06)
 
-
 ### Bug Fixes
 
-* fix build command in action ([aad99db](https://github.com/lenneTech/nuxt-base-starter/commit/aad99dbd0381ab22b952d1238e5590124c2f212e))
+- fix build command in action ([aad99db](https://github.com/lenneTech/nuxt-base-starter/commit/aad99dbd0381ab22b952d1238e5590124c2f212e))
 
 ### [0.3.3](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.2...v0.3.3) (2025-02-06)
 
-
 ### Bug Fixes
 
-* fix build command in action ([090f190](https://github.com/lenneTech/nuxt-base-starter/commit/090f19019331e9d5b00754c8d0d502dfa60b765c))
+- fix build command in action ([090f190](https://github.com/lenneTech/nuxt-base-starter/commit/090f19019331e9d5b00754c8d0d502dfa60b765c))
 
 ### [0.3.2](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.1...v0.3.2) (2025-02-06)
 
-
 ### Bug Fixes
 
-* adjust github action versions ([fd59c6d](https://github.com/lenneTech/nuxt-base-starter/commit/fd59c6d024196045f1c561cfd6d97ec78d5b2ff3))
+- adjust github action versions ([fd59c6d](https://github.com/lenneTech/nuxt-base-starter/commit/fd59c6d024196045f1c561cfd6d97ec78d5b2ff3))
 
 ### [0.3.1](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.0...v0.3.1) (2025-02-06)
 
-
 ### Features
 
-* Update to tailwind v4 and change from npm to pnpm ([7457db9](https://github.com/lenneTech/nuxt-base-starter/commit/7457db9ac296ace89e39b4e7e916ee8d25c2eda7))
+- Update to tailwind v4 and change from npm to pnpm ([7457db9](https://github.com/lenneTech/nuxt-base-starter/commit/7457db9ac296ace89e39b4e7e916ee8d25c2eda7))
 
 ## [0.3.0](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.10...v0.3.0) (2025-01-29)
 
-
 ### Features
 
-* **TEC-33:** Bump eslint/vue to 1.0.3 ([#4](https://github.com/lenneTech/nuxt-base-starter/issues/4)) ([28ad752](https://github.com/lenneTech/nuxt-base-starter/commit/28ad752737318593327370cded573e0060d4571e))
-
+- **TEC-33:** Bump eslint/vue to 1.0.3 ([#4](https://github.com/lenneTech/nuxt-base-starter/issues/4)) ([28ad752](https://github.com/lenneTech/nuxt-base-starter/commit/28ad752737318593327370cded573e0060d4571e))
 
 ### Bug Fixes
 
-* **TEC-20:** fix scripts not working on windows ([#3](https://github.com/lenneTech/nuxt-base-starter/issues/3)) ([c2f4676](https://github.com/lenneTech/nuxt-base-starter/commit/c2f467682be7eb136e158c0820fbb7f33c04559b))
+- **TEC-20:** fix scripts not working on windows ([#3](https://github.com/lenneTech/nuxt-base-starter/issues/3)) ([c2f4676](https://github.com/lenneTech/nuxt-base-starter/commit/c2f467682be7eb136e158c0820fbb7f33c04559b))
 
 ### [0.2.10](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.9...v0.2.10) (2024-10-22)
 
-
 ### Bug Fixes
 
-* fix wrong variables and update packages ([a78a8d6](https://github.com/lenneTech/nuxt-base-starter/commit/a78a8d60c47718684781844f5a6a32765c3dca6f))
+- fix wrong variables and update packages ([a78a8d6](https://github.com/lenneTech/nuxt-base-starter/commit/a78a8d60c47718684781844f5a6a32765c3dca6f))
 
 ### [0.2.9](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.8...v0.2.9) (2024-10-18)
 
-
 ### Bug Fixes
 
-* fix e2e test handling and update packages ([54237a9](https://github.com/lenneTech/nuxt-base-starter/commit/54237a9a3d3cac617fc36de1a2f47dfb50ca9ba9))
-* fix wrong env variable in plugin ([c0f9716](https://github.com/lenneTech/nuxt-base-starter/commit/c0f9716ceb366d0e196ddd30adf2468d887284e7))
+- fix e2e test handling and update packages ([54237a9](https://github.com/lenneTech/nuxt-base-starter/commit/54237a9a3d3cac617fc36de1a2f47dfb50ca9ba9))
+- fix wrong env variable in plugin ([c0f9716](https://github.com/lenneTech/nuxt-base-starter/commit/c0f9716ceb366d0e196ddd30adf2468d887284e7))
 
 ### [0.2.8](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.7...v0.2.8) (2024-09-30)
 
-
 ### Bug Fixes
 
-* fix e2e test handling and update packages ([71a4d67](https://github.com/lenneTech/nuxt-base-starter/commit/71a4d67c2ed5394ae4d9ed5b2171207bcc1ed972))
+- fix e2e test handling and update packages ([71a4d67](https://github.com/lenneTech/nuxt-base-starter/commit/71a4d67c2ed5394ae4d9ed5b2171207bcc1ed972))
 
 ### [0.2.7](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.6...v0.2.7) (2024-09-05)
 
-
 ### Features
 
-* update packages ([cc016ed](https://github.com/lenneTech/nuxt-base-starter/commit/cc016ed1e492cc0209f657ff58cdd0bdb8f22c58))
+- update packages ([cc016ed](https://github.com/lenneTech/nuxt-base-starter/commit/cc016ed1e492cc0209f657ff58cdd0bdb8f22c58))
 
 ### [0.2.6](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.5...v0.2.6) (2024-09-02)
 
-
 ### Features
 
-* update packages ([282e866](https://github.com/lenneTech/nuxt-base-starter/commit/282e866e323999eeb58be7edcd8d2f4b560da612))
+- update packages ([282e866](https://github.com/lenneTech/nuxt-base-starter/commit/282e866e323999eeb58be7edcd8d2f4b560da612))
 
 ### [0.2.5](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.4...v0.2.5) (2024-07-01)
 
-
 ### Features
 
-* add useFormHelper ([af4323d](https://github.com/lenneTech/nuxt-base-starter/commit/af4323d821df736d016ac34b5d7f0fd4072e8092))
-* update packages ([b4cf384](https://github.com/lenneTech/nuxt-base-starter/commit/b4cf38415e5471ac100eba0eb05054dce2c9bd4d))
+- add useFormHelper ([af4323d](https://github.com/lenneTech/nuxt-base-starter/commit/af4323d821df736d016ac34b5d7f0fd4072e8092))
+- update packages ([b4cf384](https://github.com/lenneTech/nuxt-base-starter/commit/b4cf38415e5471ac100eba0eb05054dce2c9bd4d))
 
 ### [0.2.4](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.3...v0.2.4) (2024-05-29)
 
 ### [0.2.3](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.2...v0.2.3) (2024-02-20)
 
-
 ### Features
 
-* Remove components because of new cli components command ([6380979](https://github.com/lenneTech/nuxt-base-starter/commit/6380979ba7ca46ce6058f4e1dea4e511d1d0ea9d))
-
+- Remove components because of new cli components command ([6380979](https://github.com/lenneTech/nuxt-base-starter/commit/6380979ba7ca46ce6058f4e1dea4e511d1d0ea9d))
 
 ### Bug Fixes
 
-* fix scripts ([107aa14](https://github.com/lenneTech/nuxt-base-starter/commit/107aa1459f327543bfad03b236f9dc6cdbbc52f6))
+- fix scripts ([107aa14](https://github.com/lenneTech/nuxt-base-starter/commit/107aa1459f327543bfad03b236f9dc6cdbbc52f6))
 
 ### [0.2.2](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.1...v0.2.2) (2024-02-19)
 
-
 ### Features
 
-* update packages ([442eb2d](https://github.com/lenneTech/nuxt-base-starter/commit/442eb2d83ba0c01159440685d7dbcc63aefb08e6))
-
+- update packages ([442eb2d](https://github.com/lenneTech/nuxt-base-starter/commit/442eb2d83ba0c01159440685d7dbcc63aefb08e6))
 
 ### Bug Fixes
 
-* fix missing div before layout to prevent errors ([626dc2b](https://github.com/lenneTech/nuxt-base-starter/commit/626dc2b82e7c955eda57572ec59b14a5049b4bd5))
+- fix missing div before layout to prevent errors ([626dc2b](https://github.com/lenneTech/nuxt-base-starter/commit/626dc2b82e7c955eda57572ec59b14a5049b4bd5))
 
 ### [0.2.1](https://github.com/lenneTech/nuxt-base-starter/compare/v0.2.0...v0.2.1) (2024-02-02)
 

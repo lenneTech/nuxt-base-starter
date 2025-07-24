@@ -1,11 +1,3 @@
-interface Modal<T> {
-  closable?: boolean;
-  component: any;
-  confirm?: (confirmed: boolean) => void;
-  data?: T;
-  size?: 'auto' | 'lg' | 'md' | 'sm';
-}
-
 export interface ModalContext<T = object> {
   closable?: boolean;
   component: any;
@@ -13,6 +5,14 @@ export interface ModalContext<T = object> {
   data?: T;
   show: boolean;
   showInner: boolean;
+  size?: 'auto' | 'lg' | 'md' | 'sm';
+}
+
+interface Modal<T> {
+  closable?: boolean;
+  component: any;
+  confirm?: (confirmed: boolean) => void;
+  data?: T;
   size?: 'auto' | 'lg' | 'md' | 'sm';
 }
 

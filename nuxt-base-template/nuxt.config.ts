@@ -71,7 +71,8 @@ export default defineNuxtConfig({
   },
 
   plausible: {
-    apiHost: '',
+    apiHost: process.env.PLAUSIBLE_API_URL,
+    ignoredHostnames: ['localhost'],
   },
 
   runtimeConfig: {
@@ -93,19 +94,7 @@ export default defineNuxtConfig({
 
   spaLoadingTemplate: false,
 
-  srcDir: './src',
-
   ssr: true,
-
-  // googleFonts: {
-  //   families: {
-  //     Montserrat: [400, 600, 800, 900],
-  //     'Work Sans': [400, 600, 800, 900],
-  //   },
-  //   download: true,
-  //   base64: true,
-  //   stylePath: '~/assets/css/fonts.css',
-  // },
 
   telemetry: false,
 
