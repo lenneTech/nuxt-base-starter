@@ -10,7 +10,7 @@ export default defineNuxtConfig({
   },
 
   bug: {
-    enabled: process.env.NODE_ENV !== 'production',
+    enabled: process.env.APP_ENV !== 'production',
 
     // Linear Integration
     linearApiKey: process.env.LINEAR_API_KEY,
