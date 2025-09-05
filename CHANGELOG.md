@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.16](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.15...v0.3.16) (2025-09-05)
+
+
+### Bug Fixes
+
+* Update environment variable for bug feature toggle ([d875b3e](https://github.com/lenneTech/nuxt-base-starter/commit/d875b3eb586368499b9e628cdabd2f971e7cce7f))
+
 ### [0.3.15](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.14...v0.3.15) (2025-09-05)
 
 
