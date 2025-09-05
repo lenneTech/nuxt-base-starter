@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.15](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.14...v0.3.15) (2025-09-05)
+
+
+### Features
+
+* Add Linear API configuration and update dependencies ([291adfd](https://github.com/lenneTech/nuxt-base-starter/commit/291adfd8ee6e2c464c4b7c74e4c27531bda3892e))
+
 ### [0.3.14](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.13...v0.3.14) (2025-08-01)
 
 
