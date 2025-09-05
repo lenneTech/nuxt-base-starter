@@ -9,6 +9,15 @@ export default defineNuxtConfig({
     },
   },
 
+  bug: {
+    enabled: process.env.NODE_ENV !== 'production',
+
+    // Linear Integration
+    linearApiKey: process.env.LINEAR_API_KEY,
+    linearProjectName: process.env.LINEAR_PROJECT_NAME,
+    linearTeamName: process.env.LINEAR_TEAM_NAME,
+  },
+
   colorMode: {
     classSuffix: '',
   },
@@ -41,6 +50,7 @@ export default defineNuxtConfig({
   modules: [
     '@nuxt/test-utils/module',
     '@lenne.tech/nuxt-base',
+    '@lenne.tech/bug.lt',
     '@vueuse/nuxt',
     '@nuxtjs/google-fonts',
     '@nuxtjs/color-mode',
@@ -49,17 +59,6 @@ export default defineNuxtConfig({
     '@nuxtjs/plausible',
     '@nuxtjs/seo',
   ],
-
-  // sets the default renderer to chromium
-  ogImage: {
-    defaults: {
-      renderer: 'chromium',
-    },
-  },
-
-  robots: {
-    disallow: ['/app', '/auth', '/admin'],
-  },
 
   nuxtBase: {
     disableGraphql: false,
@@ -70,9 +69,20 @@ export default defineNuxtConfig({
     storagePrefix: process.env.STORAGE_PREFIX,
   },
 
+  // sets the default renderer to chromium
+  ogImage: {
+    defaults: {
+      renderer: 'chromium',
+    },
+  },
+
   plausible: {
     apiHost: process.env.PLAUSIBLE_API_URL,
     ignoredHostnames: ['localhost'],
+  },
+
+  robots: {
+    disallow: ['/app', '/auth', '/admin'],
   },
 
   runtimeConfig: {
@@ -83,13 +93,13 @@ export default defineNuxtConfig({
     },
   },
 
-  sitemap: {
-    exclude: ['/app/**', '/auth/**'],
-  },
-
   site: {
     name: 'Nuxt Base Starter',
     url: process.env.SITE_URL,
+  },
+
+  sitemap: {
+    exclude: ['/app/**', '/auth/**'],
   },
 
   spaLoadingTemplate: false,
