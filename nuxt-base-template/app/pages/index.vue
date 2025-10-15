@@ -1,15 +1,8 @@
 <script lang="ts" setup>
 // ============================================================================
-// Imports
-// ============================================================================
-import { LazyModalBase } from '#components';
-
-// ============================================================================
 // Composables
 // ============================================================================
-const toast = useToast();
-const colorMode = useColorMode();
-const overlay = useOverlay();
+const config = useRuntimeConfig();
 
 // ============================================================================
 // Variables
@@ -40,80 +33,16 @@ const features: Array<{
   },
   {
     color: 'info',
-    description: 'Form validation with VeeValidate and Zod and state management with Pinia.',
+    description: 'Form validation with VeeValidate and Valibot and state management with Pinia.',
     icon: 'i-lucide-check-circle',
     title: 'Production Ready',
   },
 ];
 
-const componentExamples: Array<{
-  code: string;
-  description: string;
-  title: string;
-}> = [
-  {
-    code: '<UButton color="primary" size="md">Click me</UButton>',
-    description: 'Interactive buttons with multiple variants, sizes, and states.',
-    title: 'Buttons',
-  },
-  {
-    code: '<UAlert title="Info" description="This is an alert" />',
-    description: 'Contextual alerts with customizable colors and icons.',
-    title: 'Alerts',
-  },
-  {
-    code: '<UCard><template #header>Title</template>Content</UCard>',
-    description: 'Flexible cards with header, body, and footer slots.',
-    title: 'Cards',
-  },
-];
-
-const modal = overlay.create(LazyModalBase);
-
 // ============================================================================
-// Functions
+// Computed Properties
 // ============================================================================
-async function openModal(): Promise<void> {
-  const instance = modal.open({
-    description: 'This demonstrates the useOverlay composable for programmatic modal control.',
-    title: 'Programmatic Modal',
-  });
-
-  const result = await instance.result;
-
-  if (result) {
-    toast.add({
-      color: 'success',
-      description: 'You confirmed the modal action.',
-      title: 'Confirmed',
-    });
-  } else {
-    toast.add({
-      color: 'neutral',
-      description: 'Modal was dismissed.',
-      title: 'Dismissed',
-    });
-  }
-}
-
-function showToast(type: 'error' | 'info' | 'success' | 'warning'): void {
-  const messages: Record<string, { description: string; title: string }> = {
-    error: { description: 'Something went wrong.', title: 'Error' },
-    info: { description: 'Here is some information.', title: 'Info' },
-    success: { description: 'Your action was successful!', title: 'Success' },
-    warning: { description: 'Please be careful.', title: 'Warning' },
-  };
-
-  toast.add({
-    color: type,
-    description: messages[type].description,
-    title: messages[type].title,
-  });
-}
-
-function toggleColorMode(): void {
-  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
-}
+const isDevelopment = computed<boolean>(() => config.public.appEnv !== 'production');
 </script>
 
 <template>
@@ -165,32 +94,8 @@ function toggleColorMode(): void {
       </div>
     </div>
 
-    <!-- Components Demo Section -->
+    <!-- Getting Started Section -->
     <div class="mx-auto max-w-7xl px-6 py-16 lg:px-8">
-      <div class="mx-auto max-w-2xl text-center mb-16">
-        <h2 class="text-3xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-4xl">Nuxt UI Components</h2>
-        <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-400">Pre-built, customizable components ready to use</p>
-      </div>
-
-      <div class="grid grid-cols-1 gap-8 lg:grid-cols-3 mb-12">
-        <UCard v-for="example in componentExamples" :key="example.title" variant="outline">
-          <template #header>
-            <h3 class="font-semibold text-neutral-900 dark:text-white">
-              {{ example.title }}
-            </h3>
-          </template>
-          <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
-            {{ example.description }}
-          </p>
-          <div class="bg-neutral-100 dark:bg-neutral-900 rounded-lg p-3 mt-4">
-            <code class="text-xs text-neutral-800 dark:text-neutral-300 break-all">
-              {{ example.code }}
-            </code>
-          </div>
-        </UCard>
-      </div>
-
-      <!-- Interactive Examples -->
       <div class="space-y-8">
         <UAlert
           title="Getting Started"
@@ -200,59 +105,22 @@ function toggleColorMode(): void {
           variant="subtle"
         />
 
-        <UCard variant="outline">
+        <!-- Dev Examples Link (only in development) -->
+        <UCard v-if="isDevelopment" variant="outline" class="border-2 border-primary/20">
           <template #header>
-            <h3 class="font-semibold text-neutral-900 dark:text-white">Interactive Examples</h3>
+            <div class="flex items-center gap-3">
+              <UBadge color="warning" variant="subtle" icon="i-lucide-flask-conical"> Development Only </UBadge>
+              <h3 class="font-semibold text-neutral-900 dark:text-white">Interactive Examples</h3>
+            </div>
           </template>
 
-          <div class="space-y-6">
-            <!-- Toast Notifications -->
-            <div>
-              <h4 class="text-sm font-medium text-neutral-900 dark:text-white mb-3">Toast Notifications</h4>
-              <div class="flex flex-wrap gap-2">
-                <UButton color="success" size="sm" @click="showToast('success')"> Success </UButton>
-                <UButton color="error" size="sm" @click="showToast('error')"> Error </UButton>
-                <UButton color="info" size="sm" @click="showToast('info')"> Info </UButton>
-                <UButton color="warning" size="sm" @click="showToast('warning')"> Warning </UButton>
-              </div>
-            </div>
-
-            <USeparator />
-
-            <!-- Color Mode Toggle -->
-            <div>
-              <h4 class="text-sm font-medium text-neutral-900 dark:text-white mb-3">Color Mode</h4>
-              <div class="flex items-center gap-4">
-                <UButton :icon="colorMode.value === 'dark' ? 'i-lucide-sun' : 'i-lucide-moon'" color="neutral" variant="outline" size="sm" @click="toggleColorMode">
-                  Toggle {{ colorMode.value === 'dark' ? 'Light' : 'Dark' }} Mode
-                </UButton>
-                <UBadge :color="colorMode.value === 'dark' ? 'primary' : 'warning'" size="md"> Current: {{ colorMode.value }} </UBadge>
-              </div>
-            </div>
-
-            <USeparator />
-
-            <!-- Badges -->
-            <div>
-              <h4 class="text-sm font-medium text-neutral-900 dark:text-white mb-3">Badges & Variants</h4>
-              <div class="flex flex-wrap gap-2">
-                <UBadge color="primary" variant="solid"> Primary </UBadge>
-                <UBadge color="secondary" variant="solid"> Secondary </UBadge>
-                <UBadge color="success" variant="outline"> Success </UBadge>
-                <UBadge color="error" variant="soft"> Error </UBadge>
-                <UBadge color="info" variant="subtle" icon="i-lucide-info"> Info </UBadge>
-              </div>
-            </div>
-
-            <USeparator />
-
-            <!-- Modal -->
-            <div>
-              <h4 class="text-sm font-medium text-neutral-900 dark:text-white mb-3">Programmatic Modal</h4>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
-                Use the <code class="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-xs">useOverlay()</code> composable to open modals programmatically.
-              </p>
-              <UButton icon="i-lucide-square-dashed-mouse-pointer" color="primary" size="sm" variant="outline" @click="openModal"> Open Modal </UButton>
+          <div class="space-y-4">
+            <p class="text-sm text-neutral-600 dark:text-neutral-400">
+              Entdecke interaktive Beispiele für alle Komponenten und Composables des Templates. Perfekt zum Lernen und als Referenz für neue Projekte.
+            </p>
+            <div class="flex items-center gap-3">
+              <UButton to="/dev-examples" icon="i-lucide-sparkles" trailing-icon="i-lucide-arrow-right" color="primary" size="md"> Zu den Beispielen </UButton>
+              <p class="text-xs text-neutral-500 dark:text-neutral-500">Dieser Link ist nur im Development-Modus sichtbar</p>
             </div>
           </div>
         </UCard>

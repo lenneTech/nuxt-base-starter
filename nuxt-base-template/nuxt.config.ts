@@ -174,7 +174,6 @@ export default defineNuxtConfig({
         'lightningcss',
         '@vue/devtools-core',
         '@vue/devtools-kit',
-        'zod',
         '@internationalized/date',
       ],
     },
