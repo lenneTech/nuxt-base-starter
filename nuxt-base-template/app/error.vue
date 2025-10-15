@@ -1,16 +1,23 @@
 <script setup lang="ts">
-const props = defineProps({
-  error: Object,
-});
+import type { NuxtError } from '#app';
 
-console.error(props.error);
+const props = defineProps<{
+  error: NuxtError;
+}>();
+
+if (import.meta.dev) {
+  console.error(props.error);
+}
+
 const debugWord = ref<string>('');
 const { current } = useMagicKeys();
 
 watch(
   () => current.values(),
   () => {
-    if (current.values().next().value === 'escape') {
+    const currentKey = current.values().next().value;
+
+    if (currentKey === 'escape') {
       debugWord.value = '';
       return;
     }
@@ -19,8 +26,8 @@ watch(
       return;
     }
 
-    if (current.values().next().value && !debugWord.value.includes(current.values().next().value)) {
-      debugWord.value += current.values().next().value;
+    if (currentKey && !debugWord.value.includes(currentKey)) {
+      debugWord.value += currentKey;
     }
   },
 );

@@ -21,7 +21,7 @@ const props = withDefaults(
       leave-from-class="transform opacity-100 scale-100"
       leave-to-class="transform opacity-0 scale-95"
     >
-      <slot></slot>
+      <slot />
     </Transition>
   </div>
 </template>

@@ -1,18 +1,32 @@
-import ModalShare from '~/components/ModalShare.vue';
-import { useModal } from '~/composables/use-modal';
-
 export function useShare() {
   const route = useRoute();
 
-  function share(title?: string, text?: string, url?: string) {
+  async function share(title?: string, text?: string, url?: string) {
+    if (!process.client) return;
+
     if (window?.navigator?.share) {
-      window.navigator.share({
-        text: text ?? window.location.origin,
-        title: title,
-        url: url ?? route.fullPath,
-      });
+      try {
+        await window.navigator.share({
+          text: text ?? window.location.origin,
+          title: title,
+          url: url ?? route.fullPath,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
     } else {
-      useModal().open({ component: ModalShare, data: { link: url ?? window.location.origin, name: window.name }, size: 'md' });
+      // Fallback: Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(url ?? window.location.origin);
+        const { notify } = useNotification();
+        notify({
+          title: 'Link kopiert',
+          text: 'Der Link wurde in die Zwischenablage kopiert.',
+          type: 'success',
+        });
+      } catch (error) {
+        console.error('Error copying to clipboard:', error);
+      }
     }
   }
 

@@ -1,6 +1,13 @@
 import { callWithNuxt, defineNuxtPlugin, useNuxtApp, useRuntimeConfig } from 'nuxt/app';
 import { ofetch } from 'ofetch';
 
+interface CustomJwtPayload {
+  id?: string;
+  iat?: number;
+  exp?: number;
+  [key: string]: unknown;
+}
+
 export default defineNuxtPlugin({
   dependsOn: ['cookies', 'graphql-meta'], // from nuxt-base
   name: 'auth-server',
@@ -9,7 +16,7 @@ export default defineNuxtPlugin({
     const config = await callWithNuxt(_nuxt, useRuntimeConfig);
     const { accessTokenState, currentUserState, refreshTokenState } = await callWithNuxt(_nuxt, useAuthState);
     const { clearSession, getDecodedAccessToken, isTokenExpired, setCurrentUser, setTokens } = await callWithNuxt(_nuxt, useAuth);
-    const payload = accessTokenState.value ? getDecodedAccessToken(accessTokenState.value) : null;
+    const payload = accessTokenState.value ? getDecodedAccessToken(accessTokenState.value) as CustomJwtPayload : null;
 
     if (!accessTokenState.value || !refreshTokenState.value || currentUserState.value) {
       return;

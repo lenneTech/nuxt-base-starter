@@ -3,7 +3,7 @@ export default defineNuxtRouteMiddleware((to) => {
 
   if (to.fullPath === '/auth' || to.fullPath === '/auth/register') {
     if (accessTokenState?.value) {
-      return navigateTo('/cms');
+      return navigateTo('/app');
     }
   }
 });
