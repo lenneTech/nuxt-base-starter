@@ -7,6 +7,6 @@
     leave-from-class="transform translate-y-0"
     leave-to-class="transform translate-y-full"
   >
-    <slot />
+    <slot ></slot>
   </Transition>
 </template>

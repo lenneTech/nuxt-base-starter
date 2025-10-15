@@ -311,6 +311,33 @@ Common ESLint rules to follow:
 - `curly`: Always use curly braces for if/else blocks
 - `max-statements-per-line`: One statement per line
 
+### Code Formatting
+
+**Control Flow Statements**
+
+Always format if/else blocks with proper line breaks and indentation, even for single-line returns:
+
+**❌ Bad - Inline return:**
+
+```typescript
+if (!process.client) {return;}
+if (error) {throw error;}
+```
+
+**✅ Good - Multi-line format:**
+
+```typescript
+if (!process.client) {
+  return;
+}
+
+if (error) {
+  throw error;
+}
+```
+
+This applies to all control flow statements including `if`, `else`, `for`, `while`, etc.
+
 ### Code Examples
 
 **❌ Bad - No types:**

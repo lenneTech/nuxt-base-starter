@@ -1,6 +1,5 @@
 <template>
   <div>
-    <NuxtLoadingIndicator />
-    <slot />
+    <slot ></slot>
   </div>
 </template>

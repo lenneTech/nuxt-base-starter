@@ -2,10 +2,10 @@ import { callWithNuxt, defineNuxtPlugin, useNuxtApp, useRuntimeConfig } from 'nu
 import { ofetch } from 'ofetch';
 
 interface CustomJwtPayload {
-  id?: string;
-  iat?: number;
-  exp?: number;
   [key: string]: unknown;
+  exp?: number;
+  iat?: number;
+  id?: string;
 }
 
 export default defineNuxtPlugin({

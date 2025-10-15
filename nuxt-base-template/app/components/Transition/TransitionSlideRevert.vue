@@ -7,6 +7,6 @@
     leave-from-class="transform translate-x-0"
     leave-to-class="transform translate-x-[-100%]"
   >
-    <slot />
+    <slot ></slot>
   </Transition>
 </template>

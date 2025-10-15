@@ -1,16 +1,16 @@
 interface FileInfo {
-  id: string;
+  [key: string]: unknown;
   filename: string;
+  id: string;
   mimetype: string;
   size: number;
   url?: string;
-  [key: string]: unknown;
 }
 
 export function useFile() {
   const { isValidMongoID } = useHelper();
 
-  async function getFileInfo(id: string | undefined): Promise<FileInfo | string | null> {
+  async function getFileInfo(id: string | undefined): Promise<FileInfo | null | string> {
     const config = useRuntimeConfig();
 
     if (!id) {
@@ -23,7 +23,7 @@ export function useFile() {
 
     try {
       const response = await $fetch<FileInfo>(config.public.host + '/files/info/' + id, {
-        method: 'GET'
+        method: 'GET',
       });
       return response;
     } catch (error) {
