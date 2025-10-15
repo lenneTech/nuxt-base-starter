@@ -46,7 +46,7 @@ const isDevelopment = computed<boolean>(() => config.public.appEnv !== 'producti
 </script>
 
 <template>
-  <div class="min-h-screen bg-white dark:bg-neutral-950">
+  <div>
     <!-- Hero Section -->
     <div class="relative overflow-hidden">
       <div class="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
@@ -63,7 +63,7 @@ const isDevelopment = computed<boolean>(() => config.public.appEnv !== 'producti
             A modern Nuxt 4 starter template with TypeScript, Nuxt UI components, and production-ready tools. Start building your next application with confidence.
           </p>
           <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <UButton to="https://github.com/lenneTech/nuxt-base" target="_blank" size="xl" icon="i-lucide-github" color="primary"> View on GitHub </UButton>
+            <UButton to="https://github.com/lenneTech/nuxt-base-starter" target="_blank" size="xl" icon="i-lucide-github" color="primary"> View on GitHub </UButton>
             <UButton to="https://ui.nuxt.com" target="_blank" size="xl" variant="outline" color="neutral" trailing-icon="i-lucide-arrow-right"> Nuxt UI Docs </UButton>
           </div>
         </div>
