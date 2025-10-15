@@ -1,9 +1,15 @@
 <script lang="ts" setup>
 // ============================================================================
+// Imports
+// ============================================================================
+import { LazyModalBase } from '#components';
+
+// ============================================================================
 // Composables
 // ============================================================================
 const toast = useToast();
 const colorMode = useColorMode();
+const overlay = useOverlay();
 
 // ============================================================================
 // Variables
@@ -62,9 +68,34 @@ const componentExamples: Array<{
   },
 ];
 
+const modal = overlay.create(LazyModalBase);
+
 // ============================================================================
 // Functions
 // ============================================================================
+async function openModal(): Promise<void> {
+  const instance = modal.open({
+    description: 'This demonstrates the useOverlay composable for programmatic modal control.',
+    title: 'Programmatic Modal',
+  });
+
+  const result = await instance.result;
+
+  if (result) {
+    toast.add({
+      color: 'success',
+      description: 'You confirmed the modal action.',
+      title: 'Confirmed',
+    });
+  } else {
+    toast.add({
+      color: 'neutral',
+      description: 'Modal was dismissed.',
+      title: 'Dismissed',
+    });
+  }
+}
+
 function showToast(type: 'error' | 'info' | 'success' | 'warning'): void {
   const messages: Record<string, { description: string; title: string }> = {
     error: { description: 'Something went wrong.', title: 'Error' },
@@ -212,6 +243,17 @@ function toggleColorMode(): void {
                 <UBadge color="info" variant="subtle" icon="i-lucide-info"> Info </UBadge>
               </div>
             </div>
+
+            <USeparator />
+
+            <!-- Modal -->
+            <div>
+              <h4 class="text-sm font-medium text-neutral-900 dark:text-white mb-3">Programmatic Modal</h4>
+              <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
+                Use the <code class="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-xs">useOverlay()</code> composable to open modals programmatically.
+              </p>
+              <UButton icon="i-lucide-square-dashed-mouse-pointer" color="primary" size="sm" variant="outline" @click="openModal"> Open Modal </UButton>
+            </div>
           </div>
         </UCard>
       </div>
@@ -228,6 +270,5 @@ function toggleColorMode(): void {
         </p>
       </div>
     </div>
-
   </div>
 </template>
