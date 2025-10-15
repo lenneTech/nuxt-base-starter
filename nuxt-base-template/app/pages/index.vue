@@ -116,11 +116,11 @@ const isDevelopment = computed<boolean>(() => config.public.appEnv !== 'producti
 
           <div class="space-y-4">
             <p class="text-sm text-neutral-600 dark:text-neutral-400">
-              Entdecke interaktive Beispiele für alle Komponenten und Composables des Templates. Perfekt zum Lernen und als Referenz für neue Projekte.
+              Explore interactive examples for all template components and composables. Perfect for learning and as a reference for new projects.
             </p>
             <div class="flex items-center gap-3">
-              <UButton to="/dev-examples" icon="i-lucide-sparkles" trailing-icon="i-lucide-arrow-right" color="primary" size="md"> Zu den Beispielen </UButton>
-              <p class="text-xs text-neutral-500 dark:text-neutral-500">Dieser Link ist nur im Development-Modus sichtbar</p>
+              <UButton to="/dev-examples" icon="i-lucide-sparkles" trailing-icon="i-lucide-arrow-right" color="primary" size="md"> View Examples </UButton>
+              <p class="text-xs text-neutral-500 dark:text-neutral-500">This link is only visible in development mode</p>
             </div>
           </div>
         </UCard>

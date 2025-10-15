@@ -58,15 +58,25 @@ const componentExamples: Array<{
 
 // Form Schema and State
 const formSchema = v.object({
-  acceptTerms: v.boolean([v.toMinValue(true, 'You must accept the terms and conditions')]),
-  age: v.pipe(v.number([v.minValue(18, 'You must be at least 18 years old'), v.maxValue(120, 'Please enter a valid age')]), v.integer()),
+  acceptTerms: v.pipe(
+    v.boolean(),
+    v.custom((value) => value === true, 'You must accept the terms and conditions'),
+  ),
+  age: v.pipe(
+    v.number('Age must be a number'),
+    v.minValue(18, 'You must be at least 18 years old'),
+    v.maxValue(120, 'Please enter a valid age'),
+    v.integer('Age must be a whole number'),
+  ),
   bio: v.optional(v.pipe(v.string(), v.maxLength(500, 'Bio must not exceed 500 characters'))),
   country: v.pipe(v.string(), v.minLength(1, 'Please select a country')),
   email: v.pipe(v.string(), v.email('Please enter a valid email address')),
-  image: v.optional(v.custom<File>(
-    (value) => value instanceof File && ['image/gif', 'image/jpeg', 'image/png'].includes(value.type) && value.size <= 2 * 1024 * 1024,
-    'Bitte lade eine Bilddatei (JPG, PNG, GIF) mit max. 2MB hoch',
-  )),
+  image: v.optional(
+    v.custom<File>(
+      (value) => value instanceof File && ['image/gif', 'image/jpeg', 'image/png'].includes(value.type) && value.size <= 2 * 1024 * 1024,
+      'Please upload an image file (JPG, PNG, GIF) with max. 2MB',
+    ),
+  ),
   interests: v.pipe(v.array(v.string()), v.minLength(1, 'Please select at least one interest')),
   name: v.pipe(v.string(), v.minLength(2, 'Name must be at least 2 characters'), v.maxLength(50, 'Name must not exceed 50 characters')),
   newsletter: v.boolean(),
@@ -94,19 +104,19 @@ const formState = reactive<FormSchema>({
 
 const countryOptions = ref<SelectItem[]>([
   {
-    label: 'Deutschland',
+    label: 'Germany',
     value: 'de',
   },
   {
-    label: 'England',
+    label: 'United Kingdom',
     value: 'en',
   },
   {
-    label: 'Spanien',
+    label: 'Spain',
     value: 'es',
   },
   {
-    label: 'Italien',
+    label: 'Italy',
     value: 'it',
   },
 ]);
@@ -223,10 +233,10 @@ function toggleColorMode(): void {
             <UBadge color="warning" variant="subtle" size="lg" class="mb-4"> Development Only </UBadge>
             <h1 class="text-4xl font-bold tracking-tight text-neutral-900 dark:text-white sm:text-5xl">Interactive Examples</h1>
             <p class="mt-4 text-lg text-neutral-600 dark:text-neutral-400">
-              Diese Seite ist nur im Development-Modus verfügbar und zeigt alle interaktiven Beispiele des Templates.
+              This page is only available in development mode and showcases all interactive examples of the template.
             </p>
           </div>
-          <UButton to="/" icon="i-lucide-arrow-left" variant="outline" color="neutral" size="lg"> Zurück zur Startseite </UButton>
+          <UButton to="/" icon="i-lucide-arrow-left" variant="outline" color="neutral" size="lg"> Back to Home </UButton>
         </div>
       </div>
 
@@ -255,8 +265,8 @@ function toggleColorMode(): void {
       <!-- Interactive Examples -->
       <div class="space-y-8">
         <UAlert
-          title="Hinweis"
-          description="Diese Beispiele demonstrieren die wichtigsten UI-Komponenten und Composables des Templates. Perfekt zum Testen und als Referenz für neue Projekte."
+          title="Note"
+          description="These examples demonstrate the most important UI components and composables of the template. Perfect for testing and as a reference for new projects."
           icon="i-lucide-lightbulb"
           color="primary"
           variant="subtle"
@@ -264,7 +274,7 @@ function toggleColorMode(): void {
 
         <UCard variant="outline">
           <template #header>
-            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">Interaktive Komponenten</h3>
+            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">Interactive Components</h3>
           </template>
 
           <div class="space-y-6">
@@ -272,7 +282,7 @@ function toggleColorMode(): void {
             <div>
               <h4 class="text-sm font-medium text-neutral-900 dark:text-white mb-3">Toast Notifications</h4>
               <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
-                Verwende <code class="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-xs">useToast()</code> für Benachrichtigungen.
+                Use <code class="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-xs">useToast()</code> for notifications.
               </p>
               <div class="flex flex-wrap gap-2">
                 <UButton color="success" size="sm" @click="showToast('success')"> Success </UButton>
@@ -288,7 +298,7 @@ function toggleColorMode(): void {
             <div>
               <h4 class="text-sm font-medium text-neutral-900 dark:text-white mb-3">Color Mode</h4>
               <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
-                Verwende <code class="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-xs">useColorMode()</code> für Dark/Light Mode.
+                Use <code class="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-xs">useColorMode()</code> for Dark/Light Mode.
               </p>
               <div class="flex items-center gap-4">
                 <UButton :icon="colorMode.value === 'dark' ? 'i-lucide-sun' : 'i-lucide-moon'" color="neutral" variant="outline" size="sm" @click="toggleColorMode">
@@ -303,7 +313,7 @@ function toggleColorMode(): void {
             <!-- Badges -->
             <div>
               <h4 class="text-sm font-medium text-neutral-900 dark:text-white mb-3">Badges & Variants</h4>
-              <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-3">Verschiedene Badge-Varianten und Farben für unterschiedliche Zwecke.</p>
+              <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-3">Various badge variants and colors for different purposes.</p>
               <div class="flex flex-wrap gap-2">
                 <UBadge color="primary" variant="solid"> Primary </UBadge>
                 <UBadge color="secondary" variant="solid"> Secondary </UBadge>
@@ -319,8 +329,8 @@ function toggleColorMode(): void {
             <div>
               <h4 class="text-sm font-medium text-neutral-900 dark:text-white mb-3">Programmatic Modal</h4>
               <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-3">
-                Verwende das <code class="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-xs">useOverlay()</code> Composable um Modals programmatisch zu öffnen und
-                auf das Ergebnis zu warten.
+                Use the <code class="px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 rounded text-xs">useOverlay()</code> composable to open modals programmatically and await the
+                result.
               </p>
               <UButton icon="i-lucide-square-dashed-mouse-pointer" color="primary" size="sm" variant="outline" @click="openModal"> Open Modal </UButton>
             </div>
@@ -330,12 +340,12 @@ function toggleColorMode(): void {
         <!-- Form Example with Valibot -->
         <UCard variant="outline">
           <template #header>
-            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">Form Validation mit Valibot</h3>
+            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">Form Validation with Valibot</h3>
           </template>
 
           <div class="space-y-4">
             <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
-              Dieses Formular demonstriert alle wichtigen Nuxt UI Input-Komponenten mit Valibot-Validierung. Fülle alle Pflichtfelder aus und beobachte die Echtzeit-Validierung.
+              This form demonstrates all important Nuxt UI input components with Valibot validation. Fill in all required fields and observe the real-time validation.
             </p>
 
             <UForm :state="formState" :schema="formSchema" class="space-y-6 grid md:grid-cols-2 gap-4" @submit="handleFormSubmit">
@@ -374,8 +384,6 @@ function toggleColorMode(): void {
                 <USelectMenu v-model="formState.interests" :items="interestOptions" value-key="value" multiple placeholder="Select your interests" class="w-full" />
               </UFormField>
 
-
-
               <!-- Range/Slider -->
               <UFormField label="Expected Salary (USD)" name="salary" :help="`$${formState.salary.toLocaleString()} per year`">
                 <USlider v-model="formState.salary" :min="0" :max="200000" :step="1000" class="w-full" />
@@ -396,7 +404,7 @@ function toggleColorMode(): void {
               </UFormField>
 
               <!-- Checkbox -->
-              <UFormField name="acceptTerms" required>
+              <UFormField name="acceptTerms" required class="col-span-2">
                 <UCheckbox v-model="formState.acceptTerms" label="I accept the terms and conditions" />
               </UFormField>
 
@@ -412,14 +420,14 @@ function toggleColorMode(): void {
         <!-- Documentation Links -->
         <UCard variant="outline">
           <template #header>
-            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">Weitere Ressourcen</h3>
+            <h3 class="text-xl font-semibold text-neutral-900 dark:text-white">Additional Resources</h3>
           </template>
 
           <div class="space-y-3">
             <div class="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
               <div>
-                <h4 class="font-medium text-neutral-900 dark:text-white">Nuxt UI Dokumentation</h4>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">Alle verfügbaren Komponenten und deren Props</p>
+                <h4 class="font-medium text-neutral-900 dark:text-white">Nuxt UI Documentation</h4>
+                <p class="text-sm text-neutral-600 dark:text-neutral-400">All available components and their props</p>
               </div>
               <UButton to="https://ui.nuxt.com" target="_blank" trailing-icon="i-lucide-external-link" variant="outline" color="neutral" size="sm"> Docs </UButton>
             </div>
@@ -427,7 +435,7 @@ function toggleColorMode(): void {
             <div class="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
               <div>
                 <h4 class="font-medium text-neutral-900 dark:text-white">GitHub Repository</h4>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">Source Code und weitere Beispiele</p>
+                <p class="text-sm text-neutral-600 dark:text-neutral-400">Source code and additional examples</p>
               </div>
               <UButton to="https://github.com/lenneTech/nuxt-base" target="_blank" trailing-icon="i-lucide-external-link" variant="outline" color="neutral" size="sm">
                 GitHub
@@ -437,9 +445,9 @@ function toggleColorMode(): void {
             <div class="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
               <div>
                 <h4 class="font-medium text-neutral-900 dark:text-white">CLAUDE.md</h4>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400">Detaillierte Projekt-Dokumentation</p>
+                <p class="text-sm text-neutral-600 dark:text-neutral-400">Detailed project documentation</p>
               </div>
-              <UBadge color="primary" variant="subtle"> Im Projekt enthalten </UBadge>
+              <UBadge color="primary" variant="subtle"> Included in project </UBadge>
             </div>
           </div>
         </UCard>
