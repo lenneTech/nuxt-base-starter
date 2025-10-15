@@ -3,8 +3,9 @@
 // Imports
 // ============================================================================
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui';
+import type { InferOutput } from 'valibot';
 
-import * as z from 'zod';
+import * as v from 'valibot';
 
 // ============================================================================
 // Composables
@@ -48,19 +49,18 @@ const fields: AuthFormField[] = [
   },
 ];
 
-const schema = z
-  .object({
-    password: z.string('Password is required').min(5, 'Must be at least 8 characters'),
-    passwordConfirmation: z
-      .string('Password confirmation is required')
-      .min(5, 'Must be at least 8 characters'),
-  })
-  .refine((data) => data.password === data.passwordConfirmation, {
-    message: 'Passwords must match',
-    path: ['passwordConfirmation'],
-  });
+const schema = v.pipe(
+  v.object({
+    password: v.pipe(v.string('Password is required'), v.minLength(5, 'Must be at least 5 characters')),
+    passwordConfirmation: v.pipe(v.string('Password confirmation is required'), v.minLength(5, 'Must be at least 5 characters')),
+  }),
+  v.forward(
+    v.check((data) => data.password === data.passwordConfirmation, 'Passwords must match'),
+    ['passwordConfirmation'],
+  ),
+);
 
-type Schema = z.output<typeof schema>;
+type Schema = InferOutput<typeof schema>;
 
 // ============================================================================
 // Lifecycle Hooks

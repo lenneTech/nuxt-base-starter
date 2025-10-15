@@ -3,8 +3,9 @@
 // Imports
 // ============================================================================
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui';
+import type { InferOutput } from 'valibot';
 
-import * as z from 'zod';
+import * as v from 'valibot';
 
 // ============================================================================
 // Page Meta
@@ -26,11 +27,14 @@ const fields: AuthFormField[] = [
   },
 ];
 
-const schema = z.object({
-  email: z.email('Invalid email').min(1, 'Email is required'),
+const schema = v.object({
+  email: v.pipe(
+    v.string('Email is required'),
+    v.email('Has to be a valid email address'),
+  ),
 });
 
-type Schema = z.output<typeof schema>;
+type Schema = InferOutput<typeof schema>;
 
 // ============================================================================
 // Functions
