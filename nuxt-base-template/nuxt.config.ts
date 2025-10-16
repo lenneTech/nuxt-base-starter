@@ -54,7 +54,10 @@ export default defineNuxtConfig({
     typedPages: true,
   },
 
-  extends: process.env.NODE_ENV === 'development' ? ['./dev'] : [],
+  // ============================================================================
+  // Environment-specific Layers
+  // ============================================================================
+  extends: process.env.APP_ENV === 'development' ? ['./dev'] : [],
 
   // ============================================================================
   // Image Optimization
