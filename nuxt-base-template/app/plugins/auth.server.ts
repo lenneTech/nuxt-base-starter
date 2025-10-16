@@ -9,7 +9,6 @@ interface CustomJwtPayload {
 }
 
 export default defineNuxtPlugin({
-  dependsOn: ['cookies', 'graphql-meta'], // from nuxt-base
   name: 'auth-server',
   async setup() {
     const _nuxt = useNuxtApp();
