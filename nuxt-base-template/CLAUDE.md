@@ -320,8 +320,12 @@ Always format if/else blocks with proper line breaks and indentation, even for s
 **❌ Bad - Inline return:**
 
 ```typescript
-if (!process.client) {return;}
-if (error) {throw error;}
+if (!process.client) {
+  return;
+}
+if (error) {
+  throw error;
+}
 ```
 
 **✅ Good - Multi-line format:**

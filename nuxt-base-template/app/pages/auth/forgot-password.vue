@@ -28,10 +28,7 @@ const fields: AuthFormField[] = [
 ];
 
 const schema = v.object({
-  email: v.pipe(
-    v.string('Email is required'),
-    v.email('Has to be a valid email address'),
-  ),
+  email: v.pipe(v.string('Email is required'), v.email('Has to be a valid email address')),
 });
 
 type Schema = InferOutput<typeof schema>;
@@ -45,23 +42,23 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 </script>
 
 <template>
-    <UPageCard class="w-md" variant="naked">
-      <UAuthForm
-        :schema="schema"
-        title="Forgot password"
-        icon="i-heroicons-lock-closed"
-        :fields="fields"
-        loadingAuto
-        :submit="{
-          label: 'Continue',
-          block: true,
-        }"
-        @submit="onSubmit"
-      >
-        <template #footer>
-          Back to
-          <ULink to="/auth/login" class="text-primary font-medium" tabindex="-1">Sign In</ULink>
-        </template>
-      </UAuthForm>
-    </UPageCard>
+  <UPageCard class="w-md" variant="naked">
+    <UAuthForm
+      :schema="schema"
+      title="Forgot password"
+      icon="i-heroicons-lock-closed"
+      :fields="fields"
+      loadingAuto
+      :submit="{
+        label: 'Continue',
+        block: true,
+      }"
+      @submit="onSubmit"
+    >
+      <template #footer>
+        Back to
+        <ULink to="/auth/login" class="text-primary font-medium" tabindex="-1">Sign In</ULink>
+      </template>
+    </UAuthForm>
+  </UPageCard>
 </template>

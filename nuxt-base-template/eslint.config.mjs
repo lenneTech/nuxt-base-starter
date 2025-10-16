@@ -5,9 +5,12 @@ export default [
   ...vue,
   {
     rules: {
-      'vue/object-property-newline': ['error', {
-        allowAllPropertiesOnSameLine: false,
-      }],
+      'vue/object-property-newline': [
+        'error',
+        {
+          allowAllPropertiesOnSameLine: false,
+        },
+      ],
     },
   },
 ];

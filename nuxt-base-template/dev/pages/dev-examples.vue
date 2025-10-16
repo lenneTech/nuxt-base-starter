@@ -44,7 +44,6 @@ const buttonColors: Array<'error' | 'info' | 'neutral' | 'primary' | 'secondary'
   'neutral',
 ];
 
-
 // Form Schema and State
 // Valibot validation schema - demonstrates various validation patterns
 const formSchema = v.object({
@@ -398,7 +397,6 @@ function toggleColorMode(): void {
                 <UBadge color="error" variant="soft"> Error </UBadge>
                 <UBadge color="info" variant="subtle" icon="i-lucide-info"> Info </UBadge>
               </div>
-
             </div>
 
             <USeparator />
@@ -423,7 +421,6 @@ function toggleColorMode(): void {
                 result.
               </p>
               <UButton icon="i-lucide-square-dashed-mouse-pointer" color="primary" size="sm" variant="outline" class="mb-3" @click="openModal"> Open Modal </UButton>
-
             </div>
           </div>
         </UCard>

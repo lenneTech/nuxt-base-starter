@@ -84,27 +84,27 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 </script>
 
 <template>
-    <UPageCard class="w-md" variant="naked">
-      <UAlert
-        v-if="!isTokenValid"
-        color="error"
-        description="The password reset link is invalid or missing. Please request a new password reset."
-        icon="i-heroicons-exclamation-triangle"
-        title="Invalid Reset Link"
-        class="mb-4"
-      />
-      <UAuthForm
-        :schema="schema"
-        title="Set password"
-        icon="i-heroicons-shield-check"
-        :fields="fields"
-        :loading="isSubmitting"
-        :submit="{
-          label: 'Continue',
-          block: true,
-          disabled: !isTokenValid,
-        }"
-        @submit="onSubmit"
-      />
-    </UPageCard>
+  <UPageCard class="w-md" variant="naked">
+    <UAlert
+      v-if="!isTokenValid"
+      color="error"
+      description="The password reset link is invalid or missing. Please request a new password reset."
+      icon="i-heroicons-exclamation-triangle"
+      title="Invalid Reset Link"
+      class="mb-4"
+    />
+    <UAuthForm
+      :schema="schema"
+      title="Set password"
+      icon="i-heroicons-shield-check"
+      :fields="fields"
+      :loading="isSubmitting"
+      :submit="{
+        label: 'Continue',
+        block: true,
+        disabled: !isTokenValid,
+      }"
+      @submit="onSubmit"
+    />
+  </UPageCard>
 </template>

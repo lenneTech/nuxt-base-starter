@@ -174,13 +174,7 @@ export default defineNuxtConfig({
       cssMinify: 'esbuild',
     },
     optimizeDeps: {
-      exclude: [
-        '@tailwindcss/vite',
-        'lightningcss',
-        '@vue/devtools-core',
-        '@vue/devtools-kit',
-        '@internationalized/date',
-      ],
+      exclude: ['@tailwindcss/vite', 'lightningcss', '@vue/devtools-core', '@vue/devtools-kit', '@internationalized/date'],
     },
     plugins: [tailwindcss()],
   },
