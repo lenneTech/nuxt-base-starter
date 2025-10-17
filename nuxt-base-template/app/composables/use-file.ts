@@ -1,8 +1,16 @@
-import { useFetch } from '@vueuse/core';
+interface FileInfo {
+  [key: string]: unknown;
+  filename: string;
+  id: string;
+  mimetype: string;
+  size: number;
+  url?: string;
+}
 
 export function useFile() {
   const { isValidMongoID } = useHelper();
-  async function getFileInfo(id: string | undefined): Promise<any> {
+
+  async function getFileInfo(id: string | undefined): Promise<FileInfo | null | string> {
     const config = useRuntimeConfig();
 
     if (!id) {
@@ -13,7 +21,15 @@ export function useFile() {
       return id;
     }
 
-    return useFetch<File>(config.public.apiUrl + '/files/info/' + id, { method: 'GET' });
+    try {
+      const response = await $fetch<FileInfo>(config.public.host + '/files/info/' + id, {
+        method: 'GET',
+      });
+      return response;
+    } catch (error) {
+      console.error('Error fetching file info:', error);
+      return null;
+    }
   }
 
   return { getFileInfo };

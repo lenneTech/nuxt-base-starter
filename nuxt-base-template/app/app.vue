@@ -1,7 +1,15 @@
+<script setup lang="ts">
+// ============================================================================
+// Composables
+// ============================================================================
+const appConfig: ReturnType<typeof useAppConfig> = useAppConfig();
+</script>
+
 <template>
-  <div>
+  <UApp :toaster="appConfig.toaster">
+    <NuxtLoadingIndicator color="var(--ui-primary)" :height="2" />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-  </div>
+  </UApp>
 </template>

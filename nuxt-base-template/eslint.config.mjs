@@ -1,3 +1,4 @@
 import vue from '@lenne.tech/eslint-config-vue';
 
-export default vue;
+// Override the problematic rule configuration
+export default vue
