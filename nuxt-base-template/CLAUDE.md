@@ -4,397 +4,358 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the **Nuxt Base Template**, a starter template for building Nuxt 4 SSR applications. It provides a solid
-foundation with essential configuration, basic UI components, and development tools. The template uses modern Vue 3 composition API patterns.
+This is a **Nuxt 4** (v4.1.3) SSR starter template built with Vue 3 Composition API, TypeScript, and Tailwind CSS v4. The project uses NuxtUI for components and follows strict TypeScript typing conventions.
 
-## Tech Stack
+**Requirements:**
+- Node.js >= 22
+- npm >= 10
 
-- **Nuxt 4.1.3** with SSR enabled
-- **Vue 3** with TypeScript
-- **Tailwind CSS** (v4) for styling
-- **VeeValidate + Yup** for form validation
-- **Pinia** for state management (auto-imported)
-- **Playwright** for E2E testing
-- **@lenne.tech/bug.lt** for Linear bug reporting integration
-- **@nuxtjs/seo** for SEO optimization
-- **@nuxtjs/color-mode** for dark/light mode support
-- **@nuxtjs/google-fonts** for font management
-- **dayjs-nuxt** for date/time handling
-- **@vueuse/nuxt** for Vue composition utilities
-
-## Key Commands
+## Essential Commands
 
 ### Development
-
 ```bash
-npm run dev              # Start dev server on port 3001
-npm run start            # Alias for dev
-npm start:extern         # Start dev server accessible externally (0.0.0.0)
-npm run start:tunnel     # Start with Cloudflare tunnel
+npm run dev          # Start dev server on http://localhost:3001
+npm run start:extern # Dev server on 0.0.0.0 (external access)
 ```
 
-### Building
-
+### Code Quality (Run Before Commits)
 ```bash
-npm run build            # Production build
-npm run build:develop    # Development build
-npm run build:test       # Test environment build
+npm run check        # Run lint + format check
+npm run fix          # Auto-fix lint + format issues
+npm run lint         # ESLint only
+npm run format       # Prettier format
 ```
 
-### Running Production
-
+### Build & Preview
 ```bash
-npm run start:develop    # Run built app for develop env
-npm run start:test       # Run built app for test env
-npm run start:prod       # Run built app for production env
+npm run build               # Production build
+npm run build:develop       # Development environment build
+npm run build:test          # Test environment build
+npm run build:prod          # Production environment build
+npm run preview             # Preview production build
 ```
 
 ### Testing
-
 ```bash
-npm run app:e2e          # Run Playwright E2E tests
-npm test                 # No-op (exits 0)
+npm run test         # Run Playwright E2E tests
 ```
 
-### Linting
-
+### API Types
 ```bash
-npm run lint             # Run ESLint
-npm run lint:fix         # Fix ESLint errors automatically
-```
-
-### Type Generation
-
-```bash
-npm run generate-types   # Generate types from REST API schema (clears app/base first)
+npm run generate-types  # Generate API client from OpenAPI schema
 ```
 
 ### Maintenance
-
 ```bash
-npm run reinit           # Nuclear reinstall: removes node_modules, lock file, cache
+npm run clean        # Remove .nuxt, .output, node_modules/.vite
+npm run reinit       # Complete reset and reinstall
 ```
 
-## Architecture
+## Architecture Overview
 
 ### Directory Structure
 
 ```
 app/
-├── assets/css/          # Global styles (Tailwind CSS)
-├── components/          # Vue components
-│   └── Transition/      # Reusable transition components (Fade, FadeScale, Slide, etc.)
-├── composables/         # Auto-imported composables
-│   ├── use-tw.ts        # Tailwind merge utility
-│   ├── use-file.ts      # File handling utilities
-│   └── use-share.ts     # Share functionality
-├── layouts/             # Layout components
-│   └── default.vue      # Main application layout
-├── pages/               # File-based routing
-│   └── index.vue        # Home/landing page
-├── base/                # Auto-generated API types (from generate-types)
-├── forms/               # Form definitions (auto-imported)
+├── assets/css/          # Tailwind v4 configuration
+├── components/          # Vue components (auto-imported)
+│   ├── Modal/           # Reusable modal component
+│   └── Transition/      # Vue transition wrappers
+├── composables/         # Vue composables (auto-imported)
 ├── interfaces/          # TypeScript interfaces (auto-imported)
-├── plugins/             # Nuxt plugins (auto-imported)
-├── states/              # Global state definitions (auto-imported)
-├── stores/              # Pinia stores (auto-imported)
+├── layouts/             # Nuxt layouts (default, slim)
+├── pages/               # File-based routing
 ├── public/              # Static assets
 ├── app.vue              # Root component
-└── error.vue            # Error page
+└── app.config.ts        # NuxtUI configuration
 
-Root:
-├── nuxt.config.ts       # Nuxt configuration
-├── eslint.config.mjs    # ESLint configuration
-├── playwright.config.ts # Playwright E2E test config
-├── tsconfig.json        # TypeScript config
-└── .env                 # Environment variables
+docs/                    # Dev-only documentation layer
+tests/                   # Playwright E2E tests
 ```
 
-### Key Configuration
+### Auto-Import Configuration
 
-#### Nuxt Config (`nuxt.config.ts`)
+The following directories are auto-imported by Nuxt:
+- `components/` - Vue components
+- `composables/` - Composables (use-*.ts)
+- `interfaces/` - TypeScript interfaces
+- `states/` - State management
+- `stores/` - Pinia stores
+- `forms/` - Form definitions
+- `plugins/` - Vue plugins
 
-- **app.head**: Title set to "Nuxt Base Starter"
-- **devServer.port**: 3001
-- **imports.dirs**: Auto-imports from `./states`, `./stores`, `./forms`, `./interfaces`, `./base`, `./plugins`
-- **runtimeConfig.public**: API host (host), web push key
-- **modules**: `@nuxt/test-utils`, `@lenne.tech/bug.lt`, `@vueuse/nuxt`,
-  `@nuxtjs/google-fonts`, `@nuxtjs/color-mode`, `dayjs-nuxt`, `@nuxt/image`, `@nuxtjs/plausible`, `@nuxtjs/seo`
-- **bug.lt**: Linear integration enabled for non-production (requires LINEAR_API_KEY, LINEAR_TEAM_NAME,
-  LINEAR_PROJECT_NAME)
-- **colorMode**: Class suffix disabled for Tailwind v4 compatibility
-- **experimental**: asyncContext, typedPages enabled, renderJsonPayloads disabled
+### Key Configuration Files
 
-#### Environment Variables (`.env.example`)
+- **nuxt.config.ts** - Main Nuxt configuration
+  - Dev server: Port 3001
+  - SSR: Enabled
+  - Experimental: asyncContext, typedPages
+  - Modules: NuxtUI, Pinia, VueUse, Dayjs, NuxtImage, SEO, Plausible
+  - Docs layer enabled in development only
 
+- **app.config.ts** - NuxtUI configuration
+  - Color palette: Primary (green), Secondary (indigo), Success (emerald), Info (blue), Warning (amber), Error (red), Neutral (slate)
+  - Dark/light mode with Lucide icons
+  - Toast: 5s duration, bottom-right position
+
+- **eslint.config.mjs** - Uses `@lenne.tech/eslint-config-vue` with perfectionist sorting rules
+
+- **openapi-ts.config.ts** - API client generation
+  - Client: @hey-api/client-fetch
+  - Output: ./app/api-client
+
+### API Integration
+
+API client is auto-generated from OpenAPI schema:
+
+```bash
+npm run generate-types  # Generate types from API schema
 ```
-SITE_URL=http://localhost:3001
-NODE_ENV=development
-APP_ENV=development
-API_URL=http://localhost:3000
-WEB_PUSH_KEY=
-API_SCHEMA=../api/schema.gql
-STORAGE_PREFIX=base-dev
-GENERATE_TYPES=0
-LINEAR_API_KEY=
-LINEAR_TEAM_NAME=
-LINEAR_PROJECT_NAME=
-```
 
-#### ESLint Rules
+Generated client location: `./app/api-client`
 
-- Uses `@lenne.tech/eslint-config-vue`
-- Unused vars with `_` prefix are ignored
-- `vue/object-property-newline`: enforced (no properties on same line)
+Use environment variable `API_URL` to configure the API endpoint.
 
-### Routing & Navigation
+### TypeScript & Interface Management
 
-The template uses Nuxt's file-based routing system. By default, it includes:
+**ALL interfaces must be extracted to separate files:**
+- Location: `app/interfaces/`
+- Naming: `{name}.interface.ts` (e.g., `season.interface.ts`)
+- Auto-imported via Nuxt configuration
+- No inline interfaces in components (except local helper types)
 
-- Home page (`/` - index.vue)
+**Full typing is mandatory:**
+- All variables have explicit types
+- All function parameters are typed
+- All function return types declared
+- Computed properties: `computed<Type>(() => ...)`
 
-Additional pages can be added in the `app/pages/` directory following Nuxt's routing conventions.
+### Component Structure
 
-### Included Components
-
-The template provides reusable transition components in `app/components/Transition/`:
-
-- **TransitionFade**: Simple fade transition
-- **TransitionFadeScale**: Fade with scale effect
-- **TransitionSlide**: Horizontal slide transition
-- **TransitionSlideBottom**: Vertical slide from bottom
-- **TransitionSlideRevert**: Reverse slide transition
-
-### Composables
-
-The template includes several utility composables:
-
-- **use-tw.ts**: Tailwind CSS class merging utility (tailwind-merge)
-- **use-file.ts**: File handling and download utilities
-- **use-share.ts**: Web Share API integration
-
-### Layouts
-
-- **default.vue**: Basic application layout (customize based on your needs)
-
-### Important Notes
-
-1. **Template Purpose**: This is a starter template - customize and extend it for your specific project needs
-2. **Auto-imports**: Composables, stores, forms, interfaces, base, and plugins are auto-imported - no need for explicit
-   imports
-3. **SSR**: Server-side rendering is enabled by default
-4. **Type Generation**: When connecting to an API backend, run `npm run generate-types` to generate TypeScript types (
-   clears `app/base` first)
-5. **Port**: Development server runs on port 3001 (not 3000)
-6. **API Integration**: Configure via environment variables
-7. **Linear Integration**: Bug reporting to Linear is available in non-production environments when configured
-8. **Git Workflow**: Main branch is `main`
-9. **Linting**: ESLint must report zero warnings before committing (npm run lint)
-
-## Coding Guidelines
-
-### Comments
-
-**Only english comments allowed.** Use comments to explain "why" something is done, not "what" is being done.
-
-### TypeScript Standards
-
-**ALL code must be fully typed** - no implicit `any` types allowed:
-
-1. **Explicit Type Annotations**
-   - All variables must have explicit types: `const name: string = 'value'`
-   - All function parameters must be typed: `function foo(param: Type): ReturnType`
-   - All function return types must be declared: `function bar(): void { }`
-   - Computed properties must have type annotations: `const value = computed<Type>(() => ...)`
-
-2. **Interface Location**
-   - **ALL interfaces must be extracted to separate files** in `app/interfaces/`
-   - File naming convention: `{name}.interface.ts` (e.g., `season-stat.interface.ts`)
-   - Interfaces are auto-imported via Nuxt configuration
-   - No inline interfaces in Vue components (except local helper types)
-
-### Vue Component Structure
-
-**Script section must follow this exact order:**
+Vue components follow strict section ordering:
 
 ```vue
 <script setup lang="ts">
 // ============================================================================
 // Imports
 // ============================================================================
-import type {
-
-...
-}
-from
-'...'  // Type imports first
-import {
-
-...
-}
-from
-'...'       // Regular imports second
-import Component from '...'     // Component imports last
+// 1. Vue & Nuxt core
+// 2. Third-party libraries
+// 3. Type imports (grouped)
+// 4. Composables
+// 5. Components
 
 // ============================================================================
 // Composables
 // ============================================================================
-const route = useRoute()
-const router = useRouter()
-const {method1, method2} = useComposable()
 
 // ============================================================================
 // Page Meta
 // ============================================================================
-definePageMeta({...})
 
 // ============================================================================
 // Variables
 // ============================================================================
-const schema = z.object({...})
-type Schema = z.infer<typeof schema>
-const state: StateType = reactive({...})
-const formRef = ref<Type>(null)
 
 // ============================================================================
 // Computed Properties
 // ============================================================================
-const computed1 = computed<Type>(() =>
-...)
-const computed2 = computed<Type>(() =>
-...)
 
 // ============================================================================
 // Lifecycle Hooks
 // ============================================================================
-watchEffect(() => { ...
-})
-onMounted(() => { ...
-})
 
 // ============================================================================
 // Functions
 // ============================================================================
-function handleAction(): void { ...
-}
-
-async function handleAsync(): Promise<void> { ...
-}
 </script>
+
+<template>
+  <!-- Template content -->
+</template>
 ```
 
-### File Naming Conventions
-
-- **Interfaces**: `{name}.interface.ts` (e.g., `user.interface.ts`, `user-data.interface.ts`)
-- **Composables**: `use-{name}.ts` (e.g., `use-auth.ts`, `use-api.ts`)
-- **Components**: PascalCase (e.g., `UserProfile.vue`, `ModalConfirm.vue`)
-- **Pages**: kebab-case (e.g., `[id].vue`, `index.vue`)
-
-### ESLint Compliance
-
-**Before committing, always run:**
-
-```bash
-npm run lint
-```
-
-Common ESLint rules to follow:
-
-- `perfectionist/sort-modules`: Interfaces/types must be alphabetically sorted
-- `perfectionist/sort-union-types`: Union types sorted alphabetically (e.g., `'archived' | 'deactivated'`)
-- `perfectionist/sort-objects`: Object properties must be sorted
-- `curly`: Always use curly braces for if/else blocks
-- `max-statements-per-line`: One statement per line
-
-### Code Formatting
-
-**Control Flow Statements**
-
-Always format if/else blocks with proper line breaks and indentation, even for single-line returns:
-
-**❌ Bad - Inline return:**
+### Composables Pattern
 
 ```typescript
-if (!process.client) {
-  return;
-}
-if (error) {
-  throw error;
+// app/composables/use-example.ts
+export function useExample() {
+  // State
+  const loading = ref<boolean>(false);
+  const data = ref<DataType[]>([]);
+
+  // Methods
+  async function fetchData(): Promise<void> {
+    // Implementation
+  }
+
+  // Return public API
+  return {
+    loading,
+    data,
+    fetchData
+  };
 }
 ```
 
-**✅ Good - Multi-line format:**
+### ESLint Rules
 
+Key rules enforced:
+- `perfectionist/sort-modules` - Alphabetically sort interfaces/types
+- `perfectionist/sort-union-types` - Sort union types alphabetically
+- `perfectionist/sort-objects` - Sort object properties
+- `curly` - Always use curly braces for if/else
+- `max-statements-per-line` - One statement per line
+
+**Always run `npm run check` before committing.**
+
+### Testing with Playwright
+
+Configuration:
+- Base URL: http://localhost:3001
+- Test directory: `./tests`
+- Browser: Desktop Chrome
+- Locale: German (de)
+- Retries: 2 on CI, 0 locally
+
+Example test:
 ```typescript
-if (!process.client) {
-  return;
-}
+import { test } from '@nuxt/test-utils/playwright';
 
-if (error) {
-  throw error;
-}
-```
-
-This applies to all control flow statements including `if`, `else`, `for`, `while`, etc.
-
-### Code Examples
-
-**❌ Bad - No types:**
-
-```typescript
-const state = reactive({
-  title: '',
-  email: '',
+test('example test', async ({ goto, page }) => {
+  await goto('.', { waitUntil: 'domcontentloaded' });
+  // Test logic
 });
-
-function handleSubmit(event) {
-  const result = updateData(id, event.data);
-}
 ```
 
-**✅ Good - Fully typed:**
+### Environment Variables
 
+Required variables (see `.env.example`):
+```
+SITE_URL=http://localhost:3001
+API_URL=http://localhost:3000
+APP_ENV=development
+NODE_ENV=development
+```
+
+Optional:
+- `WEB_PUSH_KEY` - Web push notifications
+- `LINEAR_API_KEY`, `LINEAR_TEAM_NAME`, `LINEAR_PROJECT_NAME` - Bug reporting
+- `API_SCHEMA` - Path to API schema for type generation
+- `STORAGE_PREFIX` - Local storage prefix
+
+### Special Features
+
+**NuxtUI (v4.0.1):**
+- Component library with semantic color system
+- Dark/light mode support
+- Pre-configured toast notifications
+- Form validation utilities
+
+**SEO (@nuxtjs/seo):**
+- Sitemap generation (excludes /app/**, /auth/**)
+- Robots.txt (disallows /app, /auth, /admin)
+- OG image generation
+
+**Analytics:**
+- Plausible Analytics (disabled on localhost)
+
+**Bug Reporting:**
+- Linear integration via @lenne.tech/bug.lt
+- Disabled in production
+- Requires LINEAR_* environment variables
+
+**State Management:**
+- Pinia stores with auto-imports
+
+**Image Optimization:**
+- NuxtImage with IPX provider
+- 30-day cache
+
+### Naming Conventions
+
+- **Files:**
+  - Interfaces: `{name}.interface.ts`
+  - Composables: `use-{name}.ts`
+  - Components: PascalCase (e.g., `ModalBase.vue`)
+  - Pages: kebab-case (e.g., `login.vue`, `[id].vue`)
+
+- **Code:**
+  - Variables: camelCase
+  - Booleans: `isLoading`, `hasError`, `canSubmit`
+  - Functions: Verb-based (`handleSubmit`, `fetchData`)
+  - Event handlers: `handle{Action}` or `on{Action}`
+
+### Development Workflow
+
+1. **Starting a feature:**
+   - Plan structure with interfaces in `app/interfaces/`
+   - Create composables in `app/composables/` if needed
+   - Build components following the strict section ordering
+
+2. **Before committing:**
+   ```bash
+   npm run check    # Lint + format check
+   npm run test     # E2E tests
+   npm run build    # Verify production build
+   ```
+
+3. **API changes:**
+   ```bash
+   npm run generate-types  # Regenerate API client
+   ```
+
+4. **Type safety:**
+   - Extract all interfaces to separate files
+   - Add explicit types to all variables and functions
+   - Never use implicit `any`
+
+### Common Patterns
+
+**Reactive state:**
 ```typescript
+// Single values
+const loading = ref<boolean>(false);
+
+// Objects
 const state: FormState = reactive({
   title: '',
-  email: '',
+  date: null
 });
 
-function handleSubmit(event: FormSubmitEvent<Schema>): void {
-  const result: boolean = updateData(id, event.data);
-}
+// Derived data
+const filtered = computed<Type[]>(() => ...);
 ```
 
-**❌ Bad - Inline interface:**
-
-```typescript
-interface UserData {
-    name: string;
-    email: string;
-}
-
-const users = computed<UserData[]>(() => [...])
+**Modal usage:**
+```vue
+<ModalBase :model-value="isOpen" @close="handleClose">
+  <template #header>Title</template>
+  <template #default>Content</template>
+  <template #footer>
+    <UButton @click="handleClose">Close</UButton>
+  </template>
+</ModalBase>
 ```
 
-**✅ Good - Extracted interface:**
-
-```typescript
-// In app/interfaces/user-data.interface.ts
-export interface UserData {
-    name: string;
-    email: string;
-}
-
-// In component (auto-imported)
-const users = computed<UserData[]>(() => [...])
+**Transitions:**
+```vue
+<TransitionFade>
+  <div v-if="show">Content</div>
+</TransitionFade>
 ```
 
-### When Creating New Features
+### Project Status
 
-1. **Plan with Todo List**: Use structured approach for multi-step tasks
-2. **Extract Interfaces**: Move all interfaces to `app/interfaces/`
-3. **Full Typing**: Add explicit types to ALL variables and functions
-4. **Structure Script**: Follow the section order outlined above
-5. **Format changed files with prettier**
-6. **Run ESLint**: Ensure zero errors/warnings before completion
-7. **Test Locally**: Verify functionality works as expected
+**Current Branch:** DEV-609 (development branch)
+**Main Branch:** main (use for PRs)
+
+Recent focus: Package dependency updates and ESLint configuration improvements.
+
+### Important Notes
+
+- **Port:** Dev server runs on **3001** (not 3000)
+- **Docs layer:** Enabled only in development (extends config)
+- **TypeScript target:** ES2022
+- **SSR:** Enabled by default
+- **npm configuration:** shamefully-hoist=true, strict-peer-dependencies=false
