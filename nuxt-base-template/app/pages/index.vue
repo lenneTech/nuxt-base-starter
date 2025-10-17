@@ -27,7 +27,7 @@ const features: Array<{
   },
   {
     color: 'success',
-    description: 'GraphQL and REST API support via @lenne.tech/nuxt-base with auto-generated types.',
+    description: 'Built-in support for REST API integration with auto-generated types.',
     icon: 'i-lucide-database',
     title: 'API Ready',
   },
@@ -119,7 +119,7 @@ const isDevelopment = computed<boolean>(() => config.public.appEnv !== 'producti
               Explore interactive examples for all template components and composables. Perfect for learning and as a reference for new projects.
             </p>
             <div class="flex items-center gap-3">
-              <UButton to="/dev-examples" icon="i-lucide-sparkles" trailing-icon="i-lucide-arrow-right" color="primary" size="md"> View Examples </UButton>
+              <UButton to="/docs" icon="i-lucide-sparkles" trailing-icon="i-lucide-arrow-right" color="primary" size="md"> View Examples </UButton>
               <p class="text-xs text-neutral-500 dark:text-neutral-500">This link is only visible in development mode</p>
             </div>
           </div>

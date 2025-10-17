@@ -22,15 +22,6 @@ export default defineNuxtConfig({
     linearTeamName: process.env.LINEAR_TEAM_NAME,
   },
 
-  // ============================================================================
-  // Color Mode (Dark/Light Theme)
-  // ============================================================================
-  colorMode: {
-    classSuffix: '', // Required for Tailwind CSS v4 compatibility
-    storage: 'localStorage', // or 'sessionStorage' or 'cookie'
-    storageKey: 'nuxt-color-mode',
-  },
-
   compatibilityDate: '2025-01-15',
 
   // ============================================================================
@@ -57,7 +48,7 @@ export default defineNuxtConfig({
   // ============================================================================
   // Environment-specific Layers
   // ============================================================================
-  extends: process.env.APP_ENV === 'development' ? ['./dev'] : [],
+  extends: process.env.APP_ENV === 'development' ? ['./docs'] : [],
 
   // ============================================================================
   // Image Optimization
@@ -81,7 +72,6 @@ export default defineNuxtConfig({
   // ============================================================================
   modules: [
     '@nuxt/test-utils/module', // E2E testing with Playwright
-    '@lenne.tech/nuxt-base', // Base functionality & API integration
     '@lenne.tech/bug.lt', // Bug reporting to Linear
     '@vueuse/nuxt', // Vue composition utilities
     'dayjs-nuxt', // Date/time handling
@@ -91,18 +81,6 @@ export default defineNuxtConfig({
     '@nuxtjs/seo', // SEO optimization (sitemap, robots, og-image)
     '@pinia/nuxt', // State management
   ],
-
-  // ============================================================================
-  // @lenne.tech/nuxt-base Configuration
-  // ============================================================================
-  nuxtBase: {
-    disableGraphql: true,
-    generateTypes: process.env['GENERATE_TYPES'] === '1',
-    gqlHost: process.env.API_URL + '/graphql',
-    host: process.env.API_URL,
-    schema: process.env.API_SCHEMA,
-    storagePrefix: process.env.STORAGE_PREFIX,
-  },
 
   // ============================================================================
   // OG Image Configuration

@@ -1,7 +1,7 @@
 {
   "name": "create-nuxt-base",
   "version": "0.3.16",
-  "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, @lenne.tech/nuxt-base, Unit Tests, Cypress etc.",
+  "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, Unit Tests, Playwright etc.",
   "main": "index.js",
   "engines": {
     "node": ">=22",

@@ -22,21 +22,21 @@
     "start:tunnel": "nuxt dev --tunnel",
     "start:extern": "npx cross-env HOST=0.0.0.0 nuxt dev",
     "generate": "nuxt generate",
-    "generate-types": "npx rimraf app/base && npx cross-env GENERATE_TYPES=1 nuxt dev",
+    "generate-types": "openapi-ts",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "test": "npm run test:e2e",
     "test:e2e": "playwright test",
-    "typecheck": "nuxt typecheck",
     "lint": "eslint 'app/**/*.{ts,js,vue}'",
     "lint:fix": "eslint 'app/**/*.{ts,js,vue}' --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run typecheck && npm run lint && npm run format:check"
+    "check": "npm run lint && npm run format:check",
+    "fix": "npm run lint:fix && npm run format"
   },
   "dependencies": {
+    "@hey-api/client-fetch": "0.13.1",
     "@lenne.tech/bug.lt": "latest",
-    "@lenne.tech/nuxt-base": "latest",
     "@nuxt/image": "1.11.0",
     "@nuxt/ui": "4.0.1",
     "@pinia/nuxt": "0.11.2",
@@ -44,6 +44,7 @@
     "valibot": "1.1.0"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "0.85.2",
     "@lenne.tech/eslint-config-vue": "2.1.3",
     "@nuxt/devtools": "2.6.5",
     "@nuxt/test-utils": "3.19.2",

@@ -5,14 +5,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 This is the **Nuxt Base Template**, a starter template for building Nuxt 4 SSR applications. It provides a solid
-foundation with essential configuration, basic UI components, and development tools. The template supports both GraphQL
-and REST API integration via @lenne.tech/nuxt-base and uses modern Vue 3 composition API patterns.
+foundation with essential configuration, basic UI components, and development tools. The template uses modern Vue 3 composition API patterns.
 
 ## Tech Stack
 
 - **Nuxt 4.1.3** with SSR enabled
 - **Vue 3** with TypeScript
-- **@lenne.tech/nuxt-base** for base functionality and API integration
 - **Tailwind CSS** (v4) for styling
 - **VeeValidate + Yup** for form validation
 - **Pinia** for state management (auto-imported)
@@ -23,7 +21,6 @@ and REST API integration via @lenne.tech/nuxt-base and uses modern Vue 3 composi
 - **@nuxtjs/google-fonts** for font management
 - **dayjs-nuxt** for date/time handling
 - **@vueuse/nuxt** for Vue composition utilities
-- **GraphQL + REST API** support via @lenne.tech/nuxt-base
 
 ## Key Commands
 
@@ -120,10 +117,9 @@ Root:
 - **app.head**: Title set to "Nuxt Base Starter"
 - **devServer.port**: 3001
 - **imports.dirs**: Auto-imports from `./states`, `./stores`, `./forms`, `./interfaces`, `./base`, `./plugins`
-- **runtimeConfig.public**: API host (gqlHost, host), web push key
-- **modules**: `@nuxt/test-utils`, `@lenne.tech/nuxt-base`, `@lenne.tech/bug.lt`, `@vueuse/nuxt`,
+- **runtimeConfig.public**: API host (host), web push key
+- **modules**: `@nuxt/test-utils`, `@lenne.tech/bug.lt`, `@vueuse/nuxt`,
   `@nuxtjs/google-fonts`, `@nuxtjs/color-mode`, `dayjs-nuxt`, `@nuxt/image`, `@nuxtjs/plausible`, `@nuxtjs/seo`
-- **nuxtBase**: Configure API integration (host, gqlHost, schema, generateTypes, storagePrefix, disableGraphql)
 - **bug.lt**: Linear integration enabled for non-production (requires LINEAR_API_KEY, LINEAR_TEAM_NAME,
   LINEAR_PROJECT_NAME)
 - **colorMode**: Class suffix disabled for Tailwind v4 compatibility
@@ -190,11 +186,10 @@ The template includes several utility composables:
 4. **Type Generation**: When connecting to an API backend, run `npm run generate-types` to generate TypeScript types (
    clears `app/base` first)
 5. **Port**: Development server runs on port 3001 (not 3000)
-6. **API Integration**: Configure via environment variables - supports both GraphQL and REST via @lenne.tech/nuxt-base
+6. **API Integration**: Configure via environment variables
 7. **Linear Integration**: Bug reporting to Linear is available in non-production environments when configured
 8. **Git Workflow**: Main branch is `main`
 9. **Linting**: ESLint must report zero warnings before committing (npm run lint)
-10. **@lenne.tech/nuxt-base**: Provides authentication, API client, type generation, and utility functions
 
 ## Coding Guidelines
 
