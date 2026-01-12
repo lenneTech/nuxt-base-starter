@@ -3,6 +3,9 @@
   "version": "1.0.1",
   "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, Unit Tests, Playwright etc.",
   "license": "MIT",
+  "repository": {
+    "url": "https://github.com/lenneTech/nuxt-base-starter"
+  },
   "author": "lenne.Tech GmbH",
   "bin": {
     "create-nuxt-base": "./index.js"
