@@ -2,7 +2,7 @@ export function useShare() {
   const route = useRoute();
 
   async function share(title?: string, text?: string, url?: string) {
-    if (!process.client) {
+    if (!import.meta.client) {
       return;
     }
 

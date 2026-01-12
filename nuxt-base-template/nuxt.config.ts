@@ -110,8 +110,11 @@ export default defineNuxtConfig({
   // Runtime Configuration (Environment Variables)
   // ============================================================================
   runtimeConfig: {
+    // Server-only (for SSR requests)
+    apiUrl: process.env.API_URL || 'http://localhost:3000',
     public: {
-      apiUrl: process.env.API_URL || 'http://localhost:3000',
+      // Client-side (browser requests)
+      apiUrl: process.env.API_URL_BROWSER || process.env.API_URL || 'http://localhost:3000',
       host: process.env.API_URL,
       webPushKey: process.env.WEB_PUSH_KEY,
     },
