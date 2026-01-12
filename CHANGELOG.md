@@ -6,31 +6,27 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [0.3.16](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.15...v0.3.16) (2025-09-05)
 
-
 ### Bug Fixes
 
-* Update environment variable for bug feature toggle ([d875b3e](https://github.com/lenneTech/nuxt-base-starter/commit/d875b3eb586368499b9e628cdabd2f971e7cce7f))
+- Update environment variable for bug feature toggle ([d875b3e](https://github.com/lenneTech/nuxt-base-starter/commit/d875b3eb586368499b9e628cdabd2f971e7cce7f))
 
 ### [0.3.15](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.14...v0.3.15) (2025-09-05)
 
-
 ### Features
 
-* Add Linear API configuration and update dependencies ([291adfd](https://github.com/lenneTech/nuxt-base-starter/commit/291adfd8ee6e2c464c4b7c74e4c27531bda3892e))
+- Add Linear API configuration and update dependencies ([291adfd](https://github.com/lenneTech/nuxt-base-starter/commit/291adfd8ee6e2c464c4b7c74e4c27531bda3892e))
 
 ### [0.3.14](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.13...v0.3.14) (2025-08-01)
 
-
 ### Bug Fixes
 
-* **DEV-446:** Replace pnpm with npm for dependency installation and project commands ([8274c25](https://github.com/lenneTech/nuxt-base-starter/commit/8274c255384b841862d2d70a12c19ea30ecbb9d8))
+- **DEV-446:** Replace pnpm with npm for dependency installation and project commands ([8274c25](https://github.com/lenneTech/nuxt-base-starter/commit/8274c255384b841862d2d70a12c19ea30ecbb9d8))
 
 ### [0.3.13](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.12...v0.3.13) (2025-07-24)
 
-
 ### Bug Fixes
 
-* Update [@lenne](https://github.com/lenne).tech/nuxt-base dependency to latest version ([71dd666](https://github.com/lenneTech/nuxt-base-starter/commit/71dd6669fd9ec25671a102b4d2ad294ac88daa10))
+- Update [@lenne](https://github.com/lenne).tech/nuxt-base dependency to latest version ([71dd666](https://github.com/lenneTech/nuxt-base-starter/commit/71dd6669fd9ec25671a102b4d2ad294ac88daa10))
 
 ### [0.3.12](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.11...v0.3.12) (2025-07-24)
 

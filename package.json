@@ -2,29 +2,29 @@
   "name": "create-nuxt-base",
   "version": "0.3.17",
   "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, Unit Tests, Playwright etc.",
-  "main": "index.js",
-  "engines": {
-    "node": ">=22",
-    "npm": ">=10"
-  },
+  "license": "MIT",
+  "author": "lenne.Tech GmbH",
   "bin": {
     "create-nuxt-base": "./index.js"
   },
+  "main": "index.js",
   "scripts": {
-    "prettier": "prettier \"*.{js,json,yml,md,html,ts}\" .",
-    "format": "npm run prettier -- --write",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "release": "standard-version && git push --follow-tags origin main",
     "release:minor": "standard-version --release-as minor && git push --follow-tags origin main",
     "release:major": "standard-version --release-as major && git push --follow-tags origin main"
   },
-  "author": "lenne.Tech GmbH",
-  "license": "MIT",
   "dependencies": {
     "cross-spawn": "7.0.6",
-    "fs-extra": "11.3.2"
+    "fs-extra": "11.3.3"
   },
   "devDependencies": {
-    "prettier": "3.7.4",
+    "oxfmt": "latest",
     "standard-version": "9.5.0"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
   }
 }

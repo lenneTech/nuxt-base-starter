@@ -2,9 +2,12 @@
   "name": "nuxt-base-template",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=22",
-    "npm": ">=10"
+  "exports": {
+    ".": {
+      "import": {
+        "node": "./tslib.es6.mjs"
+      }
+    }
   },
   "scripts": {
     "init": "npm install",
@@ -27,50 +30,47 @@
     "postinstall": "nuxt prepare",
     "test": "npm run test:e2e",
     "test:e2e": "playwright test",
-    "lint": "eslint 'app/**/*.{ts,js,vue}'",
-    "lint:fix": "eslint 'app/**/*.{ts,js,vue}' --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "lint": "oxlint app/",
+    "lint:fix": "oxlint --fix app/",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "check": "npm run lint && npm run format:check",
     "fix": "npm run lint:fix && npm run format"
   },
   "dependencies": {
-    "@better-auth/passkey": "1.4.6",
+    "@better-auth/passkey": "1.4.10",
     "@hey-api/client-fetch": "0.13.1",
     "@lenne.tech/bug.lt": "latest",
     "@nuxt/image": "2.0.0",
-    "@nuxt/ui": "4.2.1",
+    "@nuxt/ui": "4.3.0",
     "@pinia/nuxt": "0.11.3",
     "@vueuse/nuxt": "14.1.0",
-    "better-auth": "1.4.6",
+    "better-auth": "1.4.10",
     "tus-js-client": "4.3.1",
     "valibot": "1.2.0"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "0.89.0",
-    "@lenne.tech/eslint-config-vue": "2.1.4",
+    "@hey-api/openapi-ts": "0.90.3",
     "@nuxt/devtools": "3.1.1",
-    "@nuxt/test-utils": "3.21.0",
+    "@nuxt/test-utils": "3.23.0",
     "@nuxtjs/color-mode": "4.0.0",
     "@nuxtjs/plausible": "2.0.1",
     "@nuxtjs/seo": "3.3.0",
     "@playwright/test": "1.57.0",
     "@tailwindcss/typography": "0.5.19",
     "@tailwindcss/vite": "4.1.18",
-    "@types/node": "25.0.1",
+    "@types/node": "25.0.6",
     "dayjs-nuxt": "2.1.11",
-    "eslint": "9.39.1",
-    "jsdom": "27.3.0",
+    "jsdom": "27.4.0",
     "nuxt": "4.2.2",
+    "oxfmt": "latest",
+    "oxlint": "latest",
     "rimraf": "6.1.2",
     "tailwindcss": "4.1.18",
     "typescript": "5.9.3"
   },
-  "exports": {
-    ".": {
-      "import": {
-        "node": "./tslib.es6.mjs"
-      }
-    }
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
   }
 }
