@@ -80,9 +80,16 @@ export interface AuthClientConfig {
  * plain text password transmission over the network.
  */
 export function createBetterAuthClient(config: AuthClientConfig = {}) {
+  // In development, use empty baseURL and /api/iam path to leverage Nuxt server proxy
+  // This ensures cookies are properly forwarded for cross-origin requests (especially WebAuthn/Passkey)
+  const isDev = import.meta.env?.DEV || process.env.NODE_ENV === 'development';
+  const defaultBaseURL = isDev ? '' : (import.meta.env?.VITE_API_URL || process.env.API_URL || 'http://localhost:3000');
+  // In development, use /api/iam (proxied through Nuxt server) instead of /iam
+  const defaultBasePath = isDev ? '/api/iam' : '/iam';
+
   const {
-    baseURL = import.meta.env?.VITE_API_URL || process.env.API_URL || 'http://localhost:3000',
-    basePath = '/iam',
+    baseURL = defaultBaseURL,
+    basePath = defaultBasePath,
     twoFactorRedirectPath = '/auth/2fa',
     enableAdmin = true,
     enableTwoFactor = true,

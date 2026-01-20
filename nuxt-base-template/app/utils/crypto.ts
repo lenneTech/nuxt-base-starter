@@ -11,3 +11,34 @@ export async function sha256(message: string): Promise<string> {
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+
+// ============================================================================
+// WebAuthn/Passkey Utilities
+// ============================================================================
+
+/**
+ * Converts an ArrayBuffer to a base64url-encoded string
+ * Used for WebAuthn credential responses
+ *
+ * @param buffer - The ArrayBuffer to convert
+ * @returns The base64url-encoded string (no padding)
+ */
+export function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+/**
+ * Converts a base64url-encoded string to a Uint8Array
+ * Used for WebAuthn challenge decoding
+ *
+ * @param base64url - The base64url-encoded string
+ * @returns The decoded Uint8Array
+ */
+export function base64UrlToUint8Array(base64url: string): Uint8Array {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const paddedBase64 = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+  return Uint8Array.from(atob(paddedBase64), (c) => c.charCodeAt(0));
+}

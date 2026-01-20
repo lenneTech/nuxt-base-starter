@@ -127,8 +127,13 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     }
 
     // Check if 2FA is required
+    // Better-Auth native uses 'twoFactorRedirect', nest-server REST API uses 'requiresTwoFactor'
     const resultData = 'data' in result ? result.data : result;
-    if (resultData && 'twoFactorRedirect' in resultData && resultData.twoFactorRedirect) {
+    const requires2FA = resultData && (
+      ('twoFactorRedirect' in resultData && resultData.twoFactorRedirect) ||
+      ('requiresTwoFactor' in resultData && resultData.requiresTwoFactor)
+    );
+    if (requires2FA) {
       // Redirect to 2FA page
       await navigateTo('/auth/2fa');
       return;
