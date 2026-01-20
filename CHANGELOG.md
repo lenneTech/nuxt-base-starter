@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1](https://github.com/lenneTech/nuxt-base-starter/compare/v1.1.0...v1.1.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* **auth:** auto-login after registration and improved passkey handling ([625128b](https://github.com/lenneTech/nuxt-base-starter/commit/625128b18fe812c141859946c196f8efb0738dca))
+* **auth:** improve 2FA UX and document dev-mode proxy requirements ([4c4b1f4](https://github.com/lenneTech/nuxt-base-starter/commit/4c4b1f4d8b77fa93469ccc1a31d4f3292cc7c724))
+
 ## [1.1.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.0.3...v1.1.0) (2026-01-20)
 
 
