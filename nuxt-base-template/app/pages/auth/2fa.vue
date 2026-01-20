@@ -13,6 +13,7 @@ import { authClient } from '~/lib/auth-client';
 // Composables
 // ============================================================================
 const toast = useToast();
+const { setUser, validateSession } = useBetterAuth();
 
 // ============================================================================
 // Page Meta
@@ -28,6 +29,9 @@ const loading = ref<boolean>(false);
 const useBackupCode = ref<boolean>(false);
 const trustDevice = ref<boolean>(false);
 
+// Form state for UForm
+const formState = reactive({ code: '' });
+
 const schema = v.object({
   code: v.pipe(v.string('Code ist erforderlich'), v.minLength(6, 'Code muss mindestens 6 Zeichen haben')),
 });
@@ -41,33 +45,44 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
   loading.value = true;
 
   try {
+    let result: any;
+
     if (useBackupCode.value) {
-      const { error } = await authClient.twoFactor.verifyBackupCode({
+      result = await authClient.twoFactor.verifyBackupCode({
         code: payload.data.code,
       });
 
-      if (error) {
+      if (result.error) {
         toast.add({
           color: 'error',
-          description: error.message || 'Backup-Code ungültig',
+          description: result.error.message || 'Backup-Code ungültig',
           title: 'Fehler',
         });
         return;
       }
     } else {
-      const { error } = await authClient.twoFactor.verifyTotp({
+      result = await authClient.twoFactor.verifyTotp({
         code: payload.data.code,
         trustDevice: trustDevice.value,
       });
 
-      if (error) {
+      if (result.error) {
         toast.add({
           color: 'error',
-          description: error.message || 'Code ungültig',
+          description: result.error.message || 'Code ungültig',
           title: 'Fehler',
         });
         return;
       }
+    }
+
+    // Update auth state with user data from response
+    const userData = result?.data?.user || result?.user;
+    if (userData) {
+      setUser(userData);
+    } else {
+      // Fallback: validate session to get user data
+      await validateSession();
     }
 
     await navigateTo('/app');
@@ -92,10 +107,10 @@ function toggleBackupCode(): void {
         </p>
       </div>
 
-      <UForm :schema="schema" class="flex flex-col gap-4" @submit="onSubmit">
+      <UForm :schema="schema" :state="formState" class="flex flex-col gap-4" @submit="onSubmit">
         <UFormField :label="useBackupCode ? 'Backup-Code' : 'Authentifizierungscode'" name="code">
           <UInput
-            name="code"
+            v-model="formState.code"
             :placeholder="useBackupCode ? 'Backup-Code eingeben' : '000000'"
             size="lg"
             class="text-center font-mono text-lg tracking-widest"

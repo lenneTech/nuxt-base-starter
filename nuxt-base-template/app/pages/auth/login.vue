@@ -13,6 +13,7 @@ import { authClient } from '~/lib/auth-client';
 // Composables
 // ============================================================================
 const toast = useToast();
+const { signIn, setUser, isLoading, validateSession } = useBetterAuth();
 
 // ============================================================================
 // Page Meta
@@ -51,22 +52,53 @@ const schema = v.object({
 
 type Schema = InferOutput<typeof schema>;
 
+/**
+ * Handle passkey authentication
+ * Uses official Better Auth signIn.passkey() method
+ * @see https://www.better-auth.com/docs/plugins/passkey
+ */
 async function onPasskeyLogin(): Promise<void> {
   passkeyLoading.value = true;
 
   try {
-    const { error } = await authClient.signIn.passkey();
+    // Use official Better Auth client method
+    // This calls: GET /passkey/generate-authenticate-options → POST /passkey/verify-authentication
+    const result = await authClient.signIn.passkey();
 
-    if (error) {
+    // Check for error in response
+    if (result.error) {
       toast.add({
         color: 'error',
-        description: error.message || 'Passkey-Anmeldung fehlgeschlagen',
+        description: result.error.message || 'Passkey-Anmeldung fehlgeschlagen',
         title: 'Fehler',
       });
       return;
     }
 
+    // Update auth state with user data if available
+    if (result.data?.user) {
+      setUser(result.data.user as any);
+    } else if (result.data?.session) {
+      // Passkey auth returns session without user - fetch user via session validation
+      await validateSession();
+    }
+
     await navigateTo('/app');
+  } catch (err: unknown) {
+    // Handle WebAuthn-specific errors
+    if (err instanceof Error && err.name === 'NotAllowedError') {
+      toast.add({
+        color: 'error',
+        description: 'Passkey-Authentifizierung wurde abgebrochen',
+        title: 'Fehler',
+      });
+      return;
+    }
+    toast.add({
+      color: 'error',
+      description: err instanceof Error ? err.message : 'Passkey-Anmeldung fehlgeschlagen',
+      title: 'Fehler',
+    });
   } finally {
     passkeyLoading.value = false;
   }
@@ -79,21 +111,48 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
   loading.value = true;
 
   try {
-    const { error } = await authClient.signIn.email({
+    const result = await signIn.email({
       email: payload.data.email,
       password: payload.data.password,
     });
 
-    if (error) {
+    // Check for error in response
+    if ('error' in result && result.error) {
       toast.add({
         color: 'error',
-        description: error.message || 'Anmeldung fehlgeschlagen',
+        description: (result.error as { message?: string }).message || 'Anmeldung fehlgeschlagen',
         title: 'Fehler',
       });
       return;
     }
 
-    await navigateTo('/app');
+    // Check if 2FA is required
+    const resultData = 'data' in result ? result.data : result;
+    if (resultData && 'twoFactorRedirect' in resultData && resultData.twoFactorRedirect) {
+      // Redirect to 2FA page
+      await navigateTo('/auth/2fa');
+      return;
+    }
+
+    // Check if login was successful (user data in response)
+    const userData = 'user' in result ? result.user : ('data' in result ? result.data?.user : null);
+    if (userData) {
+      // Auth state is already stored by useBetterAuth
+      // Navigate to app
+      await navigateTo('/app');
+    } else {
+      toast.add({
+        color: 'error',
+        description: 'Anmeldung fehlgeschlagen - keine Benutzerdaten erhalten',
+        title: 'Fehler',
+      });
+    }
+  } catch (err) {
+    toast.add({
+      color: 'error',
+      description: 'Ein unerwarteter Fehler ist aufgetreten',
+      title: 'Fehler',
+    });
   } finally {
     loading.value = false;
   }

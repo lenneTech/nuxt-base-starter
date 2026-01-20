@@ -16,29 +16,37 @@ The development server starts at **http://localhost:3001**
 
 ### Core Framework
 
-| Technology | Version | Description |
-|------------|---------|-------------|
-| Nuxt | 4.x | Vue 3 meta-framework with SSR support |
-| TypeScript | 5.9.x | Strict type checking enabled |
-| Tailwind CSS | 4.x | Utility-first CSS with Vite plugin |
-| NuxtUI | 4.x | Component library with dark mode |
+| Technology   | Version | Description                           |
+|--------------|---------|---------------------------------------|
+| Nuxt         | 4.x     | Vue 3 meta-framework with SSR support |
+| TypeScript   | 5.9.x   | Strict type checking enabled          |
+| Tailwind CSS | 4.x     | Utility-first CSS with Vite plugin    |
+| NuxtUI       | 4.x     | Component library with dark mode      |
 
 ### Authentication (Better Auth)
 
-- Email/password authentication with client-side password hashing
-- Two-factor authentication (2FA/TOTP)
-- Passkey/WebAuthn support
-- Password reset flow
-- Pre-built auth pages: login, register, forgot-password, reset-password, 2fa
+Complete authentication system using [Better Auth](https://www.better-auth.com/):
+
+| Feature            | Description                                           |
+|--------------------|-------------------------------------------------------|
+| Email/Password     | Standard auth with client-side SHA256 hashing         |
+| Two-Factor (2FA)   | TOTP-based 2FA with backup codes                      |
+| Passkey/WebAuthn   | Passwordless authentication (Touch ID, Face ID, etc.) |
+| Password Reset     | Email-based password reset flow                       |
+| Session Management | SSR-compatible cookie-based sessions                  |
+
+Pre-built auth pages: login, register, forgot-password, reset-password, 2fa
+
+📖 **See [AUTH.md](./AUTH.md) for detailed documentation**
 
 ### State & Data
 
-| Package | Purpose |
-|---------|---------|
-| Pinia | State management |
-| VueUse | Vue composition utilities |
-| @hey-api/client-fetch | Type-safe API client |
-| Valibot | Schema validation for forms |
+| Package               | Purpose                     |
+|-----------------------|-----------------------------|
+| Pinia                 | State management            |
+| VueUse                | Vue composition utilities   |
+| @hey-api/client-fetch | Type-safe API client        |
+| Valibot               | Schema validation for forms |
 
 ### SEO & Analytics
 
@@ -48,13 +56,13 @@ The development server starts at **http://localhost:3001**
 
 ### Developer Experience
 
-| Tool | Purpose |
-|------|---------|
-| OxLint | Fast linting |
-| OxFmt | Code formatting |
-| Playwright | E2E testing |
+| Tool               | Purpose                            |
+|--------------------|------------------------------------|
+| OxLint             | Fast linting                       |
+| OxFmt              | Code formatting                    |
+| Playwright         | E2E testing                        |
 | @lenne.tech/bug.lt | Bug reporting to Linear (dev only) |
-| dayjs-nuxt | Date/time handling |
+| dayjs-nuxt         | Date/time handling                 |
 
 ### File Upload
 
@@ -95,17 +103,17 @@ my-project/
 
 ## Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
+| Script                   | Description                            |
+|--------------------------|----------------------------------------|
+| `npm run dev`            | Start development server               |
+| `npm run build`          | Build for production                   |
+| `npm run preview`        | Preview production build               |
 | `npm run generate-types` | Generate TypeScript types from OpenAPI |
-| `npm run test` | Run Playwright E2E tests |
-| `npm run lint` | Run OxLint |
-| `npm run format` | Run OxFmt |
-| `npm run check` | Run lint + format check |
-| `npm run fix` | Auto-fix lint + format issues |
+| `npm run test`           | Run Playwright E2E tests               |
+| `npm run lint`           | Run OxLint                             |
+| `npm run format`         | Run OxFmt                              |
+| `npm run check`          | Run lint + format check                |
+| `npm run fix`            | Auto-fix lint + format issues          |
 
 ## Environment Variables
 
