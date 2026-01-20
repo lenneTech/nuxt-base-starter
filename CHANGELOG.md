@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.0.3...v1.1.0) (2026-01-20)
+
+
+### Features
+
+* add complete Better-Auth integration with Passkey support and comprehensive documentation ([e0d470c](https://github.com/lenneTech/nuxt-base-starter/commit/e0d470c8229c37bed2948d929676620f344f4878))
+
 ## [1.2.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.0.3...v1.2.0) (2026-01-20)
 
 
