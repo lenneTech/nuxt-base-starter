@@ -24,7 +24,7 @@ interface Passkey {
 // ============================================================================
 const toast = useToast();
 const overlay = useOverlay();
-const { is2FAEnabled, registerPasskey, user } = useBetterAuth();
+const { is2FAEnabled, registerPasskey, setUser, user } = useBetterAuth();
 
 // ============================================================================
 // Variables
@@ -147,6 +147,11 @@ async function disable2FA(payload: FormSubmitEvent<PasswordSchema>): Promise<voi
       return;
     }
 
+    // Update user state to reflect 2FA disabled
+    if (user.value) {
+      setUser({ ...user.value, twoFactorEnabled: false });
+    }
+
     toast.add({
       color: 'success',
       description: '2FA wurde deaktiviert',
@@ -230,6 +235,11 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
       return;
     }
 
+    // Update user state to reflect 2FA enabled
+    if (user.value) {
+      setUser({ ...user.value, twoFactorEnabled: true });
+    }
+
     toast.add({
       color: 'success',
       description: '2FA wurde erfolgreich aktiviert',
@@ -288,7 +298,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
 
         <template v-if="showTotpSetup">
           <div class="space-y-4">
-            <UAlert color="info" icon="i-lucide-info"> Scanne den QR-Code mit deiner Authenticator-App (z.B. Google Authenticator, Authy) und gib den Code ein. </UAlert>
+            <p class="text-sm text-muted">Scanne den QR-Code mit deiner Authenticator-App (z.B. Google Authenticator, Authy) und gib den Code ein.</p>
 
             <div class="flex justify-center">
               <img v-if="totpUri" :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(totpUri)}`" alt="TOTP QR Code" class="rounded-lg" />

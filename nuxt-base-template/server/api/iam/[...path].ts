@@ -1,7 +1,15 @@
 /**
  * Proxy handler for Better Auth API requests
- * This ensures cookies are properly forwarded between frontend (localhost:3001) and API (localhost:3000)
- * Required for WebAuthn/Passkey functionality in development mode
+ *
+ * This proxy is REQUIRED for WebAuthn/Passkey functionality in development mode because:
+ * 1. Frontend runs on a different port (e.g., 3001/3002) than the API (3000)
+ * 2. WebAuthn validates the origin, which must be consistent
+ * 3. Cross-origin requests have cookie handling issues
+ *
+ * The proxy ensures:
+ * - Cookies are properly forwarded between frontend and API
+ * - The origin header is preserved for WebAuthn validation
+ * - Set-Cookie headers from the API are forwarded to the browser
  */
 export default defineEventHandler(async (event) => {
   const path = getRouterParam(event, 'path') || '';
@@ -13,16 +21,17 @@ export default defineEventHandler(async (event) => {
   const queryString = new URLSearchParams(query as Record<string, string>).toString();
   const fullUrl = queryString ? `${targetUrl}?${queryString}` : targetUrl;
 
-  // Get request body for POST/PUT requests
+  // Get request body for POST/PUT/PATCH requests
   const method = event.method;
   let body: any;
   if (['POST', 'PUT', 'PATCH'].includes(method)) {
     body = await readBody(event);
   }
 
-  // Forward cookies and origin from the incoming request
+  // Forward cookies from the incoming request
   const cookieHeader = getHeader(event, 'cookie');
-  const originHeader = getHeader(event, 'origin') || 'http://localhost:3001';
+  // Use the actual origin from the request, fallback to localhost
+  const originHeader = getHeader(event, 'origin') || getHeader(event, 'referer')?.replace(/\/[^/]*$/, '') || 'http://localhost:3001';
 
   // Make the request to the API
   const response = await $fetch.raw(fullUrl, {

@@ -81,10 +81,12 @@ export interface AuthClientConfig {
  */
 export function createBetterAuthClient(config: AuthClientConfig = {}) {
   // In development, use empty baseURL and /api/iam path to leverage Nuxt server proxy
-  // This ensures cookies are properly forwarded for cross-origin requests (especially WebAuthn/Passkey)
+  // This is REQUIRED for WebAuthn/Passkey to work correctly because:
+  // - Frontend runs on localhost:3002, API on localhost:3000
+  // - WebAuthn validates the origin, which must be consistent
+  // - The Nuxt server proxy ensures requests come from the frontend origin
   const isDev = import.meta.env?.DEV || process.env.NODE_ENV === 'development';
   const defaultBaseURL = isDev ? '' : (import.meta.env?.VITE_API_URL || process.env.API_URL || 'http://localhost:3000');
-  // In development, use /api/iam (proxied through Nuxt server) instead of /iam
   const defaultBasePath = isDev ? '/api/iam' : '/iam';
 
   const {
