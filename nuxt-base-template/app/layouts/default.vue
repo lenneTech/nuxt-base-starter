@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
 
+const { isAuthenticated, signOut, user } = useBetterAuth();
+
+async function handleLogout() {
+  await signOut();
+  await navigateTo('/auth/login');
+}
+
 const headerItems = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Docs',
@@ -51,6 +58,16 @@ const footerItems: NavigationMenuItem[] = [
       <UNavigationMenu :items="headerItems" />
 
       <template #right>
+        <template v-if="isAuthenticated">
+          <span class="text-sm text-muted hidden sm:inline">{{ user?.email }}</span>
+          <UTooltip text="Logout">
+            <UButton color="neutral" variant="ghost" icon="i-lucide-log-out" aria-label="Logout" @click="handleLogout" />
+          </UTooltip>
+        </template>
+        <template v-else>
+          <UButton color="primary" variant="soft" to="/auth/login" icon="i-lucide-log-in" label="Login" />
+        </template>
+
         <UColorModeButton />
 
         <UTooltip text="Open on GitHub" :kbds="['meta', 'G']">

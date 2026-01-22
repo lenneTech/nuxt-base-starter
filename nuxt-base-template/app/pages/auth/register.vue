@@ -7,6 +7,8 @@ import type { InferOutput } from 'valibot';
 
 import * as v from 'valibot';
 
+import { authClient } from '~/lib/auth-client';
+
 // ============================================================================
 // Composables
 // ============================================================================
@@ -24,6 +26,8 @@ definePageMeta({
 // Variables
 // ============================================================================
 const loading = ref<boolean>(false);
+const showPasskeyPrompt = ref<boolean>(false);
+const passkeyLoading = ref<boolean>(false);
 
 const fields: AuthFormField[] = [
   {
@@ -117,40 +121,90 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
     toast.add({
       color: 'success',
-      description: 'Dein Konto wurde erfolgreich erstellt. Du kannst Passkeys später in den Sicherheitseinstellungen hinzufügen.',
+      description: 'Dein Konto wurde erfolgreich erstellt',
       title: 'Willkommen!',
     });
 
-    // Navigate to app - passkeys can be added later in security settings
-    // Note: Immediate passkey registration after sign-up is currently not supported
-    // due to session handling differences between nest-server and Better Auth
-    await navigateTo('/app', { external: true });
+    // Show passkey prompt after successful registration + login
+    showPasskeyPrompt.value = true;
   } finally {
     loading.value = false;
   }
+}
+
+async function addPasskey(): Promise<void> {
+  passkeyLoading.value = true;
+
+  try {
+    const { error } = await authClient.passkey.addPasskey({
+      name: 'Mein Gerät',
+    });
+
+    if (error) {
+      toast.add({
+        color: 'error',
+        description: error.message || 'Passkey konnte nicht hinzugefügt werden',
+        title: 'Fehler',
+      });
+      // Still navigate to app even if passkey failed
+      await navigateTo('/app');
+      return;
+    }
+
+    toast.add({
+      color: 'success',
+      description: 'Passkey wurde erfolgreich hinzugefügt',
+      title: 'Erfolg',
+    });
+
+    await navigateTo('/app');
+  } finally {
+    passkeyLoading.value = false;
+  }
+}
+
+async function skipPasskey(): Promise<void> {
+  await navigateTo('/app');
 }
 </script>
 
 <template>
   <UPageCard class="w-md" variant="naked">
-    <UAuthForm
-      :schema="schema"
-      title="Registrieren"
-      icon="i-lucide-user-plus"
-      :fields="fields"
-      :loading="loading"
-      :submit="{
-        label: 'Konto erstellen',
-        block: true,
-      }"
-      @submit="onSubmit"
-    >
-      <template #footer>
-        <p class="text-center text-sm text-muted">
-          Bereits ein Konto?
-          <ULink to="/auth/login" class="text-primary font-medium">Anmelden</ULink>
-        </p>
-      </template>
-    </UAuthForm>
+    <template v-if="!showPasskeyPrompt">
+      <UAuthForm
+        :schema="schema"
+        title="Registrieren"
+        icon="i-lucide-user-plus"
+        :fields="fields"
+        :loading="loading"
+        :submit="{
+          label: 'Konto erstellen',
+          block: true,
+        }"
+        @submit="onSubmit"
+      >
+        <template #footer>
+          <p class="text-center text-sm text-muted">
+            Bereits ein Konto?
+            <ULink to="/auth/login" class="text-primary font-medium">Anmelden</ULink>
+          </p>
+        </template>
+      </UAuthForm>
+    </template>
+
+    <template v-else>
+      <div class="flex flex-col items-center gap-6">
+        <UIcon name="i-lucide-key" class="size-16 text-primary" />
+        <div class="text-center">
+          <h2 class="text-xl font-semibold">Passkey hinzufügen?</h2>
+          <p class="mt-2 text-sm text-muted">Mit einem Passkey kannst du dich schnell und sicher ohne Passwort anmelden.</p>
+        </div>
+
+        <div class="flex w-full flex-col gap-3">
+          <UButton block :loading="passkeyLoading" @click="addPasskey"> Passkey hinzufügen </UButton>
+          <UButton block variant="outline" color="neutral" @click="skipPasskey"> Später einrichten </UButton>
+        </div>
+      </div>
+    </template>
   </UPageCard>
 </template>

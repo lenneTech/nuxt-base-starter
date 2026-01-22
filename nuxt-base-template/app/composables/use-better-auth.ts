@@ -205,12 +205,14 @@ export function useBetterAuth() {
     isLoading.value = true;
 
     try {
-      // Direct API access (CORS is configured on the server for trusted origins)
+      // In development, use the Nuxt proxy to ensure cookies are sent correctly
+      // In production, use the direct API URL
+      const isDev = import.meta.dev;
       const runtimeConfig = useRuntimeConfig();
-      const apiUrl = runtimeConfig.public.apiUrl || 'http://localhost:3000';
+      const apiBase = isDev ? '/api/iam' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/iam`;
 
       // Step 1: Get authentication options from server
-      const optionsResponse = await fetch(`${apiUrl}/iam/passkey/generate-authenticate-options`, {
+      const optionsResponse = await fetch(`${apiBase}/passkey/generate-authenticate-options`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -255,11 +257,12 @@ export function useBetterAuth() {
       };
 
       // Step 5: Verify with server
-      const authResponse = await fetch(`${apiUrl}/iam/passkey/verify-authentication`, {
+      // Note: The server expects { response: credentialData } format (matching @simplewebauthn/browser output)
+      const authResponse = await fetch(`${apiBase}/passkey/verify-authentication`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentialBody),
+        body: JSON.stringify({ response: credentialBody }),
       });
 
       const result = await authResponse.json();
@@ -300,12 +303,14 @@ export function useBetterAuth() {
     isLoading.value = true;
 
     try {
-      // Direct API access (CORS is configured on the server for trusted origins)
+      // In development, use the Nuxt proxy to ensure cookies are sent correctly
+      // In production, use the direct API URL
+      const isDev = import.meta.dev;
       const runtimeConfig = useRuntimeConfig();
-      const apiUrl = runtimeConfig.public.apiUrl || 'http://localhost:3000';
+      const apiBase = isDev ? '/api/iam' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/iam`;
 
       // Step 1: Get registration options from server
-      const optionsResponse = await fetch(`${apiUrl}/iam/passkey/generate-register-options`, {
+      const optionsResponse = await fetch(`${apiBase}/passkey/generate-register-options`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -365,7 +370,7 @@ export function useBetterAuth() {
       };
 
       // Step 6: Send to server for verification and storage
-      const registerResponse = await fetch(`${apiUrl}/iam/passkey/verify-registration`, {
+      const registerResponse = await fetch(`${apiBase}/passkey/verify-registration`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
