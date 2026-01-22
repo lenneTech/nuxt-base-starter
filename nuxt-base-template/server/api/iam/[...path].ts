@@ -28,8 +28,9 @@ export default defineEventHandler(async (event) => {
     body = await readBody(event);
   }
 
-  // Forward cookies from the incoming request
+  // Forward cookies and authorization from the incoming request
   const cookieHeader = getHeader(event, 'cookie');
+  const authHeader = getHeader(event, 'authorization');
   // Use the actual origin from the request, fallback to localhost
   const originHeader = getHeader(event, 'origin') || getHeader(event, 'referer')?.replace(/\/[^/]*$/, '') || 'http://localhost:3001';
 
@@ -39,8 +40,9 @@ export default defineEventHandler(async (event) => {
     body: body ? JSON.stringify(body) : undefined,
     headers: {
       'Content-Type': 'application/json',
-      'Origin': originHeader,
+      Origin: originHeader,
       ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      ...(authHeader ? { Authorization: authHeader } : {}),
     },
     credentials: 'include',
     // Don't throw on error status codes
@@ -50,10 +52,16 @@ export default defineEventHandler(async (event) => {
   // Forward Set-Cookie headers from the API response
   const setCookieHeaders = response.headers.getSetCookie?.() || [];
   for (const cookie of setCookieHeaders) {
-    // Rewrite cookie to work on localhost (remove domain/port specifics)
+    // Rewrite cookie to work on localhost:
+    // 1. Remove domain (cookie will be set for current origin)
+    // 2. Remove secure flag (not needed for localhost)
+    // 3. Rewrite path from /iam to /api/iam (or set to / for broader access)
     const rewrittenCookie = cookie
       .replace(/domain=[^;]+;?\s*/gi, '')
-      .replace(/secure;?\s*/gi, '');
+      .replace(/secure;?\s*/gi, '')
+      // Ensure path is set to / so cookies work for all routes
+      .replace(/path=\/iam[^;]*;?\s*/gi, 'path=/; ')
+      .replace(/path=[^;]+;?\s*/gi, 'path=/; ');
     appendResponseHeader(event, 'Set-Cookie', rewrittenCookie);
   }
 

@@ -6,25 +6,22 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [1.1.1](https://github.com/lenneTech/nuxt-base-starter/compare/v1.1.0...v1.1.1) (2026-01-20)
 
-
 ### Bug Fixes
 
-* **auth:** auto-login after registration and improved passkey handling ([625128b](https://github.com/lenneTech/nuxt-base-starter/commit/625128b18fe812c141859946c196f8efb0738dca))
-* **auth:** improve 2FA UX and document dev-mode proxy requirements ([4c4b1f4](https://github.com/lenneTech/nuxt-base-starter/commit/4c4b1f4d8b77fa93469ccc1a31d4f3292cc7c724))
+- **auth:** auto-login after registration and improved passkey handling ([625128b](https://github.com/lenneTech/nuxt-base-starter/commit/625128b18fe812c141859946c196f8efb0738dca))
+- **auth:** improve 2FA UX and document dev-mode proxy requirements ([4c4b1f4](https://github.com/lenneTech/nuxt-base-starter/commit/4c4b1f4d8b77fa93469ccc1a31d4f3292cc7c724))
 
 ## [1.1.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.0.3...v1.1.0) (2026-01-20)
 
-
 ### Features
 
-* add complete Better-Auth integration with Passkey support and comprehensive documentation ([e0d470c](https://github.com/lenneTech/nuxt-base-starter/commit/e0d470c8229c37bed2948d929676620f344f4878))
+- add complete Better-Auth integration with Passkey support and comprehensive documentation ([e0d470c](https://github.com/lenneTech/nuxt-base-starter/commit/e0d470c8229c37bed2948d929676620f344f4878))
 
 ## [1.2.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.0.3...v1.2.0) (2026-01-20)
 
-
 ### Features
 
-* add complete Better-Auth integration with Passkey support and comprehensive documentation ([70fbec1](https://github.com/lenneTech/nuxt-base-starter/commit/70fbec14e38673c5185195fe05f0cd82bf72a800))
+- add complete Better-Auth integration with Passkey support and comprehensive documentation ([70fbec1](https://github.com/lenneTech/nuxt-base-starter/commit/70fbec14e38673c5185195fe05f0cd82bf72a800))
 
 ## [1.1.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.0.3...v1.1.0) (2026-01-20)
 
@@ -32,19 +29,17 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [1.0.2](https://github.com/lenneTech/nuxt-base-starter/compare/v1.0.1...v1.0.2) (2026-01-12)
 
-
 ### Bug Fixes
 
-* add repository field in package.json ([1f43eae](https://github.com/lenneTech/nuxt-base-starter/commit/1f43eae4445b2f8a54cf4442c79be1bd55cf711c))
+- add repository field in package.json ([1f43eae](https://github.com/lenneTech/nuxt-base-starter/commit/1f43eae4445b2f8a54cf4442c79be1bd55cf711c))
 
 ### [1.0.1](https://github.com/lenneTech/nuxt-base-starter/compare/v1.0.0...v1.0.1) (2026-01-12)
 
 ## [1.0.0](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.17...v1.0.0) (2026-01-12)
 
-
 ### Bug Fixes
 
-* **DEV-609:** removed duplicate public folder inside app ([#10](https://github.com/lenneTech/nuxt-base-starter/issues/10)) ([25fe0fe](https://github.com/lenneTech/nuxt-base-starter/commit/25fe0fe3c53bc3400373d9c3f0a4b6705952171b))
+- **DEV-609:** removed duplicate public folder inside app ([#10](https://github.com/lenneTech/nuxt-base-starter/issues/10)) ([25fe0fe](https://github.com/lenneTech/nuxt-base-starter/commit/25fe0fe3c53bc3400373d9c3f0a4b6705952171b))
 
 ### [0.3.17](https://github.com/lenneTech/nuxt-base-starter/compare/v0.3.16...v0.3.17) (2025-10-17)
 

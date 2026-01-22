@@ -7,13 +7,11 @@ import type { InferOutput } from 'valibot';
 
 import * as v from 'valibot';
 
-import { authClient } from '~/lib/auth-client';
-
 // ============================================================================
 // Composables
 // ============================================================================
 const toast = useToast();
-const { signUp, signIn } = useBetterAuth();
+const { signUp, signIn, registerPasskey } = useBetterAuth();
 
 // ============================================================================
 // Page Meta
@@ -136,14 +134,13 @@ async function addPasskey(): Promise<void> {
   passkeyLoading.value = true;
 
   try {
-    const { error } = await authClient.passkey.addPasskey({
-      name: 'Mein Gerät',
-    });
+    // Use registerPasskey from composable which properly handles challengeId
+    const result = await registerPasskey('Mein Gerät');
 
-    if (error) {
+    if (!result.success) {
       toast.add({
         color: 'error',
-        description: error.message || 'Passkey konnte nicht hinzugefügt werden',
+        description: result.error || 'Passkey konnte nicht hinzugefügt werden',
         title: 'Fehler',
       });
       // Still navigate to app even if passkey failed

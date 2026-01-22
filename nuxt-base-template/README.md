@@ -91,17 +91,17 @@ npm run generate-types
 
 ## Tech Stack
 
-| Technology | Version | Description |
-|------------|---------|-------------|
-| Nuxt | 4.2.x | Vue 3 meta-framework with SSR |
-| TypeScript | 5.9.x | Strict type checking |
-| Tailwind CSS | 4.1.x | Utility-first CSS (Vite plugin) |
-| NuxtUI | 4.3.x | Component library with dark mode |
-| Pinia | 0.11.x | State management |
-| Better Auth | 1.4.x | Authentication framework |
-| Playwright | 1.57.x | E2E testing |
-| @hey-api/client-fetch | 0.13.x | Type-safe API client |
-| Valibot | 1.2.x | Schema validation |
+| Technology            | Version | Description                      |
+| --------------------- | ------- | -------------------------------- |
+| Nuxt                  | 4.2.x   | Vue 3 meta-framework with SSR    |
+| TypeScript            | 5.9.x   | Strict type checking             |
+| Tailwind CSS          | 4.1.x   | Utility-first CSS (Vite plugin)  |
+| NuxtUI                | 4.3.x   | Component library with dark mode |
+| Pinia                 | 0.11.x  | State management                 |
+| Better Auth           | 1.4.x   | Authentication framework         |
+| Playwright            | 1.57.x  | E2E testing                      |
+| @hey-api/client-fetch | 0.13.x  | Type-safe API client             |
+| Valibot               | 1.2.x   | Schema validation                |
 
 ## Key Features
 

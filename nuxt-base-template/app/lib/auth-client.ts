@@ -2,6 +2,7 @@ import { passkeyClient } from '@better-auth/passkey/client';
 import { adminClient, twoFactorClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/vue';
 
+import { authFetch } from '~/lib/auth-state';
 import { sha256 } from '~/utils/crypto';
 
 // =============================================================================
@@ -85,18 +86,13 @@ export function createBetterAuthClient(config: AuthClientConfig = {}) {
   // - Frontend runs on localhost:3002, API on localhost:3000
   // - WebAuthn validates the origin, which must be consistent
   // - The Nuxt server proxy ensures requests come from the frontend origin
-  const isDev = import.meta.env?.DEV || process.env.NODE_ENV === 'development';
-  const defaultBaseURL = isDev ? '' : (import.meta.env?.VITE_API_URL || process.env.API_URL || 'http://localhost:3000');
+  // Note: In Nuxt, use import.meta.dev (not import.meta.env?.DEV which is Vite-specific)
+  // At lenne.tech, 'development' is a stage on a web server, 'local' is the local dev environment
+  const isDev = import.meta.dev || process.env.NODE_ENV === 'local';
+  const defaultBaseURL = isDev ? '' : import.meta.env?.VITE_API_URL || process.env.API_URL || 'http://localhost:3000';
   const defaultBasePath = isDev ? '/api/iam' : '/iam';
 
-  const {
-    baseURL = defaultBaseURL,
-    basePath = defaultBasePath,
-    twoFactorRedirectPath = '/auth/2fa',
-    enableAdmin = true,
-    enableTwoFactor = true,
-    enablePasskey = true,
-  } = config;
+  const { baseURL = defaultBaseURL, basePath = defaultBasePath, twoFactorRedirectPath = '/auth/2fa', enableAdmin = true, enableTwoFactor = true, enablePasskey = true } = config;
 
   // Build plugins array based on configuration
   const plugins: any[] = [];
@@ -120,11 +116,12 @@ export function createBetterAuthClient(config: AuthClientConfig = {}) {
   }
 
   // Create base client with configuration
+  // Uses authFetch for automatic Cookie/JWT dual-mode authentication
   const baseClient = createAuthClient({
     basePath,
     baseURL,
     fetchOptions: {
-      credentials: 'include', // Required for cross-origin cookie handling
+      customFetchImpl: authFetch,
     },
     plugins,
   });

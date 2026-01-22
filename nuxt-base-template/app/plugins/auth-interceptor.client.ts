@@ -18,13 +18,7 @@ export default defineNuxtPlugin(() => {
 
   // Paths that should not trigger auto-logout on 401
   // (public auth endpoints where 401 is expected)
-  const publicAuthPaths = [
-    '/auth/login',
-    '/auth/register',
-    '/auth/forgot-password',
-    '/auth/reset-password',
-    '/auth/2fa',
-  ];
+  const publicAuthPaths = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/auth/2fa'];
 
   /**
    * Check if current route is a public auth route
@@ -35,7 +29,8 @@ export default defineNuxtPlugin(() => {
 
   /**
    * Check if URL is an auth-related endpoint that shouldn't trigger logout
-   * (e.g., login, register, password reset endpoints)
+   * (e.g., login, register, password reset, passkey endpoints)
+   * These endpoints use the authFetch wrapper which handles JWT fallback
    */
   function isAuthEndpoint(url: string): boolean {
     const authEndpoints = [
@@ -46,6 +41,16 @@ export default defineNuxtPlugin(() => {
       '/reset-password',
       '/verify-email',
       '/session',
+      '/token',
+      // Passkey endpoints - handled by authFetch with JWT fallback
+      '/passkey/',
+      '/list-user-passkeys',
+      '/generate-register-options',
+      '/verify-registration',
+      '/generate-authenticate-options',
+      '/verify-authentication',
+      // Two-factor endpoints
+      '/two-factor/',
     ];
     return authEndpoints.some((endpoint) => url.includes(endpoint));
   }
@@ -81,14 +86,17 @@ export default defineNuxtPlugin(() => {
         clearUser();
 
         // Redirect to login page with return URL
-        await navigateTo({
-          path: '/auth/login',
-          query: {
-            redirect: route.fullPath !== '/auth/login' ? route.fullPath : undefined,
+        await navigateTo(
+          {
+            path: '/auth/login',
+            query: {
+              redirect: route.fullPath !== '/auth/login' ? route.fullPath : undefined,
+            },
           },
-        }, {
-          replace: true,
-        });
+          {
+            replace: true,
+          },
+        );
       }
     } finally {
       // Reset flag after a short delay to allow navigation to complete

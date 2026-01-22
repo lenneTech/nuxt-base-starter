@@ -13,7 +13,7 @@ import { authClient } from '~/lib/auth-client';
 // Composables
 // ============================================================================
 const toast = useToast();
-const { setUser, validateSession } = useBetterAuth();
+const { fetchWithAuth, setUser, switchToJwtMode, jwtToken } = useBetterAuth();
 
 // ============================================================================
 // Page Meta
@@ -76,13 +76,45 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       }
     }
 
-    // Update auth state with user data from response
+    // Extract token and user data from response (JWT mode: cookies: false)
+    const token = result?.token || result?.data?.token;
     const userData = result?.data?.user || result?.user;
-    if (userData) {
-      setUser(userData);
+
+    if (token) {
+      // JWT mode: Token is in the response
+      jwtToken.value = token;
+      if (userData) {
+        setUser(userData, 'jwt');
+      }
+      console.debug('[Auth] JWT token received from 2FA response');
+    } else if (userData) {
+      // Cookie mode: No token in response, use cookies
+      setUser(userData, 'cookie');
+      // Try to get JWT token for fallback
+      switchToJwtMode().catch(() => {});
     } else {
-      // Fallback: validate session to get user data
-      await validateSession();
+      // Fallback: fetch session data from API using authenticated fetch
+      try {
+        const isDev = import.meta.dev;
+        const runtimeConfig = useRuntimeConfig();
+        const apiBase = isDev ? '/api/iam' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/iam`;
+        const sessionResponse = await fetchWithAuth(`${apiBase}/get-session`);
+        if (sessionResponse.ok) {
+          const sessionData = await sessionResponse.json();
+          const sessionToken = sessionData?.token;
+          if (sessionToken) {
+            jwtToken.value = sessionToken;
+            if (sessionData?.user) {
+              setUser(sessionData.user, 'jwt');
+            }
+          } else if (sessionData?.user) {
+            setUser(sessionData.user, 'cookie');
+            switchToJwtMode().catch(() => {});
+          }
+        }
+      } catch {
+        // Ignore session fetch errors
+      }
     }
 
     await navigateTo('/app');

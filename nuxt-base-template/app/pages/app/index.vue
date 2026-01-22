@@ -29,9 +29,7 @@ async function handleSignOut(): Promise<void> {
   <div class="mx-auto max-w-4xl px-4 py-8">
     <!-- Welcome Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold">
-        Willkommen{{ user?.name ? `, ${user.name}` : '' }}!
-      </h1>
+      <h1 class="text-3xl font-bold">Willkommen{{ user?.name ? `, ${user.name}` : '' }}!</h1>
       <p class="mt-2 text-muted">
         {{ user?.email }}
       </p>
@@ -41,12 +39,7 @@ async function handleSignOut(): Promise<void> {
     <div class="mb-8">
       <h2 class="mb-4 text-xl font-semibold">Schnellzugriff</h2>
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <UCard
-          v-for="page in pages"
-          :key="page.to"
-          class="cursor-pointer transition-shadow hover:shadow-lg"
-          @click="navigateTo(page.to)"
-        >
+        <UCard v-for="page in pages" :key="page.to" class="cursor-pointer transition-shadow hover:shadow-lg" @click="navigateTo(page.to)">
           <div class="flex items-start gap-4">
             <div class="rounded-lg bg-primary/10 p-3">
               <UIcon :name="page.icon" class="size-6 text-primary" />
@@ -87,14 +80,7 @@ async function handleSignOut(): Promise<void> {
       </div>
 
       <template #footer>
-        <UButton
-          color="error"
-          variant="outline"
-          icon="i-lucide-log-out"
-          @click="handleSignOut"
-        >
-          Abmelden
-        </UButton>
+        <UButton color="error" variant="outline" icon="i-lucide-log-out" @click="handleSignOut"> Abmelden </UButton>
       </template>
     </UCard>
   </div>

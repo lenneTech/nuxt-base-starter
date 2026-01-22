@@ -7,13 +7,11 @@ import type { InferOutput } from 'valibot';
 
 import * as v from 'valibot';
 
-import { authClient } from '~/lib/auth-client';
-
 // ============================================================================
 // Composables
 // ============================================================================
 const toast = useToast();
-const { signIn, setUser, isLoading, validateSession } = useBetterAuth();
+const { signIn, setUser, isLoading, validateSession, authenticateWithPasskey } = useBetterAuth();
 
 // ============================================================================
 // Page Meta
@@ -54,32 +52,30 @@ type Schema = InferOutput<typeof schema>;
 
 /**
  * Handle passkey authentication
- * Uses official Better Auth signIn.passkey() method
- * @see https://www.better-auth.com/docs/plugins/passkey
+ * Uses authenticateWithPasskey from composable which supports JWT mode (challengeId)
  */
 async function onPasskeyLogin(): Promise<void> {
   passkeyLoading.value = true;
 
   try {
-    // Use official Better Auth client method
-    // This calls: GET /passkey/generate-authenticate-options → POST /passkey/verify-authentication
-    const result = await authClient.signIn.passkey();
+    // Use composable method which handles challengeId for JWT mode
+    const result = await authenticateWithPasskey();
 
-    // Check for error in response
-    if (result.error) {
+    // Check for error in response (authenticateWithPasskey returns { success, error?, user? })
+    if (!result.success) {
       toast.add({
         color: 'error',
-        description: result.error.message || 'Passkey-Anmeldung fehlgeschlagen',
+        description: result.error || 'Passkey-Anmeldung fehlgeschlagen',
         title: 'Fehler',
       });
       return;
     }
 
     // Update auth state with user data if available
-    if (result.data?.user) {
-      setUser(result.data.user as any);
-    } else if (result.data?.session) {
-      // Passkey auth returns session without user - fetch user via session validation
+    if (result.user) {
+      setUser(result.user as any);
+    } else {
+      // Passkey auth may return success without user - fetch user via session validation
       await validateSession();
     }
 
@@ -129,10 +125,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     // Check if 2FA is required
     // Better-Auth native uses 'twoFactorRedirect', nest-server REST API uses 'requiresTwoFactor'
     const resultData = 'data' in result ? result.data : result;
-    const requires2FA = resultData && (
-      ('twoFactorRedirect' in resultData && resultData.twoFactorRedirect) ||
-      ('requiresTwoFactor' in resultData && resultData.requiresTwoFactor)
-    );
+    const requires2FA = resultData && (('twoFactorRedirect' in resultData && resultData.twoFactorRedirect) || ('requiresTwoFactor' in resultData && resultData.requiresTwoFactor));
     if (requires2FA) {
       // Redirect to 2FA page
       await navigateTo('/auth/2fa');
@@ -140,7 +133,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     }
 
     // Check if login was successful (user data in response)
-    const userData = 'user' in result ? result.user : ('data' in result ? result.data?.user : null);
+    const userData = 'user' in result ? result.user : 'data' in result ? result.data?.user : null;
     if (userData) {
       // Auth state is already stored by useBetterAuth
       // Navigate to app

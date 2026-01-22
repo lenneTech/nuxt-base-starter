@@ -7,12 +7,12 @@ This document describes the Better Auth integration in the nuxt-base-starter tem
 The template uses [Better Auth](https://www.better-auth.com/) for authentication with the following features:
 
 | Feature               | Status | Description                            |
-|-----------------------|--------|----------------------------------------|
-| Email & Password      | ✅      | Standard email/password authentication |
-| Two-Factor Auth (2FA) | ✅      | TOTP-based 2FA with backup codes       |
-| Passkey (WebAuthn)    | ✅      | Passwordless authentication            |
-| Session Management    | ✅      | Cookie-based sessions with SSR support |
-| Password Hashing      | ✅      | Client-side SHA256 hashing             |
+| --------------------- | ------ | -------------------------------------- |
+| Email & Password      | ✅     | Standard email/password authentication |
+| Two-Factor Auth (2FA) | ✅     | TOTP-based 2FA with backup codes       |
+| Passkey (WebAuthn)    | ✅     | Passwordless authentication            |
+| Session Management    | ✅     | Cookie-based sessions with SSR support |
+| Password Hashing      | ✅     | Client-side SHA256 hashing             |
 
 ## Architecture
 
@@ -44,7 +44,7 @@ The template uses [Better Auth](https://www.better-auth.com/) for authentication
 ## Files
 
 | File                                 | Purpose                          |
-|--------------------------------------|----------------------------------|
+| ------------------------------------ | -------------------------------- |
 | `app/lib/auth-client.ts`             | Better Auth client configuration |
 | `app/composables/use-better-auth.ts` | Auth state management composable |
 | `app/pages/auth/login.vue`           | Login page                       |
@@ -153,8 +153,8 @@ import { createBetterAuthClient } from '~/lib/auth-client';
 // Create a custom client
 const customClient = createBetterAuthClient({
   baseURL: 'https://api.example.com',
-  basePath: '/auth',  // Default: '/iam'
-  twoFactorRedirectPath: '/login/2fa',  // Default: '/auth/2fa'
+  basePath: '/auth', // Default: '/iam'
+  twoFactorRedirectPath: '/login/2fa', // Default: '/auth/2fa'
   enableAdmin: false,
   enableTwoFactor: true,
   enablePasskey: true,
@@ -174,6 +174,7 @@ const hashedPassword = await sha256(plainPassword);
 ```
 
 **Why client-side hashing?**
+
 1. Prevents plain text passwords in network logs
 2. Works with nest-server's `normalizePasswordForIam()` which detects SHA256 hashes
 3. Server re-hashes with bcrypt for storage
@@ -183,7 +184,7 @@ const hashedPassword = await sha256(plainPassword);
 Sessions are stored in cookies for SSR compatibility:
 
 | Cookie                      | Purpose                    |
-|-----------------------------|----------------------------|
+| --------------------------- | -------------------------- |
 | `auth-state`                | User data (SSR-compatible) |
 | `token`                     | Session token              |
 | `better-auth.session_token` | Better Auth native cookie  |
@@ -200,6 +201,7 @@ fetchOptions: {
 ```
 
 **Backend CORS Configuration:**
+
 ```typescript
 // In nest-server config
 cors: {
@@ -215,7 +217,7 @@ The following endpoints are provided by the nest-server backend:
 ### Authentication
 
 | Endpoint             | Method | Description                 |
-|----------------------|--------|-----------------------------|
+| -------------------- | ------ | --------------------------- |
 | `/iam/sign-in/email` | POST   | Email/password sign in      |
 | `/iam/sign-up/email` | POST   | Email/password registration |
 | `/iam/sign-out`      | POST   | Sign out                    |
@@ -224,7 +226,7 @@ The following endpoints are provided by the nest-server backend:
 ### Passkey (WebAuthn)
 
 | Endpoint                                     | Method | Description              |
-|----------------------------------------------|--------|--------------------------|
+| -------------------------------------------- | ------ | ------------------------ |
 | `/iam/passkey/generate-register-options`     | GET    | Get registration options |
 | `/iam/passkey/verify-registration`           | POST   | Verify registration      |
 | `/iam/passkey/generate-authenticate-options` | GET    | Get auth options         |
@@ -235,7 +237,7 @@ The following endpoints are provided by the nest-server backend:
 ### Two-Factor Authentication
 
 | Endpoint                             | Method | Description        |
-|--------------------------------------|--------|--------------------|
+| ------------------------------------ | ------ | ------------------ |
 | `/iam/two-factor/enable`             | POST   | Enable 2FA         |
 | `/iam/two-factor/disable`            | POST   | Disable 2FA        |
 | `/iam/two-factor/verify-totp`        | POST   | Verify TOTP code   |
@@ -267,7 +269,7 @@ The passkey response only contains the session, not the user. Call `validateSess
 
 ```typescript
 if (result.data?.session) {
-  await validateSession();  // Fetches user data
+  await validateSession(); // Fetches user data
 }
 ```
 

@@ -17,7 +17,7 @@ The development server starts at **http://localhost:3001**
 ### Core Framework
 
 | Technology   | Version | Description                           |
-|--------------|---------|---------------------------------------|
+| ------------ | ------- | ------------------------------------- |
 | Nuxt         | 4.x     | Vue 3 meta-framework with SSR support |
 | TypeScript   | 5.9.x   | Strict type checking enabled          |
 | Tailwind CSS | 4.x     | Utility-first CSS with Vite plugin    |
@@ -28,7 +28,7 @@ The development server starts at **http://localhost:3001**
 Complete authentication system using [Better Auth](https://www.better-auth.com/):
 
 | Feature            | Description                                           |
-|--------------------|-------------------------------------------------------|
+| ------------------ | ----------------------------------------------------- |
 | Email/Password     | Standard auth with client-side SHA256 hashing         |
 | Two-Factor (2FA)   | TOTP-based 2FA with backup codes                      |
 | Passkey/WebAuthn   | Passwordless authentication (Touch ID, Face ID, etc.) |
@@ -42,7 +42,7 @@ Pre-built auth pages: login, register, forgot-password, reset-password, 2fa
 ### State & Data
 
 | Package               | Purpose                     |
-|-----------------------|-----------------------------|
+| --------------------- | --------------------------- |
 | Pinia                 | State management            |
 | VueUse                | Vue composition utilities   |
 | @hey-api/client-fetch | Type-safe API client        |
@@ -57,7 +57,7 @@ Pre-built auth pages: login, register, forgot-password, reset-password, 2fa
 ### Developer Experience
 
 | Tool               | Purpose                            |
-|--------------------|------------------------------------|
+| ------------------ | ---------------------------------- |
 | OxLint             | Fast linting                       |
 | OxFmt              | Code formatting                    |
 | Playwright         | E2E testing                        |
@@ -104,7 +104,7 @@ my-project/
 ## Available Scripts
 
 | Script                   | Description                            |
-|--------------------------|----------------------------------------|
+| ------------------------ | -------------------------------------- |
 | `npm run dev`            | Start development server               |
 | `npm run build`          | Build for production                   |
 | `npm run preview`        | Preview production build               |
