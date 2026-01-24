@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.2.0...v2.0.0) (2026-01-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Local auth, upload, and utility files replaced by package
+
+Migration to @lenne.tech/nuxt-extensions v1.0.1:
+- Remove local composables (use-better-auth, use-tus-upload, use-file, use-share, use-tw)
+- Remove local lib files (auth-client, auth-state)
+- Remove local plugins (auth-interceptor.client)
+- Remove local utils (crypto)
+- Remove local interfaces (upload.interface)
+- Remove local Transition components (now provided by package as Lt* prefix)
+- Simplify user.interface.ts to re-export LtUser from package
+- Update all imports to use auto-imported composables (useLtAuth, useLtTusUpload, etc.)
+- Update package.json to use npm package instead of yalc
+
+All authentication features now provided by the package:
+- Cookie/JWT dual-mode authentication
+- Passkey/WebAuthn support
+- 2FA/TOTP support
+- Auto-logout on 401
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+
+### Bug Fixes
+
+* use exact version 1.0.1 for [@lenne](https://github.com/lenne).tech/nuxt-extensions ([fe8d4c2](https://github.com/lenneTech/nuxt-base-starter/commit/fe8d4c21575977bd093a304adc2e18c7edc61110))
+
+
+* migrate to [@lenne](https://github.com/lenne).tech/nuxt-extensions package ([4c8b732](https://github.com/lenneTech/nuxt-base-starter/commit/4c8b732b9d017a0ff7fb21ef09136dcd7fff81f0))
+
 ## [1.2.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.1.2...v1.2.0) (2026-01-22)
 
 
