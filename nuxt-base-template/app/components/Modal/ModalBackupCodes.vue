@@ -7,7 +7,8 @@ import type { InferOutput } from 'valibot';
 
 import * as v from 'valibot';
 
-import { authClient } from '~/lib/auth-client';
+// Auth client from @lenne.tech/nuxt-extensions (auto-imported as ltAuthClient)
+const authClient = ltAuthClient;
 
 // ============================================================================
 // Props & Emits

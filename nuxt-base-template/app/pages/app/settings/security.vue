@@ -8,7 +8,6 @@ import type { InferOutput } from 'valibot';
 import * as v from 'valibot';
 
 import ModalBackupCodes from '~/components/Modal/ModalBackupCodes.vue';
-import { authClient } from '~/lib/auth-client';
 
 // ============================================================================
 // Interfaces
@@ -24,7 +23,8 @@ interface Passkey {
 // ============================================================================
 const toast = useToast();
 const overlay = useOverlay();
-const { is2FAEnabled, registerPasskey, setUser, user } = useBetterAuth();
+const { is2FAEnabled, registerPasskey, setUser, user } = useLtAuth();
+const authClient = useLtAuthClient();
 
 // ============================================================================
 // Variables

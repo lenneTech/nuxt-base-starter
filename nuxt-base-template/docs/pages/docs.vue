@@ -182,7 +182,7 @@ async function handleFormSubmit(): Promise<void> {
 }
 
 async function handleShare(): Promise<void> {
-  const { share } = useShare();
+  const { share } = useLtShare();
   await share('Nuxt Base Starter', 'Check out this Nuxt Base Starter Template!', window.location.href);
 
   toast.add({

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { UploadItem } from '~/interfaces/upload.interface';
+import type { LtUploadItem } from '@lenne.tech/nuxt-extensions';
 
 // ============================================================================
 // Props & Emits
@@ -45,11 +45,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   /** Alle Uploads abgeschlossen */
-  complete: [items: UploadItem[]];
+  complete: [items: LtUploadItem[]];
   /** Upload-Fehler */
-  error: [item: UploadItem, error: Error];
+  error: [item: LtUploadItem, error: Error];
   /** Ein Upload abgeschlossen */
-  success: [item: UploadItem];
+  success: [item: LtUploadItem];
   /** Files geaendert */
   'update:modelValue': [files: File[]];
 }>();
@@ -58,12 +58,12 @@ const emit = defineEmits<{
 // Composables
 // ============================================================================
 const toast = useToast();
-const { formatDuration, formatFileSize } = useFile();
+const { formatDuration, formatFileSize } = useLtFile();
 
 // ============================================================================
 // TUS Upload Setup
 // ============================================================================
-const { addFiles, cancelAll, cancelUpload, clearCompleted, isUploading, pauseAll, pauseUpload, resumeAll, resumeUpload, retryUpload, totalProgress, uploads } = useTusUpload({
+const { addFiles, cancelAll, cancelUpload, clearCompleted, isUploading, pauseAll, pauseUpload, resumeAll, resumeUpload, retryUpload, totalProgress, uploads } = useLtTusUpload({
   autoStart: props.autoStart,
   chunkSize: props.chunkSize,
   endpoint: props.endpoint,
@@ -162,7 +162,7 @@ function getStatusLabel(status: string): string {
 // ============================================================================
 // Helpers
 // ============================================================================
-function getUploadForFile(file: File, index: number): undefined | UploadItem {
+function getUploadForFile(file: File, index: number): undefined | LtUploadItem {
   // Versuche ueber Index zu matchen (funktioniert wenn Reihenfolge gleich)
   const upload = uploads.value[index];
   if (upload?.file.name === file.name && upload?.file.size === file.size) {

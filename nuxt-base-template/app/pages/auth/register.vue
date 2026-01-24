@@ -11,7 +11,7 @@ import * as v from 'valibot';
 // Composables
 // ============================================================================
 const toast = useToast();
-const { signUp, signIn, registerPasskey } = useBetterAuth();
+const { signUp, signIn, registerPasskey } = useLtAuth();
 
 // ============================================================================
 // Page Meta

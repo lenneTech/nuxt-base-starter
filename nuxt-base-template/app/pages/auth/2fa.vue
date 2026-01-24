@@ -7,13 +7,12 @@ import type { InferOutput } from 'valibot';
 
 import * as v from 'valibot';
 
-import { authClient } from '~/lib/auth-client';
-
 // ============================================================================
 // Composables
 // ============================================================================
 const toast = useToast();
-const { fetchWithAuth, setUser, switchToJwtMode, jwtToken } = useBetterAuth();
+const { fetchWithAuth, setUser, switchToJwtMode, jwtToken } = useLtAuth();
+const authClient = useLtAuthClient();
 
 // ============================================================================
 // Page Meta

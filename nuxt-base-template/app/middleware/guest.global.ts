@@ -9,7 +9,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // On client, read directly from document.cookie for accurate state
   if (import.meta.client) {
     try {
-      const cookie = document.cookie.split('; ').find((row) => row.startsWith('auth-state='));
+      const cookie = document.cookie.split('; ').find((row) => row.startsWith('lt-auth-state='));
       if (cookie) {
         const parts = cookie.split('=');
         const value = parts.length > 1 ? decodeURIComponent(parts.slice(1).join('=')) : '';
@@ -21,7 +21,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   } else {
     // On server, use useCookie
-    const authStateCookie = useCookie<{ user: unknown; authMode: string } | null>('auth-state');
+    const authStateCookie = useCookie<{ user: unknown; authMode: string } | null>('lt-auth-state');
     isAuthenticated = !!authStateCookie.value?.user;
   }
 

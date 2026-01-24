@@ -11,7 +11,7 @@ import * as v from 'valibot';
 // Composables
 // ============================================================================
 const toast = useToast();
-const { signIn, setUser, isLoading, validateSession, authenticateWithPasskey } = useBetterAuth();
+const { signIn, setUser, isLoading, validateSession, authenticateWithPasskey } = useLtAuth();
 
 // ============================================================================
 // Page Meta
@@ -135,7 +135,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     // Check if login was successful (user data in response)
     const userData = 'user' in result ? result.user : 'data' in result ? result.data?.user : null;
     if (userData) {
-      // Auth state is already stored by useBetterAuth
+      // Auth state is already stored by useLtAuth
       // Navigate to app
       await navigateTo('/app');
     } else {

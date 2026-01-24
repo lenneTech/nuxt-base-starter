@@ -68,11 +68,35 @@ export default defineNuxtConfig({
   },
 
   // ============================================================================
+  // lenne.tech Nuxt Extensions
+  // ============================================================================
+  ltExtensions: {
+    auth: {
+      enabled: true,
+      basePath: '/iam',
+      loginPath: '/auth/login',
+      twoFactorRedirectPath: '/auth/2fa',
+      enableAdmin: true,
+      enableTwoFactor: true,
+      enablePasskey: true,
+      interceptor: {
+        enabled: true,
+        publicPaths: ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'],
+      },
+    },
+    tus: {
+      defaultEndpoint: '/files/upload',
+      defaultChunkSize: 5 * 1024 * 1024,
+    },
+  },
+
+  // ============================================================================
   // Nuxt Modules
   // ============================================================================
   modules: [
+    '@lenne.tech/nuxt-extensions', // Auth, Upload, Transitions
     '@nuxt/test-utils/module', // E2E testing with Playwright
-    '@lenne.tech/bug.lt', // Bug reporting to Linear
+    // '@lenne.tech/bug.lt', // Bug reporting to Linear - TEMPORARILY DISABLED FOR TESTING
     '@vueuse/nuxt', // Vue composition utilities
     'dayjs-nuxt', // Date/time handling
     '@nuxt/image', // Image optimization
@@ -158,5 +182,18 @@ export default defineNuxtConfig({
       exclude: ['@tailwindcss/vite', 'lightningcss', '@vue/devtools-core', '@vue/devtools-kit', '@internationalized/date'],
     },
     plugins: [tailwindcss()],
+    server: {
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/api/, ''),
+        },
+        '/iam': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        },
+      },
+    },
   },
 });

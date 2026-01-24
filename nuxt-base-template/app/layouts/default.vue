@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
 
-const { isAuthenticated, signOut, user } = useBetterAuth();
+const { isAuthenticated, signOut, user } = useLtAuth();
 
 async function handleLogout() {
   await signOut();
