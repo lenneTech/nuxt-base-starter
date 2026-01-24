@@ -41,7 +41,7 @@
     "@better-auth/passkey": "1.4.10",
     "@hey-api/client-fetch": "0.13.1",
     "@lenne.tech/bug.lt": "latest",
-    "@lenne.tech/nuxt-extensions": "^1.0.0",
+    "@lenne.tech/nuxt-extensions": "1.0.1",
     "@nuxt/image": "2.0.0",
     "@nuxt/ui": "4.3.0",
     "@pinia/nuxt": "0.11.3",
