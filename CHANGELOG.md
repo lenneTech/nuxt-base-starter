@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.0.0...v2.1.0) (2026-01-24)
+
+
+### Features
+
+* **tests, i18n:** add test infrastructure and error translation integration ([f8aff01](https://github.com/lenneTech/nuxt-base-starter/commit/f8aff01b5c763ea54cee270e10a1a29e2bece867))
+
 ## [2.0.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.2.0...v2.0.0) (2026-01-24)
 
 
