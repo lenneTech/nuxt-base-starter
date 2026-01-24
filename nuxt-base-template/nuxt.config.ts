@@ -73,6 +73,10 @@ export default defineNuxtConfig({
   ltExtensions: {
     auth: {
       enabled: true,
+      // baseURL is used in production mode for cross-origin API requests
+      // In dev mode, Nuxt proxy is used (baseURL is ignored, requests go through /api/iam)
+      // In production, requests go directly to baseURL + basePath (e.g., https://api.example.com/iam)
+      baseURL: process.env.API_URL || 'http://localhost:3000',
       basePath: '/iam',
       loginPath: '/auth/login',
       twoFactorRedirectPath: '/auth/2fa',
@@ -184,11 +188,19 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
     server: {
       proxy: {
+        // IAM proxy via /api prefix (nuxt-extensions adds /api in dev mode)
+        // Must be before /api to match more specifically
+        '/api/iam': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        },
+        // API proxy - no rewrite, backend expects /api/... paths
         '/api': {
           target: 'http://localhost:3000',
           changeOrigin: true,
-          rewrite: (path: string) => path.replace(/^\/api/, ''),
         },
+        // IAM proxy for direct BetterAuth endpoints (SSR mode)
         '/iam': {
           target: 'http://localhost:3000',
           changeOrigin: true,

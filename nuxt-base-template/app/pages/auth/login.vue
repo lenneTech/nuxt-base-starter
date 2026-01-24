@@ -12,6 +12,7 @@ import * as v from 'valibot';
 // ============================================================================
 const toast = useToast();
 const { signIn, setUser, isLoading, validateSession, authenticateWithPasskey } = useLtAuth();
+const { translateError } = useLtErrorTranslation();
 
 // ============================================================================
 // Page Meta
@@ -114,10 +115,11 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
     // Check for error in response
     if ('error' in result && result.error) {
+      const errorMessage = (result.error as { message?: string }).message || 'Anmeldung fehlgeschlagen';
       toast.add({
         color: 'error',
-        description: (result.error as { message?: string }).message || 'Anmeldung fehlgeschlagen',
-        title: 'Fehler',
+        description: translateError(errorMessage),
+        title: 'Anmeldung fehlgeschlagen',
       });
       return;
     }

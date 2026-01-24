@@ -2,11 +2,6 @@
 // ============================================================================
 // Imports
 // ============================================================================
-import type { FormSubmitEvent } from '@nuxt/ui';
-import type { InferOutput } from 'valibot';
-
-import * as v from 'valibot';
-
 import ModalBackupCodes from '~/components/Modal/ModalBackupCodes.vue';
 
 // ============================================================================
@@ -39,21 +34,10 @@ const passkeyLoading = ref<boolean>(false);
 const newPasskeyName = ref<string>('');
 const showAddPasskey = ref<boolean>(false);
 
-// Form states for UForm (required for proper data binding)
-const enable2FAForm = reactive({ password: '' });
-const disable2FAForm = reactive({ password: '' });
-const totpForm = reactive({ code: '' });
-
-const passwordSchema = v.object({
-  password: v.pipe(v.string('Passwort ist erforderlich'), v.minLength(1, 'Passwort ist erforderlich')),
-});
-
-const totpSchema = v.object({
-  code: v.pipe(v.string('Code ist erforderlich'), v.length(6, 'Code muss 6 Ziffern haben')),
-});
-
-type PasswordSchema = InferOutput<typeof passwordSchema>;
-type TotpSchema = InferOutput<typeof totpSchema>;
+// Form states - using reactive for direct v-model binding
+const enable2FAPassword = ref('');
+const disable2FAPassword = ref('');
+const totpCode = ref('');
 
 // ============================================================================
 // Lifecycle Hooks
@@ -130,12 +114,21 @@ async function deletePasskey(id: string): Promise<void> {
   }
 }
 
-async function disable2FA(payload: FormSubmitEvent<PasswordSchema>): Promise<void> {
+async function disable2FA(): Promise<void> {
+  if (!disable2FAPassword.value) {
+    toast.add({
+      color: 'error',
+      description: 'Passwort ist erforderlich',
+      title: 'Validierungsfehler',
+    });
+    return;
+  }
+
   loading.value = true;
 
   try {
     const { error } = await authClient.twoFactor.disable({
-      password: payload.data.password,
+      password: disable2FAPassword.value,
     });
 
     if (error) {
@@ -159,18 +152,27 @@ async function disable2FA(payload: FormSubmitEvent<PasswordSchema>): Promise<voi
     });
 
     show2FADisable.value = false;
-    disable2FAForm.password = '';
+    disable2FAPassword.value = '';
   } finally {
     loading.value = false;
   }
 }
 
-async function enable2FA(payload: FormSubmitEvent<PasswordSchema>): Promise<void> {
+async function enable2FA(): Promise<void> {
+  if (!enable2FAPassword.value) {
+    toast.add({
+      color: 'error',
+      description: 'Passwort ist erforderlich',
+      title: 'Validierungsfehler',
+    });
+    return;
+  }
+
   loading.value = true;
 
   try {
     const { data, error } = await authClient.twoFactor.enable({
-      password: payload.data.password,
+      password: enable2FAPassword.value,
     });
 
     if (error) {
@@ -185,7 +187,7 @@ async function enable2FA(payload: FormSubmitEvent<PasswordSchema>): Promise<void
     totpUri.value = data?.totpURI ?? '';
     backupCodes.value = data?.backupCodes ?? [];
     showTotpSetup.value = true;
-    enable2FAForm.password = '';
+    enable2FAPassword.value = '';
   } finally {
     loading.value = false;
   }
@@ -218,12 +220,21 @@ async function openBackupCodesModal(codes: string[] = []): Promise<void> {
   await modal.open();
 }
 
-async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
+async function verifyTotp(): Promise<void> {
+  if (!totpCode.value || totpCode.value.length !== 6) {
+    toast.add({
+      color: 'error',
+      description: 'Code muss 6 Ziffern haben',
+      title: 'Validierungsfehler',
+    });
+    return;
+  }
+
   loading.value = true;
 
   try {
     const { error } = await authClient.twoFactor.verifyTotp({
-      code: payload.data.code,
+      code: totpCode.value,
     });
 
     if (error) {
@@ -247,7 +258,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
     });
 
     showTotpSetup.value = false;
-    totpForm.code = '';
+    totpCode.value = '';
     await openBackupCodesModal(backupCodes.value);
   } finally {
     loading.value = false;
@@ -288,12 +299,12 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
         </div>
 
         <template v-if="!is2FAEnabled && !showTotpSetup">
-          <UForm :schema="passwordSchema" :state="enable2FAForm" class="space-y-4" @submit="enable2FA">
-            <UFormField label="Passwort bestätigen" name="password">
-              <UInput v-model="enable2FAForm.password" type="password" placeholder="Dein Passwort" />
+          <form class="space-y-4" @submit.prevent="enable2FA">
+            <UFormField label="Passwort bestätigen" name="password" class="w-full">
+              <UInput v-model="enable2FAPassword" type="password" placeholder="Dein Passwort" class="w-full" />
             </UFormField>
             <UButton type="submit" :loading="loading"> 2FA aktivieren </UButton>
-          </UForm>
+          </form>
         </template>
 
         <template v-if="showTotpSetup">
@@ -304,15 +315,15 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
               <img v-if="totpUri" :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(totpUri)}`" alt="TOTP QR Code" class="rounded-lg" />
             </div>
 
-            <UForm :schema="totpSchema" :state="totpForm" class="space-y-4" @submit="verifyTotp">
-              <UFormField label="Verifizierungscode" name="code">
-                <UInput v-model="totpForm.code" placeholder="000000" class="text-center font-mono" />
+            <form class="space-y-4" @submit.prevent="verifyTotp">
+              <UFormField label="Verifizierungscode" name="code" class="w-full">
+                <UInput v-model="totpCode" placeholder="000000" class="w-full text-center font-mono" />
               </UFormField>
               <div class="flex gap-2">
                 <UButton type="submit" :loading="loading"> Verifizieren </UButton>
                 <UButton variant="outline" color="neutral" @click="showTotpSetup = false"> Abbrechen </UButton>
               </div>
-            </UForm>
+            </form>
           </div>
         </template>
 
@@ -324,16 +335,16 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
         </template>
 
         <template v-if="show2FADisable">
-          <UForm :schema="passwordSchema" :state="disable2FAForm" class="space-y-4" @submit="disable2FA">
+          <form class="space-y-4" @submit.prevent="disable2FA">
             <UAlert color="warning" icon="i-lucide-alert-triangle"> 2FA zu deaktivieren verringert die Sicherheit deines Kontos. </UAlert>
-            <UFormField label="Passwort bestätigen" name="password">
-              <UInput v-model="disable2FAForm.password" type="password" placeholder="Dein Passwort" />
+            <UFormField label="Passwort bestätigen" name="password" class="w-full">
+              <UInput v-model="disable2FAPassword" type="password" placeholder="Dein Passwort" class="w-full" />
             </UFormField>
             <div class="flex gap-2">
               <UButton type="submit" color="error" :loading="loading"> 2FA deaktivieren </UButton>
               <UButton variant="outline" color="neutral" @click="show2FADisable = false"> Abbrechen </UButton>
             </div>
-          </UForm>
+          </form>
         </template>
       </div>
     </UCard>

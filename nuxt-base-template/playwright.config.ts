@@ -28,7 +28,7 @@ export default defineConfig<ConfigOptions>({
   reporter: 'html',
   /* Retry on CI only */
   retries: isCI ? 2 : 0,
-  testDir: './tests',
+  testDir: './tests/e2e',
   timeout: isWindows ? 60000 : undefined,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
