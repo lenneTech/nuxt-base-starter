@@ -2,6 +2,9 @@
 // ============================================================================
 // Imports
 // ============================================================================
+import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui';
+import type { InferOutput } from 'valibot';
+
 import * as v from 'valibot';
 
 // ============================================================================
@@ -9,6 +12,7 @@ import * as v from 'valibot';
 // ============================================================================
 const toast = useToast();
 const { signUp, signIn, registerPasskey } = useLtAuth();
+const { translateError } = useLtErrorTranslation();
 
 // ============================================================================
 // Page Meta
@@ -24,13 +28,36 @@ const loading = ref<boolean>(false);
 const showPasskeyPrompt = ref<boolean>(false);
 const passkeyLoading = ref<boolean>(false);
 
-// Form state - using refs for direct v-model binding
-const formState = reactive({
-  name: '',
-  email: '',
-  password: '',
-  confirmPassword: '',
-});
+const fields: AuthFormField[] = [
+  {
+    label: 'Name',
+    name: 'name',
+    placeholder: 'Name eingeben',
+    required: true,
+    type: 'text',
+  },
+  {
+    label: 'E-Mail',
+    name: 'email',
+    placeholder: 'E-Mail eingeben',
+    required: true,
+    type: 'email',
+  },
+  {
+    label: 'Passwort',
+    name: 'password',
+    placeholder: 'Passwort eingeben',
+    required: true,
+    type: 'password',
+  },
+  {
+    label: 'Passwort bestätigen',
+    name: 'confirmPassword',
+    placeholder: 'Passwort wiederholen',
+    required: true,
+    type: 'password',
+  },
+];
 
 const schema = v.pipe(
   v.object({
@@ -45,47 +72,38 @@ const schema = v.pipe(
   ),
 );
 
+type Schema = InferOutput<typeof schema>;
+
 // ============================================================================
 // Functions
 // ============================================================================
-async function onSubmit(): Promise<void> {
-  // Validate
-  const result = v.safeParse(schema, formState);
-  if (!result.success) {
-    const firstError = result.issues[0];
-    toast.add({
-      color: 'error',
-      description: firstError.message,
-      title: 'Validierungsfehler',
-    });
-    return;
-  }
-
+async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
   loading.value = true;
 
   try {
     // Step 1: Sign up
     const signUpResult = await signUp.email({
-      email: formState.email,
-      name: formState.name,
-      password: formState.password,
+      email: payload.data.email,
+      name: payload.data.name,
+      password: payload.data.password,
     });
 
     const signUpError = 'error' in signUpResult ? signUpResult.error : null;
 
     if (signUpError) {
+      const errorMessage = signUpError.message || 'Registrierung fehlgeschlagen';
       toast.add({
         color: 'error',
-        description: signUpError.message || 'Registrierung fehlgeschlagen',
-        title: 'Fehler',
+        description: translateError(errorMessage),
+        title: 'Registrierung fehlgeschlagen',
       });
       return;
     }
 
     // Step 2: Sign in to create session (required for passkey registration)
     const signInResult = await signIn.email({
-      email: formState.email,
-      password: formState.password,
+      email: payload.data.email,
+      password: payload.data.password,
     });
 
     const signInError = 'error' in signInResult ? signInResult.error : null;
@@ -152,65 +170,25 @@ async function skipPasskey(): Promise<void> {
 <template>
   <UPageCard class="w-md" variant="naked">
     <template v-if="!showPasskeyPrompt">
-      <div class="flex flex-col items-center gap-4">
-        <UIcon name="i-lucide-user-plus" class="size-12 text-primary" />
-        <h1 class="text-2xl font-semibold">Registrieren</h1>
-      </div>
-
-      <form class="mt-6 flex flex-col gap-4" @submit.prevent="onSubmit">
-        <UFormField label="Name" name="name" required class="w-full">
-          <UInput
-            v-model="formState.name"
-            name="name"
-            type="text"
-            placeholder="Name eingeben"
-            autocomplete="name"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="E-Mail" name="email" required class="w-full">
-          <UInput
-            v-model="formState.email"
-            name="email"
-            type="email"
-            placeholder="E-Mail eingeben"
-            autocomplete="email"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="Passwort" name="password" required class="w-full">
-          <UInput
-            v-model="formState.password"
-            name="password"
-            type="password"
-            placeholder="Passwort eingeben"
-            autocomplete="new-password"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="Passwort bestätigen" name="confirmPassword" required class="w-full">
-          <UInput
-            v-model="formState.confirmPassword"
-            name="confirmPassword"
-            type="password"
-            placeholder="Passwort wiederholen"
-            autocomplete="new-password"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UButton type="submit" block :loading="loading">
-          Konto erstellen
-        </UButton>
-      </form>
-
-      <p class="mt-4 text-center text-sm text-muted">
-        Bereits ein Konto?
-        <ULink to="/auth/login" class="text-primary font-medium">Anmelden</ULink>
-      </p>
+      <UAuthForm
+        :schema="schema"
+        title="Registrieren"
+        icon="i-lucide-user-plus"
+        :fields="fields"
+        :loading="loading"
+        :submit="{
+          label: 'Konto erstellen',
+          block: true,
+        }"
+        @submit="onSubmit"
+      >
+        <template #footer>
+          <p class="text-center text-sm text-muted">
+            Bereits ein Konto?
+            <ULink to="/auth/login" class="text-primary font-medium">Anmelden</ULink>
+          </p>
+        </template>
+      </UAuthForm>
     </template>
 
     <template v-else>
