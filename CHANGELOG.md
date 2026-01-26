@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.2...v2.1.3) (2026-01-26)
+
+
+### Bug Fixes
+
+* remove trust device feature from 2FA authentication flow ([c631c83](https://github.com/lenneTech/nuxt-base-starter/commit/c631c839a1ae8ee902a7ab3678e034d99840972a))
+
 ### [2.1.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.1...v2.1.2) (2026-01-24)
 
 
