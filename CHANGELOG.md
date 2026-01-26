@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.3...v2.1.4) (2026-01-26)
+
+
+### Bug Fixes
+
+* generate QR code locally as SVG for password manager compatibility ([f4256e9](https://github.com/lenneTech/nuxt-base-starter/commit/f4256e94baf839b800cd5420c49ad9ed14a50f01))
+
 ### [2.1.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.2...v2.1.3) (2026-01-26)
 
 
