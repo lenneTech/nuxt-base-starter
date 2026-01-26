@@ -5,6 +5,7 @@
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { InferOutput } from 'valibot';
 
+import QRCode from 'qrcode';
 import * as v from 'valibot';
 
 import ModalBackupCodes from '~/components/Modal/ModalBackupCodes.vue';
@@ -31,6 +32,7 @@ const authClient = useLtAuthClient();
 // ============================================================================
 const loading = ref<boolean>(false);
 const totpUri = ref<string>('');
+const qrCodeSvg = ref<string>('');
 const backupCodes = ref<string[]>([]);
 const showTotpSetup = ref<boolean>(false);
 const show2FADisable = ref<boolean>(false);
@@ -184,6 +186,17 @@ async function enable2FA(payload: FormSubmitEvent<PasswordSchema>): Promise<void
 
     totpUri.value = data?.totpURI ?? '';
     backupCodes.value = data?.backupCodes ?? [];
+
+    // Generate QR code as SVG for better password manager compatibility
+    if (totpUri.value) {
+      qrCodeSvg.value = await QRCode.toString(totpUri.value, {
+        type: 'svg',
+        width: 200,
+        margin: 2,
+        errorCorrectionLevel: 'M',
+      });
+    }
+
     showTotpSetup.value = true;
     enable2FAForm.password = '';
   } finally {
@@ -207,6 +220,13 @@ async function loadPasskeys(): Promise<void> {
   } catch {
     console.error('Failed to load passkeys');
   }
+}
+
+function resetTotpSetup(): void {
+  showTotpSetup.value = false;
+  totpForm.code = '';
+  totpUri.value = '';
+  qrCodeSvg.value = '';
 }
 
 async function openBackupCodesModal(codes: string[] = []): Promise<void> {
@@ -246,8 +266,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
       title: 'Erfolg',
     });
 
-    showTotpSetup.value = false;
-    totpForm.code = '';
+    resetTotpSetup();
     await openBackupCodesModal(backupCodes.value);
   } finally {
     loading.value = false;
@@ -301,7 +320,8 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
             <p class="text-sm text-muted">Scanne den QR-Code mit deiner Authenticator-App (z.B. Google Authenticator, Authy) und gib den Code ein.</p>
 
             <div class="flex justify-center">
-              <img v-if="totpUri" :src="`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(totpUri)}`" alt="TOTP QR Code" class="rounded-lg" />
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <div v-if="qrCodeSvg" class="rounded-lg bg-white p-2" v-html="qrCodeSvg" />
             </div>
 
             <UForm :schema="totpSchema" :state="totpForm" class="space-y-4" @submit="verifyTotp">
@@ -310,7 +330,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
               </UFormField>
               <div class="flex gap-2">
                 <UButton type="submit" :loading="loading"> Verifizieren </UButton>
-                <UButton variant="outline" color="neutral" @click="showTotpSetup = false"> Abbrechen </UButton>
+                <UButton variant="outline" color="neutral" @click="resetTotpSetup"> Abbrechen </UButton>
               </div>
             </UForm>
           </div>
