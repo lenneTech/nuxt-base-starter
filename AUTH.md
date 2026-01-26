@@ -109,7 +109,6 @@ import { authClient } from '~/lib/auth-client';
 // Verify TOTP code
 const result = await authClient.twoFactor.verifyTotp({
   code: '123456',
-  trustDevice: true,
 });
 
 // Verify backup code

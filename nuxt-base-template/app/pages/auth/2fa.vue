@@ -26,7 +26,6 @@ definePageMeta({
 // ============================================================================
 const loading = ref<boolean>(false);
 const useBackupCode = ref<boolean>(false);
-const trustDevice = ref<boolean>(false);
 
 // Form state for UForm
 const formState = reactive({ code: '' });
@@ -62,7 +61,6 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     } else {
       result = await authClient.twoFactor.verifyTotp({
         code: payload.data.code,
-        trustDevice: trustDevice.value,
       });
 
       if (result.error) {
@@ -148,8 +146,6 @@ function toggleBackupCode(): void {
             autocomplete="one-time-code"
           />
         </UFormField>
-
-        <UCheckbox v-if="!useBackupCode" v-model="trustDevice" label="Diesem Gerät vertrauen" />
 
         <UButton type="submit" block :loading="loading"> Verifizieren </UButton>
       </UForm>
