@@ -67,7 +67,7 @@ export default defineNuxtConfig({
   icon: {
     // Ensure dynamically rendered icons (e.g., inside v-for) are included in the bundle
     clientBundle: {
-      icons: ['lucide:trash', 'lucide:key', 'lucide:copy'],
+      icons: ['lucide:trash', 'lucide:key', 'lucide:copy', 'lucide:loader-circle'],
     },
   },
 
