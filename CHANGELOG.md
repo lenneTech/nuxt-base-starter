@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.4...v2.2.0) (2026-02-04)
+
+
+### Features
+
+* improve registration and login with email verification, terms checkbox, and TS fixes ([dee6b95](https://github.com/lenneTech/nuxt-base-starter/commit/dee6b95b29890bdccf09570192f869397694b61f))
+
 ### [2.1.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.3...v2.1.4) (2026-01-26)
 
 
