@@ -8,10 +8,29 @@ import type { InferOutput } from 'valibot';
 import * as v from 'valibot';
 
 // ============================================================================
+// Types
+// ============================================================================
+interface SignInResponse {
+  data?: {
+    redirect?: boolean;
+    requiresTwoFactor?: boolean;
+    token?: string | null;
+    twoFactorRedirect?: boolean;
+    url?: string;
+    user?: Record<string, unknown>;
+  } | null;
+  error?: {
+    code?: string;
+    message?: string;
+    status?: number;
+  } | null;
+}
+
+// ============================================================================
 // Composables
 // ============================================================================
 const toast = useToast();
-const { signIn, setUser, isLoading, validateSession, authenticateWithPasskey } = useLtAuth();
+const { signIn, setUser, validateSession, authenticateWithPasskey } = useLtAuth();
 const { translateError } = useLtErrorTranslation();
 
 // ============================================================================
@@ -108,14 +127,26 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
   loading.value = true;
 
   try {
-    const result = await signIn.email({
+    const result = (await signIn.email({
       email: payload.data.email,
       password: payload.data.password,
-    });
+    })) as SignInResponse;
 
     // Check for error in response
-    if ('error' in result && result.error) {
-      const errorMessage = (result.error as { message?: string }).message || 'Anmeldung fehlgeschlagen';
+    if (result.error) {
+      const errorMessage = result.error.message || 'Anmeldung fehlgeschlagen';
+
+      // Check if email verification is required → redirect to verify-email page
+      if (errorMessage.includes('LTNS_0023') || errorMessage.toLowerCase().includes('email verification required')) {
+        toast.add({
+          color: 'warning',
+          description: 'Bitte bestätige zuerst deine E-Mail-Adresse.',
+          title: 'E-Mail nicht verifiziert',
+        });
+        await navigateTo({ path: '/auth/verify-email', query: { email: payload.data.email } });
+        return;
+      }
+
       toast.add({
         color: 'error',
         description: translateError(errorMessage),
@@ -126,8 +157,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
     // Check if 2FA is required
     // Better-Auth native uses 'twoFactorRedirect', nest-server REST API uses 'requiresTwoFactor'
-    const resultData = 'data' in result ? result.data : result;
-    const requires2FA = resultData && (('twoFactorRedirect' in resultData && resultData.twoFactorRedirect) || ('requiresTwoFactor' in resultData && resultData.requiresTwoFactor));
+    const resultData = result.data as Record<string, unknown> | null | undefined;
+    const requires2FA = resultData && (resultData.twoFactorRedirect || resultData.requiresTwoFactor || resultData.redirect);
     if (requires2FA) {
       // Redirect to 2FA page
       await navigateTo('/auth/2fa');
@@ -135,7 +166,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     }
 
     // Check if login was successful (user data in response)
-    const userData = 'user' in result ? result.user : 'data' in result ? result.data?.user : null;
+    const userData = result.data?.user;
     if (userData) {
       // Auth state is already stored by useLtAuth
       // Navigate to app

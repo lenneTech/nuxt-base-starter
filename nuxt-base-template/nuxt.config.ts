@@ -15,6 +15,7 @@ export default defineNuxtConfig({
   // ============================================================================
   // Bug Reporting (Linear Integration via @lenne.tech/bug.lt)
   // ============================================================================
+  // @ts-expect-error bug.lt module config - module temporarily disabled
   bug: {
     enabled: process.env.APP_ENV !== 'production',
     linearApiKey: process.env.LINEAR_API_KEY,
@@ -58,6 +59,16 @@ export default defineNuxtConfig({
       maxAge: 2592000, // 30 days
     },
     provider: 'ipx',
+  },
+
+  // ============================================================================
+  // Icon Configuration
+  // ============================================================================
+  icon: {
+    // Ensure dynamically rendered icons (e.g., inside v-for) are included in the bundle
+    clientBundle: {
+      icons: ['lucide:trash', 'lucide:key', 'lucide:copy'],
+    },
   },
 
   // ============================================================================

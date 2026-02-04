@@ -8,10 +8,25 @@ import type { InferOutput } from 'valibot';
 import * as v from 'valibot';
 
 // ============================================================================
+// Types
+// ============================================================================
+interface AuthResponse {
+  data?: {
+    token?: string | null;
+    user?: Record<string, unknown>;
+  } | null;
+  error?: {
+    code?: string;
+    message?: string;
+    status?: number;
+  } | null;
+}
+
+// ============================================================================
 // Composables
 // ============================================================================
 const toast = useToast();
-const { signUp, signIn, registerPasskey } = useLtAuth();
+const { signUp, signIn, registerPasskey, features, clearUser } = useLtAuth();
 const { translateError } = useLtErrorTranslation();
 
 // ============================================================================
@@ -28,7 +43,9 @@ const loading = ref<boolean>(false);
 const showPasskeyPrompt = ref<boolean>(false);
 const passkeyLoading = ref<boolean>(false);
 
-const fields: AuthFormField[] = [
+const requireTerms = computed(() => features.value.signUpChecks === true);
+
+const baseFields: AuthFormField[] = [
   {
     label: 'Name',
     name: 'name',
@@ -59,7 +76,22 @@ const fields: AuthFormField[] = [
   },
 ];
 
-const schema = v.pipe(
+const fields = computed<AuthFormField[]>(() => {
+  if (!requireTerms.value) {
+    return baseFields;
+  }
+  return [
+    ...baseFields,
+    {
+      label: '',
+      name: 'termsAccepted',
+      required: true,
+      type: 'checkbox',
+    },
+  ];
+});
+
+const baseSchema = v.pipe(
   v.object({
     confirmPassword: v.pipe(v.string('Passwortbestätigung ist erforderlich'), v.minLength(8, 'Mindestens 8 Zeichen erforderlich')),
     email: v.pipe(v.string('E-Mail ist erforderlich'), v.email('Bitte eine gültige E-Mail eingeben')),
@@ -72,7 +104,23 @@ const schema = v.pipe(
   ),
 );
 
-type Schema = InferOutput<typeof schema>;
+const termsSchema = v.pipe(
+  v.object({
+    confirmPassword: v.pipe(v.string('Passwortbestätigung ist erforderlich'), v.minLength(8, 'Mindestens 8 Zeichen erforderlich')),
+    email: v.pipe(v.string('E-Mail ist erforderlich'), v.email('Bitte eine gültige E-Mail eingeben')),
+    name: v.pipe(v.string('Name ist erforderlich'), v.minLength(2, 'Mindestens 2 Zeichen erforderlich')),
+    password: v.pipe(v.string('Passwort ist erforderlich'), v.minLength(8, 'Mindestens 8 Zeichen erforderlich')),
+    termsAccepted: v.pipe(v.optional(v.boolean(), false), v.literal(true, 'Bitte akzeptiere die AGB und Datenschutzerklärung')),
+  }),
+  v.forward(
+    v.partialCheck([['password'], ['confirmPassword']], (input) => input.password === input.confirmPassword, 'Passwörter stimmen nicht überein'),
+    ['confirmPassword'],
+  ),
+);
+
+const schema = computed(() => requireTerms.value ? termsSchema : baseSchema);
+
+type Schema = InferOutput<typeof baseSchema> | InferOutput<typeof termsSchema>;
 
 // ============================================================================
 // Functions
@@ -82,16 +130,15 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
   try {
     // Step 1: Sign up
-    const signUpResult = await signUp.email({
+    const signUpResult = (await signUp.email({
       email: payload.data.email,
       name: payload.data.name,
       password: payload.data.password,
-    });
+      ...(requireTerms.value ? { termsAndPrivacyAccepted: true } : {}),
+    })) as AuthResponse;
 
-    const signUpError = 'error' in signUpResult ? signUpResult.error : null;
-
-    if (signUpError) {
-      const errorMessage = signUpError.message || 'Registrierung fehlgeschlagen';
+    if (signUpResult.error) {
+      const errorMessage = signUpResult.error.message || 'Registrierung fehlgeschlagen';
       toast.add({
         color: 'error',
         description: translateError(errorMessage),
@@ -100,13 +147,27 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       return;
     }
 
+    // If email verification is enabled, clear auth state and redirect to verify-email page
+    // The backend revokes the session, but we also clear the frontend state to prevent
+    // manual navigation to protected routes
+    if (features.value.emailVerification) {
+      clearUser();
+      toast.add({
+        color: 'success',
+        description: 'Bitte überprüfe dein Postfach und bestätige deine E-Mail-Adresse.',
+        title: 'Konto erstellt!',
+      });
+      await navigateTo({ path: '/auth/verify-email', query: { email: payload.data.email, fromRegister: 'true' } });
+      return;
+    }
+
     // Step 2: Sign in to create session (required for passkey registration)
-    const signInResult = await signIn.email({
+    const signInResult = (await signIn.email({
       email: payload.data.email,
       password: payload.data.password,
-    });
+    })) as AuthResponse;
 
-    const signInError = 'error' in signInResult ? signInResult.error : null;
+    const signInError = signInResult.error;
 
     if (signInError) {
       // Sign-up was successful but sign-in failed - still show success and redirect
@@ -182,6 +243,19 @@ async function skipPasskey(): Promise<void> {
         }"
         @submit="onSubmit"
       >
+        <template v-if="requireTerms" #termsAccepted-field="{ state: formState }">
+          <UCheckbox v-model="formState.termsAccepted">
+            <template #label>
+              <span class="text-sm">
+                Ich akzeptiere die
+                <ULink to="/legal/terms" class="text-primary font-medium" target="_blank">AGB</ULink>
+                und
+                <ULink to="/legal/privacy" class="text-primary font-medium" target="_blank">Datenschutzerklärung</ULink>
+              </span>
+            </template>
+          </UCheckbox>
+        </template>
+
         <template #footer>
           <p class="text-center text-sm text-muted">
             Bereits ein Konto?

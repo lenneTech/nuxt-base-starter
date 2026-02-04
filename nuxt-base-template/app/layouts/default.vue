@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
 
-const { isAuthenticated, signOut, user } = useLtAuth();
+const { isAuthenticated, signOut, user, validateSession } = useLtAuth();
+
+onMounted(() => {
+  validateSession();
+});
 
 async function handleLogout() {
   await signOut();

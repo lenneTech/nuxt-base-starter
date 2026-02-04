@@ -345,7 +345,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
 
         <template v-if="show2FADisable">
           <UForm :schema="passwordSchema" :state="disable2FAForm" class="space-y-4" @submit="disable2FA">
-            <UAlert color="warning" icon="i-lucide-alert-triangle"> 2FA zu deaktivieren verringert die Sicherheit deines Kontos. </UAlert>
+            <UAlert color="warning" icon="i-lucide-alert-triangle" description="2FA zu deaktivieren verringert die Sicherheit deines Kontos." />
             <UFormField label="Passwort bestätigen" name="password">
               <UInput v-model="disable2FAForm.password" type="password" placeholder="Dein Passwort" />
             </UFormField>
@@ -381,7 +381,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
                   <p class="text-xs text-muted">Erstellt am {{ new Date(passkey.createdAt).toLocaleDateString('de-DE') }}</p>
                 </div>
               </div>
-              <UButton variant="ghost" color="error" icon="i-lucide-trash-2" size="sm" :loading="passkeyLoading" @click="deletePasskey(passkey.id)" />
+              <UButton variant="outline" color="error" icon="i-lucide-trash" size="sm" :loading="passkeyLoading" @click="deletePasskey(passkey.id)">Löschen</UButton>
             </div>
           </div>
         </template>
