@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.2.0...v2.2.1) (2026-02-04)
+
+
+### Bug Fixes
+
+* bundle lucide loader-circle icon to prevent runtime loading failure ([afc7ae7](https://github.com/lenneTech/nuxt-base-starter/commit/afc7ae79d70db283fe4b2042c624feaf6b6e65cc))
+
 ## [2.2.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.4...v2.2.0) (2026-02-04)
 
 
