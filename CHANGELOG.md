@@ -4,10 +4,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [2.2.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.2.2...v2.2.3) (2026-02-05)
 
-
 ### Bug Fixes
 
-* fixes TypeScript errors ([8375d69](https://github.com/lenneTech/nuxt-base-starter/commit/8375d69dcfda5c334185843d08f0ff43dd0c501a))
+- fixes TypeScript errors ([8375d69](https://github.com/lenneTech/nuxt-base-starter/commit/8375d69dcfda5c334185843d08f0ff43dd0c501a))
 
 ### [2.2.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.2.1...v2.2.2) (2026-02-04)
 

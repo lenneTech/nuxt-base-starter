@@ -59,6 +59,6 @@ export default defineConfig<ConfigOptions>({
       url: 'http://localhost:3001',
     },
   ],
-  /* Opt out of parallel tests on CI. */
-  workers: isCI ? 1 : undefined,
+  /* Use single worker to prevent WebAuthn virtual authenticator conflicts across test files */
+  workers: 1,
 });
