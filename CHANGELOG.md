@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.2.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.2.3...v2.2.4) (2026-02-05)
+
+
+### Bug Fixes
+
+* fix changelog markdown, clear npmrc overrides, and force single worker for Playwright tests ([d90fab4](https://github.com/lenneTech/nuxt-base-starter/commit/d90fab4af78dea6ec5192bad0ca4095f21bef9b8))
+
 ### [2.2.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.2.2...v2.2.3) (2026-02-05)
 
 ### Bug Fixes
