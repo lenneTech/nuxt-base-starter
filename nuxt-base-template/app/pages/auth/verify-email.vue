@@ -165,7 +165,15 @@ onUnmounted(() => {
         </div>
 
         <div class="flex w-full flex-col gap-3">
-          <UButton v-if="email" block :color="resendCooldown > 0 ? 'neutral' : 'primary'" :disabled="resendCooldown > 0" :loading="resending" :variant="resendCooldown > 0 ? 'outline' : 'solid'" @click="resendVerificationEmail">
+          <UButton
+            v-if="email"
+            block
+            :color="resendCooldown > 0 ? 'neutral' : 'primary'"
+            :disabled="resendCooldown > 0"
+            :loading="resending"
+            :variant="resendCooldown > 0 ? 'outline' : 'solid'"
+            @click="resendVerificationEmail"
+          >
             {{ resendCooldown > 0 ? `Neue E-Mail senden (${resendCooldown}s)` : 'Neue E-Mail senden' }}
           </UButton>
           <UButton block variant="outline" color="neutral" to="/auth/login">Zurück zur Anmeldung</UButton>
@@ -198,7 +206,15 @@ onUnmounted(() => {
         </UAlert>
 
         <div class="flex w-full flex-col gap-3">
-          <UButton v-if="email" block :color="resendCooldown > 0 ? 'neutral' : 'primary'" :disabled="resendCooldown > 0" :loading="resending" :variant="resendCooldown > 0 ? 'subtle' : 'outline'" @click="resendVerificationEmail">
+          <UButton
+            v-if="email"
+            block
+            :color="resendCooldown > 0 ? 'neutral' : 'primary'"
+            :disabled="resendCooldown > 0"
+            :loading="resending"
+            :variant="resendCooldown > 0 ? 'subtle' : 'outline'"
+            @click="resendVerificationEmail"
+          >
             {{ resendCooldown > 0 ? `Bestätigungs-E-Mail erneut senden (${resendCooldown}s)` : 'Bestätigungs-E-Mail erneut senden' }}
           </UButton>
           <UButton block variant="outline" color="neutral" to="/auth/login">Zurück zur Anmeldung</UButton>

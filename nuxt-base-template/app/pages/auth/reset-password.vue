@@ -85,10 +85,11 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
   loading.value = true;
 
   try {
-    const { error } = await authClient.resetPassword({
+    const result = await authClient.resetPassword({
       newPassword: payload.data.password,
       token: token.value,
     });
+    const error = 'error' in result ? result.error : null;
 
     if (error) {
       toast.add({

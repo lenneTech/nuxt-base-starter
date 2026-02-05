@@ -6,72 +6,66 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [2.2.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.2.0...v2.2.1) (2026-02-04)
 
-
 ### Bug Fixes
 
-* bundle lucide loader-circle icon to prevent runtime loading failure ([afc7ae7](https://github.com/lenneTech/nuxt-base-starter/commit/afc7ae79d70db283fe4b2042c624feaf6b6e65cc))
+- bundle lucide loader-circle icon to prevent runtime loading failure ([afc7ae7](https://github.com/lenneTech/nuxt-base-starter/commit/afc7ae79d70db283fe4b2042c624feaf6b6e65cc))
 
 ## [2.2.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.4...v2.2.0) (2026-02-04)
 
-
 ### Features
 
-* improve registration and login with email verification, terms checkbox, and TS fixes ([dee6b95](https://github.com/lenneTech/nuxt-base-starter/commit/dee6b95b29890bdccf09570192f869397694b61f))
+- improve registration and login with email verification, terms checkbox, and TS fixes ([dee6b95](https://github.com/lenneTech/nuxt-base-starter/commit/dee6b95b29890bdccf09570192f869397694b61f))
 
 ### [2.1.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.3...v2.1.4) (2026-01-26)
 
-
 ### Bug Fixes
 
-* generate QR code locally as SVG for password manager compatibility ([f4256e9](https://github.com/lenneTech/nuxt-base-starter/commit/f4256e94baf839b800cd5420c49ad9ed14a50f01))
+- generate QR code locally as SVG for password manager compatibility ([f4256e9](https://github.com/lenneTech/nuxt-base-starter/commit/f4256e94baf839b800cd5420c49ad9ed14a50f01))
 
 ### [2.1.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.2...v2.1.3) (2026-01-26)
 
-
 ### Bug Fixes
 
-* remove trust device feature from 2FA authentication flow ([c631c83](https://github.com/lenneTech/nuxt-base-starter/commit/c631c839a1ae8ee902a7ab3678e034d99840972a))
+- remove trust device feature from 2FA authentication flow ([c631c83](https://github.com/lenneTech/nuxt-base-starter/commit/c631c839a1ae8ee902a7ab3678e034d99840972a))
 
 ### [2.1.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.1...v2.1.2) (2026-01-24)
 
-
 ### Bug Fixes
 
-* **forms:** restore UForm/UAuthForm with Valibot schema validation ([aa5e93c](https://github.com/lenneTech/nuxt-base-starter/commit/aa5e93cdd19193cc4dd1153fc4f629407b0273f0))
+- **forms:** restore UForm/UAuthForm with Valibot schema validation ([aa5e93c](https://github.com/lenneTech/nuxt-base-starter/commit/aa5e93cdd19193cc4dd1153fc4f629407b0273f0))
 
 ### [2.1.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.1.0...v2.1.1) (2026-01-24)
 
-
 ### Bug Fixes
 
-* update packages ([c5c733a](https://github.com/lenneTech/nuxt-base-starter/commit/c5c733ad07b6d5cee248b2f78d65a69b3b4369d4))
+- update packages ([c5c733a](https://github.com/lenneTech/nuxt-base-starter/commit/c5c733ad07b6d5cee248b2f78d65a69b3b4369d4))
 
 ## [2.1.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.0.0...v2.1.0) (2026-01-24)
 
-
 ### Features
 
-* **tests, i18n:** add test infrastructure and error translation integration ([f8aff01](https://github.com/lenneTech/nuxt-base-starter/commit/f8aff01b5c763ea54cee270e10a1a29e2bece867))
+- **tests, i18n:** add test infrastructure and error translation integration ([f8aff01](https://github.com/lenneTech/nuxt-base-starter/commit/f8aff01b5c763ea54cee270e10a1a29e2bece867))
 
 ## [2.0.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.2.0...v2.0.0) (2026-01-24)
 
-
 ### ⚠ BREAKING CHANGES
 
-* Local auth, upload, and utility files replaced by package
+- Local auth, upload, and utility files replaced by package
 
 Migration to @lenne.tech/nuxt-extensions v1.0.1:
+
 - Remove local composables (use-better-auth, use-tus-upload, use-file, use-share, use-tw)
 - Remove local lib files (auth-client, auth-state)
 - Remove local plugins (auth-interceptor.client)
 - Remove local utils (crypto)
 - Remove local interfaces (upload.interface)
-- Remove local Transition components (now provided by package as Lt* prefix)
+- Remove local Transition components (now provided by package as Lt\* prefix)
 - Simplify user.interface.ts to re-export LtUser from package
 - Update all imports to use auto-imported composables (useLtAuth, useLtTusUpload, etc.)
 - Update package.json to use npm package instead of yalc
 
 All authentication features now provided by the package:
+
 - Cookie/JWT dual-mode authentication
 - Passkey/WebAuthn support
 - 2FA/TOTP support
@@ -81,17 +75,15 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ### Bug Fixes
 
-* use exact version 1.0.1 for [@lenne](https://github.com/lenne).tech/nuxt-extensions ([fe8d4c2](https://github.com/lenneTech/nuxt-base-starter/commit/fe8d4c21575977bd093a304adc2e18c7edc61110))
+- use exact version 1.0.1 for [@lenne](https://github.com/lenne).tech/nuxt-extensions ([fe8d4c2](https://github.com/lenneTech/nuxt-base-starter/commit/fe8d4c21575977bd093a304adc2e18c7edc61110))
 
-
-* migrate to [@lenne](https://github.com/lenne).tech/nuxt-extensions package ([4c8b732](https://github.com/lenneTech/nuxt-base-starter/commit/4c8b732b9d017a0ff7fb21ef09136dcd7fff81f0))
+- migrate to [@lenne](https://github.com/lenne).tech/nuxt-extensions package ([4c8b732](https://github.com/lenneTech/nuxt-base-starter/commit/4c8b732b9d017a0ff7fb21ef09136dcd7fff81f0))
 
 ## [1.2.0](https://github.com/lenneTech/nuxt-base-starter/compare/v1.1.2...v1.2.0) (2026-01-22)
 
-
 ### Features
 
-* **auth:** add Cookie/JWT dual-mode authentication with automatic fallback ([8005425](https://github.com/lenneTech/nuxt-base-starter/commit/800542585dc22c1710f8bf587ee8371458454c79))
+- **auth:** add Cookie/JWT dual-mode authentication with automatic fallback ([8005425](https://github.com/lenneTech/nuxt-base-starter/commit/800542585dc22c1710f8bf587ee8371458454c79))
 
 ### [1.1.2](https://github.com/lenneTech/nuxt-base-starter/compare/v1.1.1...v1.1.2) (2026-01-22)
 

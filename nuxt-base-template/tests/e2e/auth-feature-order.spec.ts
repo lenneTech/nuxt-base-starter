@@ -1,14 +1,7 @@
 import { expect, test } from '@nuxt/test-utils/playwright';
 import type { Page } from '@playwright/test';
 import * as fs from 'node:fs';
-import {
-  extractTOTPSecret,
-  fillInput,
-  generateTestUser,
-  generateTOTP,
-  gotoAndWaitForHydration,
-  waitForURLAndHydration,
-} from '@lenne.tech/nuxt-extensions/testing';
+import { extractTOTPSecret, fillInput, generateTestUser, generateTOTP, gotoAndWaitForHydration, waitForURLAndHydration } from '@lenne.tech/nuxt-extensions/testing';
 
 /**
  * Authentication E2E Tests - Feature Ordering & Error Translations
@@ -75,11 +68,7 @@ function getVerificationTokenFromLog(email: string): string | null {
  * Register a new user via UI.
  * Adapts to current configuration (terms checkbox, email verification).
  */
-async function registerUser(
-  page: Page,
-  user: { email: string; password: string; name: string },
-  features: Features,
-): Promise<void> {
+async function registerUser(page: Page, user: { email: string; password: string; name: string }, features: Features): Promise<void> {
   await gotoAndWaitForHydration(page, '/auth/register');
   await page.locator('input[name="name"]').waitFor({ state: 'visible', timeout: 10000 });
 
@@ -106,7 +95,7 @@ async function registerUser(
     for (let i = 0; i < 10; i++) {
       token = getVerificationTokenFromLog(user.email);
       if (token) break;
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
     expect(token, 'Verification token not found in server logs').not.toBeNull();
 
@@ -153,9 +142,7 @@ async function enable2FA(page: Page, password: string): Promise<string> {
   await page.keyboard.type(password, { delay: 5 });
 
   // Intercept the 2FA enable response to extract TOTP URI
-  const responsePromise = page.waitForResponse(
-    resp => resp.url().includes('/two-factor/enable') && resp.status() === 200,
-  );
+  const responsePromise = page.waitForResponse((resp) => resp.url().includes('/two-factor/enable') && resp.status() === 200);
 
   await enableButton.click();
 
@@ -235,7 +222,7 @@ test.beforeAll(async ({ request }) => {
   // Detect backend configuration
   try {
     const featuresResponse = await request.get(`${API_BASE}/iam/features`);
-    features = await featuresResponse.json() as Features;
+    features = (await featuresResponse.json()) as Features;
   } catch {
     features = {
       emailVerification: true,
@@ -268,18 +255,15 @@ test.describe.serial('Test 1: Register -> 2FA -> Passkey (no logout)', () => {
     const cdpSession = await context.newCDPSession(page);
     await cdpSession.send('WebAuthn.enable');
 
-    const { authenticatorId } = await cdpSession.send(
-      'WebAuthn.addVirtualAuthenticator',
-      {
-        options: {
-          protocol: 'ctap2',
-          transport: 'internal',
-          hasResidentKey: true,
-          hasUserVerification: true,
-          isUserVerified: true,
-        },
+    const { authenticatorId } = await cdpSession.send('WebAuthn.addVirtualAuthenticator', {
+      options: {
+        protocol: 'ctap2',
+        transport: 'internal',
+        hasResidentKey: true,
+        hasUserVerification: true,
+        isUserVerified: true,
       },
-    );
+    });
 
     try {
       await gotoAndWaitForHydration(page, '/app/settings/security');
@@ -312,18 +296,15 @@ test.describe.serial('Test 2: Register -> Passkey -> 2FA (no logout)', () => {
     const cdpSession = await context.newCDPSession(page);
     await cdpSession.send('WebAuthn.enable');
 
-    const { authenticatorId } = await cdpSession.send(
-      'WebAuthn.addVirtualAuthenticator',
-      {
-        options: {
-          protocol: 'ctap2',
-          transport: 'internal',
-          hasResidentKey: true,
-          hasUserVerification: true,
-          isUserVerified: true,
-        },
+    const { authenticatorId } = await cdpSession.send('WebAuthn.addVirtualAuthenticator', {
+      options: {
+        protocol: 'ctap2',
+        transport: 'internal',
+        hasResidentKey: true,
+        hasUserVerification: true,
+        isUserVerified: true,
       },
-    );
+    });
 
     try {
       await gotoAndWaitForHydration(page, '/app/settings/security');

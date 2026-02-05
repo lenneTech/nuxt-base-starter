@@ -85,10 +85,6 @@
     "typescript": "5.9.3",
     "vitest": "3.2.4"
   },
-  "engines": {
-    "node": ">=22",
-    "npm": ">=10"
-  },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged",
     "pre-push": "npm run test:unit"
@@ -101,5 +97,9 @@
     "tests/**/*.ts": [
       "oxlint --fix"
     ]
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
   }
 }

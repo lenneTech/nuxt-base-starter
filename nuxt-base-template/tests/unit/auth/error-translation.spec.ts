@@ -259,10 +259,7 @@ describe('Error Toast Integration', () => {
       color: string;
     }
 
-    function createErrorToast(
-      error: string | { code?: string; message?: string },
-      customTitle?: string
-    ): ToastOptions {
+    function createErrorToast(error: string | { code?: string; message?: string }, customTitle?: string): ToastOptions {
       const translatedMessage = translateError(error);
       return {
         title: customTitle || 'Fehler',

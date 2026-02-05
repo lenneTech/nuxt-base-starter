@@ -118,7 +118,7 @@ const termsSchema = v.pipe(
   ),
 );
 
-const schema = computed(() => requireTerms.value ? termsSchema : baseSchema);
+const schema = computed(() => (requireTerms.value ? termsSchema : baseSchema));
 
 type Schema = InferOutput<typeof baseSchema> | InferOutput<typeof termsSchema>;
 
@@ -243,8 +243,8 @@ async function skipPasskey(): Promise<void> {
         }"
         @submit="onSubmit"
       >
-        <template v-if="requireTerms" #termsAccepted-field="{ state: formState }">
-          <UCheckbox v-model="formState.termsAccepted">
+        <template v-if="requireTerms" #termsAccepted-field="slotProps">
+          <UCheckbox v-model="(slotProps as any).state.termsAccepted">
             <template #label>
               <span class="text-sm">
                 Ich akzeptiere die

@@ -14,13 +14,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-  createMockAuthClient,
-  mockUser,
-  mockTotpData,
-  mockPasskey,
-  resetMockAuthClient,
-} from '../mocks/auth-client.mock';
+import { createMockAuthClient, mockUser, mockTotpData, mockPasskey, resetMockAuthClient } from '../mocks/auth-client.mock';
 import { resetCookies } from '../setup';
 
 // ============================================================================

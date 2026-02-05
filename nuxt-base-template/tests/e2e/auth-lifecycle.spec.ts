@@ -219,7 +219,7 @@ async function getVerificationToken(email: string, maxRetries = 10): Promise<str
     } catch {
       // Log file may not exist yet
     }
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
   return null;
 }
@@ -333,7 +333,7 @@ test.beforeAll(async ({ request }) => {
   // Fetch features to detect configuration
   try {
     const featuresResponse = await request.get(`${API_BASE}/iam/features`);
-    features = await featuresResponse.json() as Features;
+    features = (await featuresResponse.json()) as Features;
   } catch {
     console.error('Could not fetch /iam/features - assuming zero config (defaults)');
     features = {
@@ -542,9 +542,7 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
     await page.keyboard.type(testUser.password, { delay: 5 });
 
     // Intercept the 2FA enable response to extract TOTP URI
-    const responsePromise = page.waitForResponse(
-      resp => resp.url().includes('/two-factor/enable') && resp.status() === 200,
-    );
+    const responsePromise = page.waitForResponse((resp) => resp.url().includes('/two-factor/enable') && resp.status() === 200);
 
     // Click enable button
     await enableButton.click();
