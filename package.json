@@ -1,7 +1,7 @@
 {
   "name": "create-nuxt-base",
   "version": "2.2.5",
-  "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Eslint, Unit Tests, Playwright etc.",
+  "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Linting, Unit Tests, Playwright etc.",
   "license": "MIT",
   "author": "lenne.Tech GmbH",
   "repository": {
