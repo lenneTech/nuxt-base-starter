@@ -69,7 +69,7 @@ async function create() {
   await waitForChildProcess(gitInit);
 
   console.log('Installing dependencies ...');
-  const runInstall = spawn('npm', ['install'], { stdio: 'inherit' });
+  const runInstall = spawn('pnpm', ['install'], { stdio: 'inherit' });
   await waitForSpawn(runInstall);
 
   const removeGit = spawn('npx', ['rimraf', '.git'], { stdio: 'inherit' });
@@ -79,7 +79,7 @@ async function create() {
 
   if (autoStart) {
     console.log('Building Project ...');
-    const runBuild = spawn('npm', ['build'], { stdio: 'inherit' });
+    const runBuild = spawn('pnpm', ['run', 'build'], { stdio: 'inherit' });
     await waitForSpawn(runBuild)
       .then(() => console.log('✅  Project was successfully built'))
       .catch(() => console.log('❌  Error while building the project'));
@@ -93,7 +93,7 @@ async function create() {
     await waitForMS(1000);
     console.log(`Launching ${projectName} ...  🚀`);
     await waitForMS(1000);
-    const runDev = spawn('npm', ['start'], { stdio: 'inherit' });
+    const runDev = spawn('pnpm', ['run', 'start'], { stdio: 'inherit' });
     await waitForSpawn(runDev);
   }
 }

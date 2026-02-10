@@ -5,12 +5,15 @@ WORKDIR /app
 # Install dependencies for native modules
 RUN apk add --no-cache python3 make g++
 
+# Enable pnpm via corepack
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Copy package files first for better caching
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 COPY .npmrc ./
 
 # Install dependencies
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh /docker-entrypoint.sh
@@ -20,4 +23,4 @@ RUN chmod +x /docker-entrypoint.sh
 EXPOSE 3001
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["pnpm", "run", "dev", "--", "--host", "0.0.0.0"]

@@ -7,7 +7,7 @@ A CLI tool to scaffold a production-ready **Nuxt 4** application with TypeScript
 ```bash
 npx create-nuxt-base my-awesome-project
 cd my-awesome-project
-npm run dev
+pnpm run dev
 ```
 
 The development server starts at **http://localhost:3001**
@@ -103,17 +103,17 @@ my-project/
 
 ## Available Scripts
 
-| Script                   | Description                            |
-| ------------------------ | -------------------------------------- |
-| `npm run dev`            | Start development server               |
-| `npm run build`          | Build for production                   |
-| `npm run preview`        | Preview production build               |
-| `npm run generate-types` | Generate TypeScript types from OpenAPI |
-| `npm run test`           | Run Playwright E2E tests               |
-| `npm run lint`           | Run OxLint                             |
-| `npm run format`         | Run OxFmt                              |
-| `npm run check`          | Run lint + format check                |
-| `npm run fix`            | Auto-fix lint + format issues          |
+| Script                    | Description                            |
+| ------------------------- | -------------------------------------- |
+| `pnpm run dev`            | Start development server               |
+| `pnpm run build`          | Build for production                   |
+| `pnpm run preview`        | Preview production build               |
+| `pnpm run generate-types` | Generate TypeScript types from OpenAPI |
+| `pnpm run test`           | Run Playwright E2E tests               |
+| `pnpm run lint`           | Run OxLint                             |
+| `pnpm run format`         | Run OxFmt                              |
+| `pnpm run check`          | Run lint + format check                |
+| `pnpm run fix`            | Auto-fix lint + format issues          |
 
 ## Environment Variables
 
@@ -137,7 +137,7 @@ STORAGE_PREFIX=base-dev      # Local storage prefix
 ## Requirements
 
 - Node.js >= 22
-- npm >= 10
+- pnpm >= 9
 
 ## License
 

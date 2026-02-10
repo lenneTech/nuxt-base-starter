@@ -10,8 +10,14 @@
     }
   },
   "scripts": {
-    "init": "npm install",
-    "reinit": "npx rimraf package-lock.json && npx nuxt cleanup && npx rimraf node_modules && npm cache clean --force && npm i",
+    "c": "pnpm run check",
+    "check": "pnpm audit && pnpm run format:check && pnpm run lint && pnpm test && pnpm run build && pnpm start",
+    "check:fix": "pnpm install && pnpm audit --fix && pnpm run format && pnpm run lint:fix && pnpm test && pnpm run build && pnpm start",
+    "check:naf": "pnpm install && pnpm run format && pnpm run lint:fix && pnpm test && pnpm run build && pnpm start",
+    "cf": "pnpm run check:fix",
+    "cnaf": "pnpm run check:naf",
+    "init": "pnpm install",
+    "reinit": "npx rimraf pnpm-lock.yaml && npx nuxt cleanup && npx rimraf node_modules && pnpm install",
     "clean": "npx rimraf .nuxt .output",
     "dev": "nuxt dev",
     "build": "nuxt build",
@@ -29,24 +35,23 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "prepare": "simple-git-hooks",
-    "test": "npm run test:unit",
+    "test": "pnpm run test:unit",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:unit:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "test:all": "npm run test:unit && npm run test:e2e",
+    "test:all": "pnpm run test:unit && pnpm run test:e2e",
     "lint": "oxlint app/",
     "lint:fix": "oxlint --fix --fix-suggestions app/",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "check": "npm run lint && npm run format:check",
-    "fix": "npm run lint:fix && npm run format"
+    "fix": "pnpm run lint:fix && pnpm run format"
   },
   "dependencies": {
     "@better-auth/passkey": "1.4.10",
     "@hey-api/client-fetch": "0.13.1",
     "@lenne.tech/bug.lt": "latest",
-    "@lenne.tech/nuxt-extensions": "1.2.7",
+    "@lenne.tech/nuxt-extensions": "1.2.9",
     "@nuxt/image": "2.0.0",
     "@nuxt/ui": "4.3.0",
     "@pinia/nuxt": "0.11.3",
@@ -87,7 +92,7 @@
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged",
-    "pre-push": "npm run test:unit"
+    "pre-push": "pnpm run test:unit"
   },
   "lint-staged": {
     "app/**/*.{ts,vue}": [
@@ -100,6 +105,15 @@
   },
   "engines": {
     "node": ">=22",
-    "npm": ">=10"
+    "pnpm": ">=9"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild",
+      "sharp",
+      "simple-git-hooks",
+      "vue-demi"
+    ]
   }
 }

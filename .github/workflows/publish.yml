@@ -18,15 +18,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
       - name: Use Node LTS ✨
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
           registry-url: https://registry.npmjs.org
-          cache: npm
+          cache: pnpm
 
       - name: Install dependencies 📦️
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Publish to npm 🚀
         run: npm publish

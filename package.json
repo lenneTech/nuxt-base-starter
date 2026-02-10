@@ -12,6 +12,12 @@
   },
   "main": "index.js",
   "scripts": {
+    "c": "pnpm run check",
+    "check": "pnpm audit && pnpm run format:check && cd nuxt-base-template && pnpm run check",
+    "check:fix": "pnpm install && pnpm audit --fix && pnpm run format && cd nuxt-base-template && pnpm run check:fix",
+    "check:naf": "pnpm install && pnpm run format && cd nuxt-base-template && pnpm run check:naf",
+    "cf": "pnpm run check:fix",
+    "cnaf": "pnpm run check:naf",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "release": "standard-version && git push --follow-tags origin main",
@@ -28,6 +34,6 @@
   },
   "engines": {
     "node": ">=22",
-    "npm": ">=10"
+    "pnpm": ">=9"
   }
 }
