@@ -94,9 +94,13 @@ export default defineNuxtConfig({
       enableAdmin: true,
       enableTwoFactor: true,
       enablePasskey: true,
+      systemSetup: {
+        enabled: true,
+        setupPath: '/auth/setup',
+      },
       interceptor: {
         enabled: true,
-        publicPaths: ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'],
+        publicPaths: ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/auth/setup'],
       },
     },
     tus: {

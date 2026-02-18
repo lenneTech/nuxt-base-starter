@@ -30,7 +30,7 @@ interface SignInResponse {
 // Composables
 // ============================================================================
 const toast = useToast();
-const { signIn, setUser, validateSession, authenticateWithPasskey } = useLtAuth();
+const { signIn, setUser, validateSession, authenticateWithPasskey, features } = useLtAuth();
 const { translateError } = useLtErrorTranslation();
 
 // ============================================================================
@@ -214,7 +214,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
           <UButton block color="neutral" variant="outline" icon="i-lucide-key" :loading="passkeyLoading" @click="onPasskeyLogin"> Mit Passkey anmelden </UButton>
 
-          <p class="text-center text-sm text-muted">
+          <p v-if="features.signUpEnabled !== false" class="text-center text-sm text-muted">
             Noch kein Konto?
             <ULink to="/auth/register" class="text-primary font-medium">Registrieren</ULink>
           </p>
