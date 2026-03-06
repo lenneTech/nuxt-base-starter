@@ -44,16 +44,20 @@ const showPasskeyPrompt = ref<boolean>(false);
 const passkeyLoading = ref<boolean>(false);
 
 // Redirect if registration is disabled
-watch(() => features.value.signUpEnabled, (val) => {
-  if (val === false) {
-    toast.add({
-      color: 'warning',
-      description: 'Die Registrierung ist derzeit deaktiviert.',
-      title: 'Registrierung nicht verfügbar',
-    });
-    navigateTo('/auth/login');
-  }
-}, { immediate: true });
+watch(
+  () => features.value.signUpEnabled,
+  (val) => {
+    if (val === false) {
+      toast.add({
+        color: 'warning',
+        description: 'Die Registrierung ist derzeit deaktiviert.',
+        title: 'Registrierung nicht verfügbar',
+      });
+      navigateTo('/auth/login');
+    }
+  },
+  { immediate: true },
+);
 
 const requireTerms = computed(() => features.value.signUpChecks === true);
 

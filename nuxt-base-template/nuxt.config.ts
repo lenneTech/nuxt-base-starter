@@ -17,10 +17,10 @@ export default defineNuxtConfig({
   // ============================================================================
   // @ts-expect-error bug.lt module config - module temporarily disabled
   bug: {
-    enabled: process.env.APP_ENV !== 'production',
-    linearApiKey: process.env.LINEAR_API_KEY,
-    linearProjectName: process.env.LINEAR_PROJECT_NAME,
-    linearTeamName: process.env.LINEAR_TEAM_NAME,
+    enabled: process.env.NUXT_PUBLIC_APP_ENV !== 'production',
+    linearApiKey: process.env.NUXT_LINEAR_API_KEY,
+    linearProjectName: process.env.NUXT_LINEAR_PROJECT_NAME,
+    linearTeamName: process.env.NUXT_LINEAR_TEAM_NAME,
   },
 
   compatibilityDate: '2025-01-15',
@@ -49,7 +49,7 @@ export default defineNuxtConfig({
   // ============================================================================
   // Environment-specific Layers
   // ============================================================================
-  extends: process.env.APP_ENV === 'development' ? ['./docs'] : [],
+  extends: process.env.NUXT_PUBLIC_APP_ENV === 'development' ? ['./docs'] : [],
 
   // ============================================================================
   // Image Optimization
@@ -87,7 +87,7 @@ export default defineNuxtConfig({
       // baseURL is used in production mode for cross-origin API requests
       // In dev mode, Nuxt proxy is used (baseURL is ignored, requests go through /api/iam)
       // In production, requests go directly to baseURL + basePath (e.g., https://api.example.com/iam)
-      baseURL: process.env.API_URL || 'http://localhost:3000',
+      baseURL: process.env.NUXT_API_URL || 'http://localhost:3000',
       basePath: '/iam',
       loginPath: '/auth/login',
       twoFactorRedirectPath: '/auth/2fa',
@@ -138,7 +138,7 @@ export default defineNuxtConfig({
   // Analytics (Plausible)
   // ============================================================================
   plausible: {
-    apiHost: process.env.PLAUSIBLE_API_URL,
+    apiHost: process.env.NUXT_PLAUSIBLE_API_URL,
     ignoredHostnames: ['localhost'],
   },
 
@@ -153,13 +153,13 @@ export default defineNuxtConfig({
   // Runtime Configuration (Environment Variables)
   // ============================================================================
   runtimeConfig: {
-    // Server-only (for SSR requests)
-    apiUrl: process.env.API_URL || 'http://localhost:3000',
+    // Server-only — NUXT_API_URL overrides this
+    apiUrl: 'http://localhost:3000',
     public: {
-      // Client-side (browser requests)
-      apiUrl: process.env.API_URL_BROWSER || process.env.API_URL || 'http://localhost:3000',
-      host: process.env.API_URL,
-      webPushKey: process.env.WEB_PUSH_KEY,
+      // Client-side — NUXT_PUBLIC_API_URL overrides this
+      apiUrl: 'http://localhost:3000',
+      // NUXT_PUBLIC_WEB_PUSH_KEY overrides this
+      webPushKey: '',
     },
   },
 
@@ -168,7 +168,7 @@ export default defineNuxtConfig({
   // ============================================================================
   site: {
     name: 'Nuxt Base Starter',
-    url: process.env.SITE_URL,
+    url: process.env.NUXT_PUBLIC_SITE_URL,
   },
 
   // ============================================================================
