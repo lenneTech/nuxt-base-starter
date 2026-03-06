@@ -13,7 +13,8 @@
  */
 export default defineEventHandler(async (event) => {
   const path = getRouterParam(event, 'path') || '';
-  const apiUrl = process.env.API_URL || 'http://localhost:3000';
+  const config = useRuntimeConfig(event);
+  const apiUrl = config.apiUrl || 'http://localhost:3000';
   const targetUrl = `${apiUrl}/iam/${path}`;
 
   // Get query string

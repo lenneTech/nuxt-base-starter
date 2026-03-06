@@ -149,21 +149,22 @@ Create a `.env` file with the following variables:
 
 ```env
 # Required
-SITE_URL=http://localhost:3001
-API_URL=http://localhost:3000
-APP_ENV=development
+NUXT_PUBLIC_SITE_URL=http://localhost:3001
+NUXT_API_URL=http://localhost:3000
+NUXT_PUBLIC_API_URL=http://localhost:3000
+NUXT_PUBLIC_APP_ENV=development
 NODE_ENV=development
 ```
 
 Optional variables:
 
 ```env
-WEB_PUSH_KEY=                # Web push notifications
-LINEAR_API_KEY=              # Bug reporting
-LINEAR_TEAM_NAME=            # Bug reporting
-LINEAR_PROJECT_NAME=         # Bug reporting
-API_SCHEMA=../api/schema.gql # OpenAPI schema path
-STORAGE_PREFIX=base-dev      # Local storage prefix
+NUXT_PUBLIC_WEB_PUSH_KEY=                # Web push notifications
+NUXT_LINEAR_API_KEY=              # Bug reporting
+NUXT_LINEAR_TEAM_NAME=            # Bug reporting
+NUXT_LINEAR_PROJECT_NAME=         # Bug reporting
+NUXT_API_SCHEMA=../api/schema.gql # OpenAPI schema path
+NUXT_PUBLIC_STORAGE_PREFIX=base-dev      # Local storage prefix
 ```
 
 ## Project Structure
