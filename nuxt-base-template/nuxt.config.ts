@@ -15,7 +15,7 @@ export default defineNuxtConfig({
   // ============================================================================
   // Bug Reporting (Linear Integration via @lenne.tech/bug.lt)
   // ============================================================================
-  // @ts-expect-error bug.lt module config - module temporarily disabled
+  // @ts-ignore bug.lt module has no type declarations
   bug: {
     enabled: process.env.NUXT_PUBLIC_APP_ENV !== 'production',
     linearApiKey: process.env.NUXT_LINEAR_API_KEY,
@@ -49,7 +49,7 @@ export default defineNuxtConfig({
   // ============================================================================
   // Environment-specific Layers
   // ============================================================================
-  extends: process.env.NUXT_PUBLIC_APP_ENV === 'development' ? ['./docs'] : [],
+  extends: ['local', 'development'].includes(process.env.NUXT_PUBLIC_APP_ENV || '') ? ['./docs'] : [],
 
   // ============================================================================
   // Image Optimization
@@ -84,9 +84,9 @@ export default defineNuxtConfig({
   ltExtensions: {
     auth: {
       enabled: true,
-      // baseURL is used in production mode for cross-origin API requests
-      // In dev mode, Nuxt proxy is used (baseURL is ignored, requests go through /api/iam)
-      // In production, requests go directly to baseURL + basePath (e.g., https://api.example.com/iam)
+      // baseURL is used when NUXT_PUBLIC_API_PROXY is NOT enabled (deployed stages)
+      // With proxy: requests go through /api/iam (proxy strips /api/ and forwards to backend)
+      // Without proxy: requests go directly to baseURL + basePath (e.g., https://api.example.com/iam)
       baseURL: process.env.NUXT_API_URL || 'http://localhost:3000',
       basePath: '/iam',
       loginPath: '/auth/login',
@@ -115,7 +115,7 @@ export default defineNuxtConfig({
   modules: [
     '@lenne.tech/nuxt-extensions', // Auth, Upload, Transitions
     '@nuxt/test-utils/module', // E2E testing with Playwright
-    // '@lenne.tech/bug.lt', // Bug reporting to Linear - TEMPORARILY DISABLED FOR TESTING
+    '@lenne.tech/bug.lt', // Bug reporting to Linear
     '@vueuse/nuxt', // Vue composition utilities
     'dayjs-nuxt', // Date/time handling
     '@nuxt/image', // Image optimization
@@ -160,6 +160,12 @@ export default defineNuxtConfig({
       apiUrl: 'http://localhost:3000',
       // NUXT_PUBLIC_WEB_PUSH_KEY overrides this
       webPushKey: '',
+      // API Proxy: Routes client-side /api/* requests through the Vite dev proxy
+      // to the backend (localhost:3000). Required for same-origin cookies during
+      // local development. Set NUXT_PUBLIC_API_PROXY=true in .env ONLY for local dev.
+      // Nuxt auto-maps NUXT_PUBLIC_API_PROXY to this key.
+      // See: @lenne.tech/nuxt-extensions → isLocalDevApiProxy()
+      apiProxy: false,
     },
   },
 
@@ -200,22 +206,25 @@ export default defineNuxtConfig({
     optimizeDeps: {
       exclude: ['@tailwindcss/vite', 'lightningcss', '@vue/devtools-core', '@vue/devtools-kit', '@internationalized/date'],
     },
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss() as any],
     server: {
       proxy: {
-        // IAM proxy via /api prefix (nuxt-extensions adds /api in dev mode)
-        // Must be before /api to match more specifically
-        '/api/iam': {
+        // API proxy for local development (NUXT_PUBLIC_API_PROXY=true)
+        //
+        // How it works:
+        // 1. Client-side requests go to /api/... (e.g., /api/iam/sign-in, /api/i18n/errors/de)
+        // 2. This proxy strips the /api prefix and forwards to the backend
+        // 3. Backend receives the original path (e.g., /iam/sign-in, /i18n/errors/de)
+        //
+        // Why: Frontend (localhost:3001) and backend (localhost:3000) run on different
+        // ports. The proxy makes requests same-origin so cookies work correctly.
+        '/api': {
           target: 'http://localhost:3000',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
-        // API proxy - no rewrite, backend expects /api/... paths
-        '/api': {
-          target: 'http://localhost:3000',
-          changeOrigin: true,
-        },
-        // IAM proxy for direct BetterAuth endpoints (SSR mode)
+        // Direct IAM proxy for BetterAuth endpoints (SSR Nitro server handler
+        // and direct browser redirects, e.g., OAuth callbacks)
         '/iam': {
           target: 'http://localhost:3000',
           changeOrigin: true,
