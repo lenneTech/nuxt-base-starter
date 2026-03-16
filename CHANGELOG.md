@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.5.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.5.0...v2.5.1) (2026-03-16)
+
+
+### Bug Fixes
+
+* prevent build-time baked API URLs by defaulting to empty strings resolved at runtimeOC ([e577648](https://github.com/lenneTech/nuxt-base-starter/commit/e577648a287e18a76c72564d68bacc277b04a500))
+
 ## [2.5.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.3.1...v2.5.0) (2026-03-16)
 
 
