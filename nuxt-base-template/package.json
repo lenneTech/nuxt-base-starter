@@ -50,7 +50,7 @@
   "dependencies": {
     "@better-auth/passkey": "1.5.5",
     "@lenne.tech/bug.lt": "latest",
-    "@lenne.tech/nuxt-extensions": "1.5.0",
+    "@lenne.tech/nuxt-extensions": "1.5.1",
     "@nuxt/image": "2.0.0",
     "@nuxt/ui": "4.5.1",
     "@pinia/nuxt": "0.11.3",

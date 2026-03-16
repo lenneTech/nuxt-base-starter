@@ -85,10 +85,10 @@ export default defineNuxtConfig({
   ltExtensions: {
     auth: {
       enabled: true,
-      // baseURL is used when NUXT_PUBLIC_API_PROXY is NOT enabled (deployed stages)
-      // With proxy: requests go through /api/iam (proxy strips /api/ and forwards to backend)
-      // Without proxy: requests go directly to baseURL + basePath (e.g., https://api.example.com/iam)
-      baseURL: process.env.NUXT_API_URL || 'http://localhost:3000',
+      // baseURL: resolved at runtime via NUXT_PUBLIC_API_URL (not baked at build time)
+      // Local dev: .env provides http://localhost:3000
+      // Production: deployment env provides the production API URL
+      baseURL: '',
       basePath: '/iam',
       loginPath: '/auth/login',
       twoFactorRedirectPath: '/auth/2fa',
@@ -154,11 +154,13 @@ export default defineNuxtConfig({
   // Runtime Configuration (Environment Variables)
   // ============================================================================
   runtimeConfig: {
-    // Server-only — NUXT_API_URL overrides this
-    apiUrl: 'http://localhost:3000',
+    // Server-only — NUXT_API_URL overrides at runtime
+    // Local dev: .env provides http://localhost:3000
+    apiUrl: '',
     public: {
-      // Client-side — NUXT_PUBLIC_API_URL overrides this
-      apiUrl: 'http://localhost:3000',
+      // Client-side — NUXT_PUBLIC_API_URL overrides at runtime
+      // Local dev: .env provides http://localhost:3000
+      apiUrl: '',
       // NUXT_PUBLIC_WEB_PUSH_KEY overrides this
       webPushKey: '',
       // API Proxy: Routes client-side /api/* requests through the Vite dev proxy
