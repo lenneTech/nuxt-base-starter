@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.5.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.3.1...v2.5.0) (2026-03-16)
+
+
+### Features
+
+* add production default dockerfile ([e338c93](https://github.com/lenneTech/nuxt-base-starter/commit/e338c9363a348c1a63d40a71301240c8e8478835))
+
 ## [2.4.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.3.1...v2.4.0) (2026-03-16)
 
 
