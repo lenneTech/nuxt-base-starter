@@ -94,14 +94,15 @@ npm run generate-types
 | Technology          | Version | Description                      |
 | ------------------- | ------- | -------------------------------- |
 | Nuxt                | 4.4.x   | Vue 3 meta-framework with SSR    |
-| TypeScript          | 5.9.x   | Strict type checking             |
-| Tailwind CSS        | 4.1.x   | Utility-first CSS (Vite plugin)  |
-| NuxtUI              | 4.3.x   | Component library with dark mode |
+| TypeScript          | 6.0.x   | Strict type checking             |
+| Tailwind CSS        | 4.2.x   | Utility-first CSS (Vite plugin)  |
+| NuxtUI              | 4.6.x   | Component library with dark mode |
 | Pinia               | 0.11.x  | State management                 |
 | Better Auth         | 1.5.x   | Authentication framework         |
-| Playwright          | 1.57.x  | E2E testing                      |
-| @hey-api/openapi-ts | 0.94.x  | API client code generation (dev) |
-| Valibot             | 1.2.x   | Schema validation                |
+| @nuxtjs/seo         | 5.1.x   | SEO, sitemap, robots, OG images  |
+| Playwright          | 1.59.x  | E2E testing                      |
+| @hey-api/openapi-ts | 0.95.x  | API client code generation (dev) |
+| Valibot             | 1.3.x   | Schema validation                |
 
 ## Key Features
 
