@@ -81,6 +81,12 @@ This project depends on `@lenne.tech/nuxt-extensions`. The framework source is a
 4. **When debugging auth issues**, read the auth proxy server route and middleware source
 5. **Check `dist/runtime/composables/`** before creating new composables — may already exist
 
+## Authentication
+
+Auth is managed by `@lenne.tech/nuxt-extensions` via `useLtAuth()`. See the [nuxt-extensions CLAUDE.md](https://github.com/lenneTech/nuxt-extensions) for detailed auth cookie rules.
+
+Key rule: Never manually write to the `lt-auth-state` cookie from custom middleware. Use `useLtAuth().setUser()` / `clearUser()` exclusively.
+
 ## Security Overrides (pnpm)
 
 The `pnpm.overrides` in `package.json` force vulnerable transitive dependencies to patched versions. Each override addresses a specific CVE or security advisory:

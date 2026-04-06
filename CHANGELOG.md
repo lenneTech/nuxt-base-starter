@@ -6,24 +6,21 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [2.5.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.5.0...v2.5.1) (2026-03-16)
 
-
 ### Bug Fixes
 
-* prevent build-time baked API URLs by defaulting to empty strings resolved at runtimeOC ([e577648](https://github.com/lenneTech/nuxt-base-starter/commit/e577648a287e18a76c72564d68bacc277b04a500))
+- prevent build-time baked API URLs by defaulting to empty strings resolved at runtimeOC ([e577648](https://github.com/lenneTech/nuxt-base-starter/commit/e577648a287e18a76c72564d68bacc277b04a500))
 
 ## [2.5.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.3.1...v2.5.0) (2026-03-16)
 
-
 ### Features
 
-* add production default dockerfile ([e338c93](https://github.com/lenneTech/nuxt-base-starter/commit/e338c9363a348c1a63d40a71301240c8e8478835))
+- add production default dockerfile ([e338c93](https://github.com/lenneTech/nuxt-base-starter/commit/e338c9363a348c1a63d40a71301240c8e8478835))
 
 ## [2.4.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.3.1...v2.4.0) (2026-03-16)
 
-
 ### Features
 
-* add production default dockerfile ([e338c93](https://github.com/lenneTech/nuxt-base-starter/commit/e338c9363a348c1a63d40a71301240c8e8478835))
+- add production default dockerfile ([e338c93](https://github.com/lenneTech/nuxt-base-starter/commit/e338c9363a348c1a63d40a71301240c8e8478835))
 
 ### [2.3.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.3.0...v2.3.1) (2026-03-15)
 
