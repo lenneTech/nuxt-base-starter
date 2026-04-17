@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.6.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.5.3...v2.6.0) (2026-04-17)
+
+
+### Features
+
+* **template:** harden check script with server-start verification and document vendor-mode workflow ([6521650](https://github.com/lenneTech/nuxt-base-starter/commit/65216500261c846a87c66f0cb7a1170a3d0ed2b9))
+
 ### [2.5.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.5.2...v2.5.3) (2026-04-06)
 
 ### [2.5.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.5.1...v2.5.2) (2026-04-04)
