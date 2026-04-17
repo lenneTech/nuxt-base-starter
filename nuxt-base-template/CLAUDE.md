@@ -134,31 +134,35 @@ Key rule: Never manually write to the `lt-auth-state` cookie from custom middlew
 
 The `pnpm.overrides` in `package.json` force vulnerable transitive dependencies to patched versions. Each override addresses a specific CVE or security advisory:
 
-| Override                         | Advisory            | Notes                                                                               |
-| -------------------------------- | ------------------- | ----------------------------------------------------------------------------------- |
-| `@hono/node-server@<1.19.10`     | GHSA-7256-2wf4-hf2r | Request smuggling                                                                   |
-| `brace-expansion@>=2.0.0 <2.0.3` | GHSA-f886-m6hf-6m8v | ReDoS via zero-step sequences                                                       |
-| `brace-expansion@>=4.0.0 <5.0.5` | GHSA-f886-m6hf-6m8v | Same advisory, 5.x range                                                            |
-| `readdir-glob@<2.0.3`            | (transitive)        | Forces minimatch upgrade for brace-expansion fix                                    |
-| `defu@<=6.1.4`                   | GHSA-mchp-fgcf-hmfj | Prototype pollution                                                                 |
-| `devalue@<=5.6.3`                | GHSA-77p6-w3v8-rqwf | XSS via crafted input                                                               |
-| `effect@<3.20.0`                 | GHSA-j44v-mmf2-xvm9 | Denial of service                                                                   |
-| `h3@<1.15.9`                     | GHSA-wr4h-v87w-p3r7 | Path traversal                                                                      |
-| `h3@>=2.0.0-0 <2.0.1-rc.18`      | GHSA-q5pr-72pq-83v3 | Cookie DoS + SSE injection                                                          |
-| `h3-next`                        | (alias fix)         | `@nuxt/test-utils` pins h3-next to vulnerable RC; remove when h3 v2 stable releases |
-| `hono@<4.12.7`                   | GHSA-rp6g-89hg-4gfv | SSRF via host header                                                                |
-| `kysely@>=0.26.0 <=0.28.13`      | GHSA-4hxq-5gxr-453h | SQL injection                                                                       |
-| `lodash@>=4.0.0 <=4.17.23`       | GHSA-x5rq-j2xg-h7qm | Prototype pollution                                                                 |
-| `minimatch@>=9.0.0 <9.0.7`       | GHSA-f886-m6hf-6m8v | ReDoS via brace-expansion                                                           |
-| `node-forge@<1.4.0`              | GHSA-997c-fj8j-rq5h | RSA signature forgery                                                               |
-| `picomatch@<2.3.2`               | GHSA-26j4-r882-m4jm | ReDoS                                                                               |
-| `picomatch@>=4.0.0 <4.0.4`       | GHSA-26j4-r882-m4jm | Same advisory, 4.x range                                                            |
-| `rollup@>=4.0.0 <4.59.0`         | GHSA-gcx4-mw62-g3rm | DOM clobbering in output                                                            |
-| `serialize-javascript@<=7.0.4`   | GHSA-cqmj-v5x6-4hg7 | XSS via crafted object                                                              |
-| `srvx@<0.11.13`                  | GHSA-4r4v-8rg6-5crc | Open redirect                                                                       |
-| `tar@<=7.5.10`                   | GHSA-jg7w-cxjv-98c2 | Path traversal                                                                      |
-| `unhead@<=2.1.10`                | GHSA-gxhp-jfhg-5fv8 | XSS via meta tags                                                                   |
-| `yaml@>=2.0.0 <2.8.3`            | GHSA-4hm9-844j-jmxp | Code execution via crafted YAML                                                     |
+All override targets use fixed versions (not ranges) to prevent silent major-version jumps. See TurboOps incident (April 2026) in the agent memory for context.
+
+| Override                         | Advisory                                                                                                                     | Notes                                                                                                        |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `@hono/node-server@<1.19.14`     | GHSA-7256-2wf4-hf2r, GHSA-92pp-h63x-v22m                                                                                     | Request smuggling + middleware bypass via repeated slashes                                                   |
+| `brace-expansion@>=2.0.0 <2.0.3` | GHSA-f886-m6hf-6m8v                                                                                                          | ReDoS via zero-step sequences                                                                                |
+| `brace-expansion@>=4.0.0 <5.0.5` | GHSA-f886-m6hf-6m8v                                                                                                          | Same advisory, 5.x range                                                                                     |
+| `drizzle-orm@<0.45.2`            | GHSA-gpj5-g38j-94v9                                                                                                          | SQL injection via improperly escaped identifiers; transitive via @nuxtjs/seo>nuxt-link-checker>unstorage>db0 |
+| `readdir-glob@<2.0.3`            | (transitive)                                                                                                                 | Forces minimatch upgrade for brace-expansion fix                                                             |
+| `defu@<=6.1.4`                   | GHSA-mchp-fgcf-hmfj                                                                                                          | Prototype pollution                                                                                          |
+| `devalue@<=5.6.3`                | GHSA-77p6-w3v8-rqwf                                                                                                          | XSS via crafted input                                                                                        |
+| `effect@<3.20.0`                 | GHSA-j44v-mmf2-xvm9                                                                                                          | Denial of service                                                                                            |
+| `h3@<1.15.9`                     | GHSA-wr4h-v87w-p3r7                                                                                                          | Path traversal                                                                                               |
+| `h3@>=2.0.0-0 <2.0.1-rc.18`      | GHSA-q5pr-72pq-83v3                                                                                                          | Cookie DoS + SSE injection                                                                                   |
+| `h3-next`                        | (alias fix)                                                                                                                  | `@nuxt/test-utils` pins h3-next to vulnerable RC; remove when h3 v2 stable releases                          |
+| `hono@<4.12.14`                  | GHSA-rp6g-89hg-4gfv, GHSA-26pp-8wgv-hjvm, GHSA-r5rp-j6wh-rvv4, GHSA-wmmm-f939-6g9c, GHSA-xpcf-pg52-r92g, GHSA-458j-xx4x-4375 | SSRF, cookie validation, IP bypass, JSX injection                                                            |
+| `kysely@>=0.26.0 <=0.28.13`      | GHSA-4hxq-5gxr-453h                                                                                                          | SQL injection                                                                                                |
+| `lodash@>=4.0.0 <=4.17.23`       | GHSA-x5rq-j2xg-h7qm                                                                                                          | Prototype pollution                                                                                          |
+| `minimatch@>=9.0.0 <9.0.7`       | GHSA-f886-m6hf-6m8v                                                                                                          | ReDoS via brace-expansion                                                                                    |
+| `node-forge@<1.4.0`              | GHSA-997c-fj8j-rq5h                                                                                                          | RSA signature forgery                                                                                        |
+| `picomatch@<2.3.2`               | GHSA-26j4-r882-m4jm                                                                                                          | ReDoS                                                                                                        |
+| `picomatch@>=4.0.0 <4.0.4`       | GHSA-26j4-r882-m4jm                                                                                                          | Same advisory, 4.x range                                                                                     |
+| `rollup@>=4.0.0 <4.59.0`         | GHSA-gcx4-mw62-g3rm                                                                                                          | DOM clobbering in output                                                                                     |
+| `serialize-javascript@<=7.0.4`   | GHSA-cqmj-v5x6-4hg7                                                                                                          | XSS via crafted object                                                                                       |
+| `srvx@<0.11.13`                  | GHSA-4r4v-8rg6-5crc                                                                                                          | Open redirect                                                                                                |
+| `tar@<=7.5.10`                   | GHSA-jg7w-cxjv-98c2                                                                                                          | Path traversal                                                                                               |
+| `unhead@<=2.1.12`                | GHSA-gxhp-jfhg-5fv8, GHSA-95h2-gj7x-gx9w                                                                                     | XSS via meta tags + hasDangerousProtocol() bypass via leading-zero padded HTML entities                      |
+| `vite@>=7.0.0 <7.3.2`            | GHSA-v2wj-q39q-566r, GHSA-p9ff-h696-f583, GHSA-4w7w-66w2-5vf9                                                                | fs.deny bypass, arbitrary file read via WebSocket, path traversal in .map                                    |
+| `yaml@>=2.0.0 <2.8.3`            | GHSA-4hm9-844j-jmxp                                                                                                          | Code execution via crafted YAML                                                                              |
 
 The `ignoredOptionalDependencies` block suppresses 30 platform-specific native binaries (`@img/sharp-*`, `@resvg/resvg-js-*`) that are pulled in by `@nuxtjs/seo` 5.x's OG image engine. Only the host-platform binary is needed at build time.
 
