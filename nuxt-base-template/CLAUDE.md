@@ -58,9 +58,51 @@ pnpm run check        # Full quality check (audit + format + lint + types + test
 
 ## Framework: @lenne.tech/nuxt-extensions
 
-This project depends on `@lenne.tech/nuxt-extensions`. The framework source is available in `node_modules/@lenne.tech/nuxt-extensions/` and **MUST** be read when using or debugging framework features.
+This project consumes the framework in one of two modes:
 
-### Key Source Files (in node_modules/@lenne.tech/nuxt-extensions/)
+- **npm mode (default):** `@lenne.tech/nuxt-extensions` is installed as
+  an npm dependency; framework source lives in
+  `node_modules/@lenne.tech/nuxt-extensions/`. Registered in
+  `nuxt.config.ts` via the module string `'@lenne.tech/nuxt-extensions'`.
+- **vendor mode:** framework source is copied directly into
+  `app/core/` as first-class project code. No
+  `@lenne.tech/nuxt-extensions` npm dependency. Baseline + patch log
+  live in `app/core/VENDOR.md`. Updated via
+  `/lt-dev:frontend:update-nuxt-extensions-core`. Detect via:
+  `test -f app/core/VENDOR.md`.
+
+**ALWAYS read the actual framework source** before guessing behavior —
+in npm mode from `node_modules/@lenne.tech/nuxt-extensions/`, in
+vendor mode directly from `app/core/`.
+
+### Vendor Modification Policy
+
+When this project is in vendor mode, the copy in `app/core/` exists
+so Claude Code can read framework internals directly — it is a
+**comprehension aid**, not a fork. Only edit `app/core/` when the
+change is **generally useful to every nuxt-extensions consumer**:
+
+- Bugfixes that apply to every consumer
+- Broad framework enhancements (new composables, better defaults,
+  SSR fixes)
+- Security vulnerability fixes
+- Type/config compatibility fixes every consumer would hit
+
+**Everything else stays out of `app/core/`.** Project-specific
+business rules, customer branding, and proprietary integrations
+belong in project code (`app/composables/`, `app/components/`,
+`app/middleware/`, plugin overrides).
+
+**Generally-useful changes MUST be submitted as an upstream PR** to
+`github.com/lenneTech/nuxt-extensions`. Run
+`/lt-dev:frontend:contribute-nuxt-extensions-core` to prepare the PR
+— the agent filters cosmetic commits, categorizes each local change
+as upstream-candidate vs. project-specific, and writes PR drafts for
+human review. Letting useful fixes rot in a single project's vendor
+tree is an anti-pattern: they belong upstream so every consumer
+benefits and the local patch disappears on the next sync.
+
+### Key Source Files (in node_modules/@lenne.tech/nuxt-extensions/ — npm mode; replace prefix with app/core/ in vendor mode)
 
 | File                        | Purpose                                                    |
 | --------------------------- | ---------------------------------------------------------- |
@@ -75,11 +117,12 @@ This project depends on `@lenne.tech/nuxt-extensions`. The framework source is a
 
 ### Rules
 
-1. **ALWAYS read actual source code** from `node_modules/@lenne.tech/nuxt-extensions/` before guessing framework behavior
+1. **ALWAYS read actual source code** before guessing framework behavior — from `node_modules/@lenne.tech/nuxt-extensions/` in npm mode, or from `app/core/` in vendor mode
 2. **NEVER re-implement** functionality that nuxt-extensions already provides — check composables first
 3. **Use `useBetterAuth()`** for authentication — never implement auth manually
 4. **When debugging auth issues**, read the auth proxy server route and middleware source
-5. **Check `dist/runtime/composables/`** before creating new composables — may already exist
+5. **Check runtime composables** before creating new composables — may already exist
+6. **In vendor mode**, only edit `app/core/` for generally-useful changes and submit them upstream via `/lt-dev:frontend:contribute-nuxt-extensions-core`. Project-specific code belongs outside `app/core/`.
 
 ## Authentication
 
