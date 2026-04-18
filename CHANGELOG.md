@@ -4,10 +4,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [2.6.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.6.1...v2.6.2) (2026-04-17)
 
-
 ### Bug Fixes
 
-* **deps:** sync pnpm-lock.yaml with pinned overrides ([26cf45d](https://github.com/lenneTech/nuxt-base-starter/commit/26cf45dad735f2ab9ba4f2e9f0870e3cc04c67e7))
+- **deps:** sync pnpm-lock.yaml with pinned overrides ([26cf45d](https://github.com/lenneTech/nuxt-base-starter/commit/26cf45dad735f2ab9ba4f2e9f0870e3cc04c67e7))
 
 ### [2.6.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.6.0...v2.6.1) (2026-04-17)
 

@@ -37,19 +37,19 @@ importers:
     dependencies:
       '@better-auth/passkey':
         specifier: 1.6.5
-        version: 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.6.5(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(mongodb@7.1.1)(mysql2@3.15.3)(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(happy-dom@20.9.0)(jsdom@29.0.2(@noble/hashes@2.0.1))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(vue@3.5.28(typescript@6.0.3)))(better-call@1.3.5(zod@4.1.13))(nanostores@1.1.1)
+        version: 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.6.5(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(mongodb@7.1.1)(mysql2@3.15.3)(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(happy-dom@20.9.0)(jsdom@29.0.2(@noble/hashes@2.0.1))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(vue@3.5.28(typescript@6.0.3)))(better-call@1.3.5(zod@4.3.6))(nanostores@1.1.1)
       '@lenne.tech/bug.lt':
         specifier: latest
         version: 1.6.5(@babel/parser@7.29.2)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.9.2)(magicast@0.5.2)(qrcode@1.5.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3)(valibot@1.3.1(typescript@6.0.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue-router@4.6.4(vue@3.5.28(typescript@6.0.3)))(vue@3.5.28(typescript@6.0.3))
       '@lenne.tech/nuxt-extensions':
-        specifier: 1.5.3
-        version: 1.5.3(0781ae56609790f1760268d33945a259)
+        specifier: 1.5.4
+        version: 1.5.4(96e5e31d63ffd4d01444d0f0e2182050)
       '@nuxt/image':
         specifier: 2.0.0
         version: 2.0.0(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(magicast@0.5.2)
       '@nuxt/ui':
         specifier: 4.6.1
-        version: 4.6.1(@tiptap/extensions@3.22.1(@tiptap/core@3.22.1(@tiptap/pm@3.22.1))(@tiptap/pm@3.22.1))(@tiptap/y-tiptap@3.0.2(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.9.2)(magicast@0.5.2)(qrcode@1.5.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@6.0.3)(valibot@1.3.1(typescript@6.0.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue-router@4.6.4(vue@3.5.28(typescript@6.0.3)))(vue@3.5.28(typescript@6.0.3))(yjs@13.6.29)(zod@4.1.13)
+        version: 4.6.1(@tiptap/extensions@3.22.1(@tiptap/core@3.22.1(@tiptap/pm@3.22.1))(@tiptap/pm@3.22.1))(@tiptap/y-tiptap@3.0.2(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.9.2)(magicast@0.5.2)(qrcode@1.5.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@6.0.3)(valibot@1.3.1(typescript@6.0.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue-router@4.6.4(vue@3.5.28(typescript@6.0.3)))(vue@3.5.28(typescript@6.0.3))(yjs@13.6.29)(zod@4.3.6)
       '@pinia/nuxt':
         specifier: 0.11.3
         version: 0.11.3(magicast@0.5.2)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))
@@ -86,7 +86,7 @@ importers:
         version: 3.0.2(magicast@0.5.2)
       '@nuxtjs/seo':
         specifier: 5.1.3
-        version: 5.1.3(cafb20cc4d37087a3e463c5daae61cb3)
+        version: 5.1.3(53030b98dba6bcbd41a21a1f82ebdebc)
       '@playwright/test':
         specifier: 1.59.1
         version: 1.59.1
@@ -988,8 +988,8 @@ packages:
   '@lenne.tech/bug.lt@1.6.5':
     resolution: {integrity: sha512-3aSfAcuizL8WvmDaHUlSjpLVdaeSRtNMrEPle7IoqA9VBmfaCfUKzOQmSdnz69Laeq6hn1a2P1HVcsj1QoOWuQ==}
 
-  '@lenne.tech/nuxt-extensions@1.5.3':
-    resolution: {integrity: sha512-CABvWvBUYiFtfYkOHKH9WbDbAwqNSkPJAlje5qX+KqbP5GCXP9BdIOejKKehsD+P7Wfs/pjTns4Fo6PvjuTyjQ==}
+  '@lenne.tech/nuxt-extensions@1.5.4':
+    resolution: {integrity: sha512-AJdZpCLTTJYj1gIwPWRrhPxc26t12hIbweOKHk7kFmc9yXukRg27u7KU3UaMZft8rB0YVJdhZOHAiOqO7qbG+Q==}
     peerDependencies:
       '@better-auth/passkey': '>=1.0.0'
       '@playwright/test': '>=1.0.0'
@@ -7598,66 +7598,66 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)':
+  '@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)':
     dependencies:
       '@better-auth/utils': 0.4.0
       '@better-fetch/fetch': 1.1.21
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/semantic-conventions': 1.40.0
       '@standard-schema/spec': 1.1.0
-      better-call: 1.3.5(zod@4.1.13)
+      better-call: 1.3.5(zod@4.3.6)
       jose: 6.1.3
       kysely: 0.28.16
       nanostores: 1.1.1
       zod: 4.3.6
 
-  '@better-auth/drizzle-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)':
+  '@better-auth/drizzle-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)':
     dependencies:
-      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
+      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
       '@better-auth/utils': 0.4.0
 
-  '@better-auth/kysely-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(kysely@0.28.16)':
+  '@better-auth/kysely-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(kysely@0.28.16)':
     dependencies:
-      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
+      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
       '@better-auth/utils': 0.4.0
     optionalDependencies:
       kysely: 0.28.16
 
-  '@better-auth/memory-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)':
+  '@better-auth/memory-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)':
     dependencies:
-      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
+      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
       '@better-auth/utils': 0.4.0
 
-  '@better-auth/mongo-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(mongodb@7.1.1)':
+  '@better-auth/mongo-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(mongodb@7.1.1)':
     dependencies:
-      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
+      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
       '@better-auth/utils': 0.4.0
     optionalDependencies:
       mongodb: 7.1.1
 
-  '@better-auth/passkey@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.6.5(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(mongodb@7.1.1)(mysql2@3.15.3)(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(happy-dom@20.9.0)(jsdom@29.0.2(@noble/hashes@2.0.1))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(vue@3.5.28(typescript@6.0.3)))(better-call@1.3.5(zod@4.1.13))(nanostores@1.1.1)':
+  '@better-auth/passkey@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.6.5(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(mongodb@7.1.1)(mysql2@3.15.3)(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(happy-dom@20.9.0)(jsdom@29.0.2(@noble/hashes@2.0.1))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(vue@3.5.28(typescript@6.0.3)))(better-call@1.3.5(zod@4.3.6))(nanostores@1.1.1)':
     dependencies:
-      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
+      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
       '@better-auth/utils': 0.4.0
       '@better-fetch/fetch': 1.1.21
       '@simplewebauthn/browser': 13.2.2
       '@simplewebauthn/server': 13.2.3
       better-auth: 1.6.5(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(mongodb@7.1.1)(mysql2@3.15.3)(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(happy-dom@20.9.0)(jsdom@29.0.2(@noble/hashes@2.0.1))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(vue@3.5.28(typescript@6.0.3))
-      better-call: 1.3.5(zod@4.1.13)
+      better-call: 1.3.5(zod@4.3.6)
       nanostores: 1.1.1
       zod: 4.3.6
 
-  '@better-auth/prisma-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))':
+  '@better-auth/prisma-adapter@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))':
     dependencies:
-      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
+      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
       '@better-auth/utils': 0.4.0
     optionalDependencies:
       '@prisma/client': 7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3)
       prisma: 7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3)
 
-  '@better-auth/telemetry@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)':
+  '@better-auth/telemetry@1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)':
     dependencies:
-      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
+      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
       '@better-auth/utils': 0.4.0
       '@better-fetch/fetch': 1.1.21
 
@@ -8216,13 +8216,13 @@ snapshots:
       - vue-router
       - yup
 
-  '@lenne.tech/nuxt-extensions@1.5.3(0781ae56609790f1760268d33945a259)':
+  '@lenne.tech/nuxt-extensions@1.5.4(96e5e31d63ffd4d01444d0f0e2182050)':
     dependencies:
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
       better-auth: 1.6.5(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(mongodb@7.1.1)(mysql2@3.15.3)(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(happy-dom@20.9.0)(jsdom@29.0.2(@noble/hashes@2.0.1))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(vue@3.5.28(typescript@6.0.3))
       nuxt: 4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3)
     optionalDependencies:
-      '@better-auth/passkey': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.6.5(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(mongodb@7.1.1)(mysql2@3.15.3)(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(happy-dom@20.9.0)(jsdom@29.0.2(@noble/hashes@2.0.1))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(vue@3.5.28(typescript@6.0.3)))(better-call@1.3.5(zod@4.1.13))(nanostores@1.1.1)
+      '@better-auth/passkey': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-auth@1.6.5(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(mongodb@7.1.1)(mysql2@3.15.3)(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(happy-dom@20.9.0)(jsdom@29.0.2(@noble/hashes@2.0.1))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(vue@3.5.28(typescript@6.0.3)))(better-call@1.3.5(zod@4.3.6))(nanostores@1.1.1)
       '@playwright/test': 1.59.1
       tus-js-client: 4.3.1
     transitivePeerDependencies:
@@ -8950,7 +8950,7 @@ snapshots:
       - vite
       - vue
 
-  '@nuxt/ui@4.6.1(@tiptap/extensions@3.22.1(@tiptap/core@3.22.1(@tiptap/pm@3.22.1))(@tiptap/pm@3.22.1))(@tiptap/y-tiptap@3.0.2(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.9.2)(magicast@0.5.2)(qrcode@1.5.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@6.0.3)(valibot@1.3.1(typescript@6.0.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue-router@4.6.4(vue@3.5.28(typescript@6.0.3)))(vue@3.5.28(typescript@6.0.3))(yjs@13.6.29)(zod@4.1.13)':
+  '@nuxt/ui@4.6.1(@tiptap/extensions@3.22.1(@tiptap/core@3.22.1(@tiptap/pm@3.22.1))(@tiptap/pm@3.22.1))(@tiptap/y-tiptap@3.0.2(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.9.2)(magicast@0.5.2)(qrcode@1.5.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@6.0.3)(valibot@1.3.1(typescript@6.0.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue-router@4.6.4(vue@3.5.28(typescript@6.0.3)))(vue@3.5.28(typescript@6.0.3))(yjs@13.6.29)(zod@4.3.6)':
     dependencies:
       '@floating-ui/dom': 1.7.6
       '@iconify/vue': 5.0.0(vue@3.5.28(typescript@6.0.3))
@@ -9021,7 +9021,7 @@ snapshots:
     optionalDependencies:
       valibot: 1.3.1(typescript@6.0.3)
       vue-router: 4.6.4(vue@3.5.28(typescript@6.0.3))
-      zod: 4.1.13
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -9126,7 +9126,7 @@ snapshots:
 
   '@nuxtjs/color-mode@3.5.2(magicast@0.5.2)':
     dependencies:
-      '@nuxt/kit': 3.21.1(magicast@0.5.2)
+      '@nuxt/kit': 3.21.2(magicast@0.5.2)
       pathe: 1.1.2
       pkg-types: 1.3.1
       semver: 7.7.4
@@ -9142,20 +9142,20 @@ snapshots:
     transitivePeerDependencies:
       - magicast
 
-  '@nuxtjs/robots@6.0.7(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)':
+  '@nuxtjs/robots@6.0.7(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)':
     dependencies:
       '@fingerprintjs/botd': 2.0.0
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
       consola: 3.4.2
       defu: 6.1.7
       h3: 1.15.11
-      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      nuxtseo-shared: 5.1.3(87d767068f273a59632b083ca9bbd4d0)
+      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      nuxtseo-shared: 5.1.3(9ac2c9e9bc4ecc0010e2a67aab6251c2)
       pathe: 2.0.3
       pkg-types: 2.3.0
       ufo: 1.6.3
     optionalDependencies:
-      zod: 4.1.13
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@nuxt/schema'
       - magicast
@@ -9163,18 +9163,18 @@ snapshots:
       - vite
       - vue
 
-  '@nuxtjs/seo@5.1.3(cafb20cc4d37087a3e463c5daae61cb3)':
+  '@nuxtjs/seo@5.1.3(53030b98dba6bcbd41a21a1f82ebdebc)':
     dependencies:
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
-      '@nuxtjs/robots': 6.0.7(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      '@nuxtjs/sitemap': 8.0.13(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
+      '@nuxtjs/robots': 6.0.7(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      '@nuxtjs/sitemap': 8.0.13(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
       nuxt: 4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3)
-      nuxt-link-checker: 5.0.9(@nuxt/schema@4.4.2)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      nuxt-og-image: 6.4.3(6051d3b3350a1e14e019934d5844dac1)
-      nuxt-schema-org: 6.0.4(0d5b4b8539cd175bd70aeca14f0415c7)
-      nuxt-seo-utils: 8.1.9(@nuxt/schema@4.4.2)(@unhead/bundler@3.0.4(esbuild@0.27.3)(lightningcss@1.32.0)(typescript@6.0.3)(unhead@2.1.13)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(esbuild@0.27.3)(lightningcss@1.32.0)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      nuxtseo-shared: 5.1.3(87d767068f273a59632b083ca9bbd4d0)
+      nuxt-link-checker: 5.0.9(@nuxt/schema@4.4.2)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      nuxt-og-image: 6.4.3(00d1cd136d049998edd174499ccc5c90)
+      nuxt-schema-org: 6.0.4(c5fa4ca6dd8d73968cf08e43258f6370)
+      nuxt-seo-utils: 8.1.9(@nuxt/schema@4.4.2)(@unhead/bundler@3.0.4(esbuild@0.27.3)(lightningcss@1.32.0)(typescript@6.0.3)(unhead@2.1.13)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(esbuild@0.27.3)(lightningcss@1.32.0)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      nuxtseo-shared: 5.1.3(9ac2c9e9bc4ecc0010e2a67aab6251c2)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -9248,14 +9248,14 @@ snapshots:
       - yup
       - zod
 
-  '@nuxtjs/sitemap@8.0.13(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)':
+  '@nuxtjs/sitemap@8.0.13(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)':
     dependencies:
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
       consola: 3.4.2
       defu: 6.1.7
       fast-xml-parser: 5.6.0
-      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      nuxtseo-shared: 5.1.3(87d767068f273a59632b083ca9bbd4d0)
+      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      nuxtseo-shared: 5.1.3(9ac2c9e9bc4ecc0010e2a67aab6251c2)
       ofetch: 1.5.1
       pathe: 2.0.3
       pkg-types: 2.3.0
@@ -9263,7 +9263,7 @@ snapshots:
       ufo: 1.6.3
       ultrahtml: 1.6.0
     optionalDependencies:
-      zod: 4.1.13
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@nuxt/schema'
       - magicast
@@ -11249,13 +11249,13 @@ snapshots:
 
   better-auth@1.6.5(@opentelemetry/api@1.9.1)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(mongodb@7.1.1)(mysql2@3.15.3)(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.4(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(happy-dom@20.9.0)(jsdom@29.0.2(@noble/hashes@2.0.1))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(vue@3.5.28(typescript@6.0.3)):
     dependencies:
-      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
-      '@better-auth/drizzle-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)
-      '@better-auth/kysely-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(kysely@0.28.16)
-      '@better-auth/memory-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)
-      '@better-auth/mongo-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(mongodb@7.1.1)
-      '@better-auth/prisma-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))
-      '@better-auth/telemetry': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.1.13))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)
+      '@better-auth/core': 1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1)
+      '@better-auth/drizzle-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)
+      '@better-auth/kysely-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(kysely@0.28.16)
+      '@better-auth/memory-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)
+      '@better-auth/mongo-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(mongodb@7.1.1)
+      '@better-auth/prisma-adapter': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@prisma/client@7.4.2(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))(typescript@6.0.3))(prisma@7.4.2(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@6.0.3))
+      '@better-auth/telemetry': 1.6.5(@better-auth/core@1.6.5(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.1)(better-call@1.3.5(zod@4.3.6))(jose@6.1.3)(kysely@0.28.16)(nanostores@1.1.1))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)
       '@better-auth/utils': 0.4.0
       '@better-fetch/fetch': 1.1.21
       '@noble/ciphers': 2.1.1
@@ -11278,15 +11278,6 @@ snapshots:
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@opentelemetry/api'
-
-  better-call@1.3.5(zod@4.1.13):
-    dependencies:
-      '@better-auth/utils': 0.4.0
-      '@better-fetch/fetch': 1.1.21
-      rou3: 0.7.12
-      set-cookie-parser: 3.0.1
-    optionalDependencies:
-      zod: 4.1.13
 
   better-call@1.3.5(zod@4.3.6):
     dependencies:
@@ -13206,7 +13197,7 @@ snapshots:
     dependencies:
       boolbase: 1.0.0
 
-  nuxt-link-checker@5.0.9(@nuxt/schema@4.4.2)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13):
+  nuxt-link-checker@5.0.9(@nuxt/schema@4.4.2)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6):
     dependencies:
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
       '@vueuse/core': 14.2.1(vue@3.5.28(typescript@6.0.3))
@@ -13215,8 +13206,8 @@ snapshots:
       fuse.js: 7.3.0
       magic-string: 0.30.21
       nuxt: 4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3)
-      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      nuxtseo-shared: 5.1.3(87d767068f273a59632b083ca9bbd4d0)
+      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      nuxtseo-shared: 5.1.3(9ac2c9e9bc4ecc0010e2a67aab6251c2)
       ofetch: 1.5.1
       pathe: 2.0.3
       pkg-types: 2.3.0
@@ -13250,7 +13241,7 @@ snapshots:
       - vue
       - zod
 
-  nuxt-og-image@6.4.3(6051d3b3350a1e14e019934d5844dac1):
+  nuxt-og-image@6.4.3(00d1cd136d049998edd174499ccc5c90):
     dependencies:
       '@clack/prompts': 1.2.0
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
@@ -13266,8 +13257,8 @@ snapshots:
       magic-string: 0.30.21
       magicast: 0.5.2
       mocked-exports: 0.1.1
-      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      nuxtseo-shared: 5.1.3(87d767068f273a59632b083ca9bbd4d0)
+      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      nuxtseo-shared: 5.1.3(9ac2c9e9bc4ecc0010e2a67aab6251c2)
       nypm: 0.6.5
       ofetch: 1.5.1
       ohash: 2.0.11
@@ -13300,19 +13291,19 @@ snapshots:
       - vue
       - zod
 
-  nuxt-schema-org@6.0.4(0d5b4b8539cd175bd70aeca14f0415c7):
+  nuxt-schema-org@6.0.4(c5fa4ca6dd8d73968cf08e43258f6370):
     dependencies:
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
       '@unhead/schema-org': 2.1.12(@unhead/vue@2.1.12(vue@3.5.28(typescript@6.0.3)))
       defu: 6.1.7
-      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      nuxtseo-layer-devtools: 0.5.1(07a6dd410f478ee2f82cc4c387df428c)
-      nuxtseo-shared: 0.9.0(87d767068f273a59632b083ca9bbd4d0)
+      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      nuxtseo-layer-devtools: 0.5.1(ebf6a3eaf8076caaa7fa9cf7e63b82bf)
+      nuxtseo-shared: 0.9.0(9ac2c9e9bc4ecc0010e2a67aab6251c2)
       pkg-types: 2.3.0
     optionalDependencies:
       '@unhead/vue': 2.1.12(vue@3.5.28(typescript@6.0.3))
       unhead: 2.1.13
-      zod: 4.1.13
+      zod: 4.3.6
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -13369,7 +13360,7 @@ snapshots:
       - yjs
       - yup
 
-  nuxt-seo-utils@8.1.9(@nuxt/schema@4.4.2)(@unhead/bundler@3.0.4(esbuild@0.27.3)(lightningcss@1.32.0)(typescript@6.0.3)(unhead@2.1.13)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(esbuild@0.27.3)(lightningcss@1.32.0)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13):
+  nuxt-seo-utils@8.1.9(@nuxt/schema@4.4.2)(@unhead/bundler@3.0.4(esbuild@0.27.3)(lightningcss@1.32.0)(typescript@6.0.3)(unhead@2.1.13)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))(esbuild@0.27.3)(lightningcss@1.32.0)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6):
     dependencies:
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
       '@unhead/addons': 3.0.4(@unhead/bundler@3.0.4(esbuild@0.27.3)(lightningcss@1.32.0)(typescript@6.0.3)(unhead@2.1.13)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3)))
@@ -13378,8 +13369,8 @@ snapshots:
       escape-string-regexp: 5.0.0
       image-size: 2.0.2
       nuxt: 4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3)
-      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      nuxtseo-shared: 5.1.3(87d767068f273a59632b083ca9bbd4d0)
+      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      nuxtseo-shared: 5.1.3(9ac2c9e9bc4ecc0010e2a67aab6251c2)
       pathe: 2.0.3
       pkg-types: 2.3.0
       scule: 1.3.0
@@ -13407,12 +13398,12 @@ snapshots:
       - magicast
       - vue
 
-  nuxt-site-config@4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13):
+  nuxt-site-config@4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6):
     dependencies:
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
       h3: 1.15.11
       nuxt-site-config-kit: 4.0.8(magicast@0.5.2)(vue@3.5.28(typescript@6.0.3))
-      nuxtseo-shared: 5.1.3(87d767068f273a59632b083ca9bbd4d0)
+      nuxtseo-shared: 5.1.3(9ac2c9e9bc4ecc0010e2a67aab6251c2)
       pathe: 2.0.3
       pkg-types: 2.3.0
       site-config-stack: 4.0.8(vue@3.5.28(typescript@6.0.3))
@@ -13554,15 +13545,15 @@ snapshots:
       - xml2js
       - yaml
 
-  nuxtseo-layer-devtools@0.5.1(07a6dd410f478ee2f82cc4c387df428c):
+  nuxtseo-layer-devtools@0.5.1(ebf6a3eaf8076caaa7fa9cf7e63b82bf):
     dependencies:
       '@nuxt/devtools-kit': 4.0.0-alpha.3(magicast@0.5.2)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))
       '@nuxt/kit': 4.4.2(magicast@0.5.2)
-      '@nuxt/ui': 4.6.1(@tiptap/extensions@3.22.1(@tiptap/core@3.22.1(@tiptap/pm@3.22.1))(@tiptap/pm@3.22.1))(@tiptap/y-tiptap@3.0.2(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.9.2)(magicast@0.5.2)(qrcode@1.5.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@6.0.3)(valibot@1.3.1(typescript@6.0.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue-router@4.6.4(vue@3.5.28(typescript@6.0.3)))(vue@3.5.28(typescript@6.0.3))(yjs@13.6.29)(zod@4.1.13)
+      '@nuxt/ui': 4.6.1(@tiptap/extensions@3.22.1(@tiptap/core@3.22.1(@tiptap/pm@3.22.1))(@tiptap/pm@3.22.1))(@tiptap/y-tiptap@3.0.2(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.9.2)(magicast@0.5.2)(qrcode@1.5.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(tailwindcss@4.2.2)(typescript@6.0.3)(valibot@1.3.1(typescript@6.0.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue-router@4.6.4(vue@3.5.28(typescript@6.0.3)))(vue@3.5.28(typescript@6.0.3))(yjs@13.6.29)(zod@4.3.6)
       '@shikijs/langs': 4.0.2
       '@shikijs/themes': 4.0.2
       '@vueuse/nuxt': 14.2.1(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))
-      nuxtseo-shared: 0.9.0(87d767068f273a59632b083ca9bbd4d0)
+      nuxtseo-shared: 0.9.0(9ac2c9e9bc4ecc0010e2a67aab6251c2)
       ofetch: 1.5.1
       shiki: 4.0.2
       ufo: 1.6.3
@@ -13621,7 +13612,7 @@ snapshots:
       - yup
       - zod
 
-  nuxtseo-shared@0.9.0(87d767068f273a59632b083ca9bbd4d0):
+  nuxtseo-shared@0.9.0(9ac2c9e9bc4ecc0010e2a67aab6251c2):
     dependencies:
       '@clack/prompts': 1.2.0
       '@nuxt/devtools-kit': 4.0.0-alpha.3(magicast@0.5.2)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))
@@ -13640,13 +13631,13 @@ snapshots:
       ufo: 1.6.3
       vue: 3.5.28(typescript@6.0.3)
     optionalDependencies:
-      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      zod: 4.1.13
+      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      zod: 4.3.6
     transitivePeerDependencies:
       - magicast
       - vite
 
-  nuxtseo-shared@5.1.3(87d767068f273a59632b083ca9bbd4d0):
+  nuxtseo-shared@5.1.3(9ac2c9e9bc4ecc0010e2a67aab6251c2):
     dependencies:
       '@clack/prompts': 1.2.0
       '@nuxt/devtools-kit': 4.0.0-alpha.3(magicast@0.5.2)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))
@@ -13665,8 +13656,8 @@ snapshots:
       ufo: 1.6.3
       vue: 3.5.28(typescript@6.0.3)
     optionalDependencies:
-      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.1.13)
-      zod: 4.1.13
+      nuxt-site-config: 4.0.8(@nuxt/schema@4.4.2)(magicast@0.5.2)(nuxt@4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@electric-sql/pglite@0.3.15)(@parcel/watcher@2.5.6)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.32)(cac@6.7.14)(db0@0.3.4(@electric-sql/pglite@0.3.15)(mysql2@3.15.3))(ioredis@5.9.2)(lightningcss@1.32.0)(magicast@0.5.2)(mysql2@3.15.3)(oxlint@1.43.0)(pinia@3.0.4(typescript@6.0.3)(vue@3.5.28(typescript@6.0.3)))(rollup-plugin-visualizer@6.0.5(rollup@4.60.1))(rollup@4.60.1)(terser@5.46.0)(typescript@6.0.3)(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(yaml@2.8.3))(vite@7.3.2(@types/node@25.6.0)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.8.3))(vue@3.5.28(typescript@6.0.3))(zod@4.3.6)
+      zod: 4.3.6
     transitivePeerDependencies:
       - magicast
       - vite
