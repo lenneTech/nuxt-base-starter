@@ -4,10 +4,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### [2.6.5](https://github.com/lenneTech/nuxt-base-starter/compare/v2.6.4...v2.6.5) (2026-04-28)
 
-
 ### Bug Fixes
 
-* **scripts:** pick random free port for check-server-start and guard against ANSI-wrapped output ([d9c3432](https://github.com/lenneTech/nuxt-base-starter/commit/d9c3432fe664ea2ccbecff33b2b2dd7bd2a08de4))
+- **scripts:** pick random free port for check-server-start and guard against ANSI-wrapped output ([d9c3432](https://github.com/lenneTech/nuxt-base-starter/commit/d9c3432fe664ea2ccbecff33b2b2dd7bd2a08de4))
 
 ### [2.6.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.6.3...v2.6.4) (2026-04-23)
 
