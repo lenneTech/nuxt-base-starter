@@ -28,7 +28,22 @@ cleanup() {
 }
 trap cleanup EXIT
 
-node .output/server/index.mjs >"$LOG_FILE" 2>&1 &
+# Pick a free port so the check passes regardless of what is running on
+# 3000/3001 (sister API dev server, another nuxt instance, …). Strip
+# ANSI color escape sequences from the command output — when this
+# script runs under a workspace runner like lerna/nx, stdout may be
+# wrapped and color codes ("\x1b[33m...\x1b[39m") injected. Those would
+# land inside FREE_PORT and crash Nitro with
+# `ERR_SOCKET_BAD_PORT options.port ... Received type string ('<codes>50604<codes>')`.
+# A naïve `tr -cd '0-9'` makes it worse because the color codes contain
+# digits (33, 39) themselves; sed only on the escape pattern keeps the
+# port digits intact.
+# Use NITRO_PORT rather than PORT — Nitro 2.13.3 reads PORT as a string
+# without parseInt and feeds it straight into net.Server#listen.
+FREE_PORT=$(node -e "const s=require('net').createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>console.log(p));});" | sed $'s/\x1b\\[[0-9;]*m//g' | tr -d '[:space:]')
+echo "Using free port: $FREE_PORT"
+
+NITRO_PORT=$FREE_PORT node .output/server/index.mjs >"$LOG_FILE" 2>&1 &
 SERVER_PID=$!
 # Remove from job table so bash does not print "Terminated: 15" on SIGTERM
 disown "$SERVER_PID" 2>/dev/null || true
