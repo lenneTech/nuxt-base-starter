@@ -19,7 +19,7 @@ export const useNuxtApp = vi.fn(() => ({
         auth: {
           enabled: true,
           baseURL: 'http://localhost:3000',
-          basePath: '/iam',
+          basePath: '/api/auth',
           loginPath: '/auth/login',
           twoFactorRedirectPath: '/auth/2fa',
           enableAdmin: true,
@@ -39,7 +39,7 @@ export const useRuntimeConfig = vi.fn(() => ({
       auth: {
         enabled: true,
         baseURL: 'http://localhost:3000',
-        basePath: '/iam',
+        basePath: '/api/auth',
       },
     },
   },

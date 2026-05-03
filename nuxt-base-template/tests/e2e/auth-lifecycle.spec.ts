@@ -26,7 +26,7 @@ import {
  * 7. 2FA deactivation
  * 8. Login without 2FA
  *
- * Automatically detects the current backend configuration via GET /iam/features
+ * Automatically detects the current backend configuration via GET /api/auth/features
  * and adapts the test flow accordingly (skips non-applicable steps).
  *
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -332,10 +332,10 @@ test.beforeAll(async ({ request }) => {
 
   // Fetch features to detect configuration
   try {
-    const featuresResponse = await request.get(`${API_BASE}/iam/features`);
+    const featuresResponse = await request.get(`${API_BASE}/api/auth/features`);
     features = (await featuresResponse.json()) as Features;
   } catch {
-    console.error('Could not fetch /iam/features - assuming zero config (defaults)');
+    console.error('Could not fetch /api/auth/features - assuming zero config (defaults)');
     features = {
       emailVerification: true,
       enabled: true,

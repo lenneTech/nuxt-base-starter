@@ -94,7 +94,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       try {
         const isDev = import.meta.dev;
         const runtimeConfig = useRuntimeConfig();
-        const apiBase = isDev ? '/api/iam' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/iam`;
+        const apiBase = isDev ? '/api/auth' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/api/auth`;
         const sessionResponse = await fetchWithAuth(`${apiBase}/get-session`);
         if (sessionResponse.ok) {
           const sessionData = await sessionResponse.json();

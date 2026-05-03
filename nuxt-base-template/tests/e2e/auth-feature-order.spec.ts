@@ -11,7 +11,7 @@ import { extractTOTPSecret, fillInput, generateTestUser, generateTOTP, gotoAndWa
  * - Test 2: Register → Passkey → 2FA (without logout) - order independence
  * - Test 3: Error Translations (German error messages, i18n endpoint)
  *
- * Automatically detects backend configuration via /iam/features.
+ * Automatically detects backend configuration via /api/auth/features.
  *
  * Requirements:
  * - API: nest-server-starter OR nest-server running on port 3000
@@ -221,7 +221,7 @@ test.beforeAll(async ({ request }) => {
 
   // Detect backend configuration
   try {
-    const featuresResponse = await request.get(`${API_BASE}/iam/features`);
+    const featuresResponse = await request.get(`${API_BASE}/api/auth/features`);
     features = (await featuresResponse.json()) as Features;
   } catch {
     features = {

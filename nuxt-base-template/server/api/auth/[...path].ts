@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   const path = getRouterParam(event, 'path') || '';
   const config = useRuntimeConfig(event);
   const apiUrl = config.apiUrl || 'http://localhost:3000';
-  const targetUrl = `${apiUrl}/iam/${path}`;
+  const targetUrl = `${apiUrl}/api/auth/${path}`;
 
   // Get query string
   const query = getQuery(event);
@@ -56,12 +56,10 @@ export default defineEventHandler(async (event) => {
     // Rewrite cookie to work on localhost:
     // 1. Remove domain (cookie will be set for current origin)
     // 2. Remove secure flag (not needed for localhost)
-    // 3. Rewrite path from /iam to /api/iam (or set to / for broader access)
+    // 3. Force path=/ so cookies work for all routes (Better-Auth defaults to /api/auth)
     const rewrittenCookie = cookie
       .replace(/domain=[^;]+;?\s*/gi, '')
       .replace(/secure;?\s*/gi, '')
-      // Ensure path is set to / so cookies work for all routes
-      .replace(/path=\/iam[^;]*;?\s*/gi, 'path=/; ')
       .replace(/path=[^;]+;?\s*/gi, 'path=/; ');
     appendResponseHeader(event, 'Set-Cookie', rewrittenCookie);
   }

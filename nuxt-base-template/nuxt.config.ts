@@ -89,7 +89,7 @@ export default defineNuxtConfig({
       // Local dev: .env provides http://localhost:3000
       // Production: deployment env provides the production API URL
       baseURL: '',
-      basePath: '/iam',
+      basePath: '/api/auth',
       loginPath: '/auth/login',
       twoFactorRedirectPath: '/auth/2fa',
       enableAdmin: true,
@@ -212,25 +212,26 @@ export default defineNuxtConfig({
     plugins: [tailwindcss() as any],
     server: {
       proxy: {
-        // API proxy for local development (NUXT_PUBLIC_API_PROXY=true)
+        // Better-Auth proxy for local development (NUXT_PUBLIC_API_PROXY=true)
         //
-        // How it works:
-        // 1. Client-side requests go to /api/... (e.g., /api/iam/sign-in, /api/i18n/errors/de)
-        // 2. This proxy strips the /api prefix and forwards to the backend
-        // 3. Backend receives the original path (e.g., /iam/sign-in, /i18n/errors/de)
-        //
-        // Why: Frontend (localhost:3001) and backend (localhost:3000) run on different
-        // ports. The proxy makes requests same-origin so cookies work correctly.
+        // nest-base mounts Better-Auth at /api/auth/* directly, so we forward
+        // /api/auth/* to the backend WITHOUT rewriting — same-origin cookies
+        // require an unchanged path.
+        '/api/auth': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        },
+        // OpenAPI / SDK source path (canonical on nest-base)
+        '/api/openapi.json': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+        },
+        // Generic API proxy for non-auth backend routes (e.g., /api/i18n/errors/de).
+        // Strips the /api prefix so the backend receives the original mount path.
         '/api': {
           target: 'http://localhost:3000',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
-        },
-        // Direct IAM proxy for BetterAuth endpoints (SSR Nitro server handler
-        // and direct browser redirects, e.g., OAuth callbacks)
-        '/iam': {
-          target: 'http://localhost:3000',
-          changeOrigin: true,
         },
       },
     },

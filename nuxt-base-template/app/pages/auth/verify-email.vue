@@ -5,7 +5,7 @@
 const route = useRoute();
 const toast = useToast();
 const runtimeConfig = useRuntimeConfig();
-const apiBase = import.meta.dev ? '/api/iam' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/iam`;
+const apiBase = import.meta.dev ? '/api/auth' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/api/auth`;
 
 // ============================================================================
 // Page Meta

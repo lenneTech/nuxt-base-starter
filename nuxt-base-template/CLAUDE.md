@@ -4,6 +4,8 @@
 
 Starter template for Nuxt 4 applications using the lenne.tech stack. Used by `lt fullstack init` to scaffold new frontend projects.
 
+> **Note (`next` branch):** This branch is adapted for the new `lenneTech/nest-base` server. Better-Auth is consumed at `/api/auth/*` (not the legacy `/iam/*` mount), and the SDK generator reads from `/api/openapi.json` (the canonical OpenAPI document, not the deprecated `/api-docs-json` alias). The Nitro proxy under `server/api/auth/[...path].ts` forwards to `${apiUrl}/api/auth/*` accordingly. Consumed by `lt fullstack init --next`.
+
 ## Tech Stack
 
 - **Framework:** Nuxt 4.x with TypeScript 6.0.x

@@ -1,5 +1,9 @@
 # create-nuxt-base
 
+> **Branch: `next`** — Adapted for the new [`lenneTech/nest-base`](https://github.com/lenneTech/nest-base) server. Clone this branch when scaffolding via `lt fullstack init --next`. The `main` branch remains for `lenneTech/nest-server-starter` consumers.
+>
+> The next branch swaps the auth mount path from `/iam` to `/api/auth` (Better-Auth on nest-base) and points the SDK generator at `/api/openapi.json` (the canonical, non-deprecated path).
+
 A CLI tool to scaffold a production-ready **Nuxt 4** application with TypeScript, Tailwind CSS v4, NuxtUI v4, and modern tooling.
 
 ## Quick Start

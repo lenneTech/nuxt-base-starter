@@ -1,7 +1,7 @@
 import { defineConfig } from '@hey-api/openapi-ts';
 
 export default defineConfig({
-  input: process.env.NUXT_API_URL || 'http://127.0.0.1:3000/api-docs-json',
+  input: process.env.NUXT_API_URL || 'http://127.0.0.1:3000/api/openapi.json',
   output: {
     path: './app/api-client',
     postProcess: ['oxlint', 'oxfmt'],
