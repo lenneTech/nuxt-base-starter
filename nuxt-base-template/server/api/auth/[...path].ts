@@ -14,7 +14,7 @@
 export default defineEventHandler(async (event) => {
   const path = getRouterParam(event, 'path') || '';
   const config = useRuntimeConfig(event);
-  const apiUrl = config.apiUrl || 'http://localhost:3000';
+  const apiUrl = config.apiUrl || process.env.NUXT_API_URL || 'http://localhost:3000';
   const targetUrl = `${apiUrl}/api/auth/${path}`;
 
   // Get query string

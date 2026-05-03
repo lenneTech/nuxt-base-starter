@@ -218,18 +218,18 @@ export default defineNuxtConfig({
         // /api/auth/* to the backend WITHOUT rewriting — same-origin cookies
         // require an unchanged path.
         '/api/auth': {
-          target: 'http://localhost:3000',
+          target: process.env.NUXT_API_URL || 'http://localhost:3000',
           changeOrigin: true,
         },
         // OpenAPI / SDK source path (canonical on nest-base)
         '/api/openapi.json': {
-          target: 'http://localhost:3000',
+          target: process.env.NUXT_API_URL || 'http://localhost:3000',
           changeOrigin: true,
         },
         // Generic API proxy for non-auth backend routes (e.g., /api/i18n/errors/de).
         // Strips the /api prefix so the backend receives the original mount path.
         '/api': {
-          target: 'http://localhost:3000',
+          target: process.env.NUXT_API_URL || 'http://localhost:3000',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
