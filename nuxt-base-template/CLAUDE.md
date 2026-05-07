@@ -56,7 +56,7 @@ pnpm run check        # Full quality check (audit + format + lint + types + test
 | Forms            | Valibot (not Zod)                                                  |
 | Modals           | `useOverlay()` (programmatic)                                      |
 | Auth             | `useBetterAuth()` from `@lenne.tech/nuxt-extensions`               |
-| Protected Routes | `middleware: 'auth'` in page `definePageMeta`                      |
+| Protected Routes | `/app/*` pages are automatically protected by `app/middleware/auth.global.ts` — no `definePageMeta` needed |
 
 ## Framework: @lenne.tech/nuxt-extensions
 
@@ -133,14 +133,64 @@ The SDK is generated from the backend's OpenAPI schema via `pnpm run generate-ty
 - **Import from**: `~/app/api-client/sdk.gen.ts` (typed SDK functions) and `~/app/api-client/types.gen.ts` (DTO types).
 - **Base URL plugin**: `app/plugins/api-client.ts` configures `@hey-api/client-fetch` on startup:
   - **SSR** (server): uses `NUXT_API_URL` (e.g. `http://localhost:3000`) — direct backend call, no proxy.
-  - **Client** (browser): uses `NUXT_PUBLIC_API_URL` (empty string by default) — requests go through the Vite proxy at `/api/*`.
-- **Local dev**: set `NUXT_API_URL=http://localhost:3000` in `.env`; the Vite proxy handles client-side `/api/*` requests automatically.
+  - **Client (browser) + `NUXT_PUBLIC_API_PROXY=true`**: uses `baseUrl: ''` — requests go through the same-origin Vite `/api` proxy; session cookies are sent automatically.
+  - **Client (browser) + `NUXT_PUBLIC_API_PROXY=false`**: uses `NUXT_PUBLIC_API_URL` for direct cross-origin calls; `credentials: 'include'` is set so session cookies are attached.
+- **Local dev**: set `NUXT_PUBLIC_API_PROXY=true` in `.env`; the Vite proxy handles client-side `/api/*` requests automatically and ensures same-origin cookie semantics.
 
 ## Authentication
 
 Auth is managed by `@lenne.tech/nuxt-extensions` via `useLtAuth()`. See the [nuxt-extensions CLAUDE.md](https://github.com/lenneTech/nuxt-extensions) for detailed auth cookie rules.
 
 Key rule: Never manually write to the `lt-auth-state` cookie from custom middleware. Use `useLtAuth().setUser()` / `clearUser()` exclusively.
+
+### Protected Routes
+
+`/app/*` pages are automatically protected by `app/middleware/auth.global.ts` — **no `definePageMeta` is needed** for standard protected pages. Only add `definePageMeta({ middleware: 'auth' })` if you create a standalone named middleware at `app/middleware/auth.ts` for non-global use cases. Adding it alongside the global middleware causes Nuxt to run the auth check twice and can trigger a 500 error.
+
+### Better-Auth: Sign-Up Auto-Session
+
+**Sign-up creates a session automatically.** `POST /api/auth/sign-up/email` (200) creates the user AND immediately establishes a session (cookies set on the sign-up response). Do **not** call `POST /api/auth/sign-in/email` afterward — you will receive `403 "You are already signed in"`.
+
+Use the session from the sign-up response directly:
+
+- In e2e tests: if `sign-up` returns 200, the session is active — skip the `sign-in` call. If it returns 422 (user already exists), then call `sign-in`.
+- In application code: after a successful sign-up response, navigate to the protected area directly without a separate sign-in call.
+
+## Forms (NuxtUI 4 `UForm`)
+
+**`:state` is required** — NuxtUI 4's `UForm` derives its internal validation state from `props.state`. Without it, Valibot runs against `{}` and the form submit is silently swallowed with no error message.
+
+Always bind a reactive state object and `v-model` inputs to it:
+
+```vue
+<!-- Without :state, form validation runs against {} and submit is swallowed. -->
+<script setup lang="ts">
+import { object, string, minLength } from 'valibot'
+
+const schema = object({ title: string([minLength(1)]) })
+const state = reactive({ title: '' })
+
+async function onSubmit() {
+  await $fetch('/api/todos', { method: 'POST', body: state })
+}
+</script>
+
+<template>
+  <UForm :schema="schema" :state="state" @submit="onSubmit">
+    <UFormField label="Titel" name="title">
+      <UInput v-model="state.title" />
+    </UFormField>
+    <UButton type="submit">Erstellen</UButton>
+  </UForm>
+</template>
+```
+
+Checklist for every `UForm`:
+
+- `schema` — Valibot schema object (not Zod)
+- `:state` — reactive object matching the schema shape (required)
+- `v-model` on every `UInput`/`USelect`/etc. bound to the same `state` key
+- `@submit` — called only after validation passes
 
 ## Security Overrides (pnpm)
 
