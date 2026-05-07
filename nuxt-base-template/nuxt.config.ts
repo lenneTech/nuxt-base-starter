@@ -226,12 +226,11 @@ export default defineNuxtConfig({
           target: process.env.NUXT_API_URL || 'http://localhost:3000',
           changeOrigin: true,
         },
-        // Generic API proxy for non-auth backend routes (e.g., /api/i18n/errors/de).
-        // Strips the /api prefix so the backend receives the original mount path.
+        // Generic API proxy for non-auth backend routes (e.g., /api/i18n/errors/de → /api/i18n/errors/de).
+        // nest-base uses setGlobalPrefix("api"), so all routes are at /api/* — paths are forwarded as-is.
         '/api': {
           target: process.env.NUXT_API_URL || 'http://localhost:3000',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ''),
         },
       },
     },

@@ -126,6 +126,16 @@ benefits and the local patch disappears on the next sync.
 5. **Check runtime composables** before creating new composables — may already exist
 6. **In vendor mode**, only edit `app/core/` for generally-useful changes and submit them upstream via `/lt-dev:frontend:contribute-nuxt-extensions-core`. Project-specific code belongs outside `app/core/`.
 
+## Generated API Client
+
+The SDK is generated from the backend's OpenAPI schema via `pnpm run generate-types` (requires the backend running on port 3000). Generated files live in `app/api-client/` — never edit them manually.
+
+- **Import from**: `~/app/api-client/sdk.gen.ts` (typed SDK functions) and `~/app/api-client/types.gen.ts` (DTO types).
+- **Base URL plugin**: `app/plugins/api-client.ts` configures `@hey-api/client-fetch` on startup:
+  - **SSR** (server): uses `NUXT_API_URL` (e.g. `http://localhost:3000`) — direct backend call, no proxy.
+  - **Client** (browser): uses `NUXT_PUBLIC_API_URL` (empty string by default) — requests go through the Vite proxy at `/api/*`.
+- **Local dev**: set `NUXT_API_URL=http://localhost:3000` in `.env`; the Vite proxy handles client-side `/api/*` requests automatically.
+
 ## Authentication
 
 Auth is managed by `@lenne.tech/nuxt-extensions` via `useLtAuth()`. See the [nuxt-extensions CLAUDE.md](https://github.com/lenneTech/nuxt-extensions) for detailed auth cookie rules.
