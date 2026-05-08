@@ -130,7 +130,8 @@ benefits and the local patch disappears on the next sync.
 
 The SDK is generated from the backend's OpenAPI schema via `pnpm run generate-types` (requires the backend running on port 3000). Generated files live in `app/api-client/` — never edit them manually.
 
-- **Import from**: `~/app/api-client/sdk.gen.ts` (typed SDK functions) and `~/app/api-client/types.gen.ts` (DTO types).
+- **Import from**: `~/api-client/sdk.gen.ts` (typed SDK functions) and `~/api-client/types.gen.ts` (DTO types).
+  > **Nuxt 4 path note**: `~` resolves to the `srcDir` (`app/`), not the project root. Always write `~/api-client/...`, never `~/app/api-client/...` (that would resolve to the non-existent `app/app/api-client/`).
 - **Base URL plugin**: `app/plugins/api-client.ts` configures `@hey-api/client-fetch` on startup:
   - **SSR** (server): uses `NUXT_API_URL` (e.g. `http://localhost:3000`) — direct backend call, no proxy.
   - **Client (browser) + `NUXT_PUBLIC_API_PROXY=true`**: uses `baseUrl: ''` — requests go through the same-origin Vite `/api` proxy; session cookies are sent automatically.
