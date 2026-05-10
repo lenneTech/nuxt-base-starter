@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.7.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.6.7...v2.7.0) (2026-05-10)
+
+
+### Features
+
+* **template:** support lt dev multi-project mode via env-aware URLs and configurable auth cookie names ([e9971ee](https://github.com/lenneTech/nuxt-base-starter/commit/e9971eea3661cff59d5b72adf5f026a0ddce09e8))
+
 ### [2.6.7](https://github.com/lenneTech/nuxt-base-starter/compare/v2.6.6...v2.6.7) (2026-04-28)
 
 ### [2.6.6](https://github.com/lenneTech/nuxt-base-starter/compare/v2.6.5...v2.6.6) (2026-04-28)
