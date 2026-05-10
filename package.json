@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "cross-spawn": "7.0.6",
-    "fs-extra": "11.3.4"
+    "fs-extra": "11.3.5"
   },
   "devDependencies": {
     "oxfmt": "latest",

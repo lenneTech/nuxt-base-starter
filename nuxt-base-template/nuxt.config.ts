@@ -34,7 +34,7 @@ export default defineNuxtConfig({
   // Development Server
   // ============================================================================
   devServer: {
-    port: 3001,
+    port: Number(process.env.PORT) || 3001,
   },
 
   // ============================================================================
@@ -222,14 +222,14 @@ export default defineNuxtConfig({
         // Why: Frontend (localhost:3001) and backend (localhost:3000) run on different
         // ports. The proxy makes requests same-origin so cookies work correctly.
         '/api': {
-          target: 'http://localhost:3000',
+          target: process.env.NUXT_API_URL || 'http://localhost:3000',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },
         // Direct IAM proxy for BetterAuth endpoints (SSR Nitro server handler
         // and direct browser redirects, e.g., OAuth callbacks)
         '/iam': {
-          target: 'http://localhost:3000',
+          target: process.env.NUXT_API_URL || 'http://localhost:3000',
           changeOrigin: true,
         },
       },

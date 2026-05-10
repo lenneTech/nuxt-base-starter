@@ -32,7 +32,7 @@ export default defineConfig<ConfigOptions>({
   timeout: isWindows ? 60000 : undefined,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    baseURL: 'http://localhost:3001',
+    baseURL: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
 
     launchOptions: {
       // Slows down Playwright operations by the specified amount of milliseconds
@@ -43,7 +43,7 @@ export default defineConfig<ConfigOptions>({
     locale: 'de',
     /* Nuxt configuration options */
     nuxt: {
-      host: 'http://localhost:3001',
+      host: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
       rootDir: fileURLToPath(new URL('.', import.meta.url)),
     },
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
@@ -56,7 +56,7 @@ export default defineConfig<ConfigOptions>({
       stderr: 'pipe',
       stdout: 'pipe',
       timeout: 120 * 1000,
-      url: 'http://localhost:3001',
+      url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
     },
   ],
   /* Use single worker to prevent WebAuthn virtual authenticator conflicts across test files */

@@ -4,13 +4,18 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return;
   }
 
+  // Cookie name is configurable via `ltExtensions.auth.cookieNames.state` in
+  // nuxt.config.ts. Fall back to the historical default so older module
+  // versions and missing config keep working unchanged.
+  const cookieName = (useRuntimeConfig().public as { ltExtensions?: { auth?: { cookieNames?: { state?: string } } } })?.ltExtensions?.auth?.cookieNames?.state || 'lt-auth-state';
+
   let isAuthenticated = false;
   let isAdmin = false;
 
   // On client, read directly from document.cookie for accurate state
   if (import.meta.client) {
     try {
-      const cookie = document.cookie.split('; ').find((row) => row.startsWith('lt-auth-state='));
+      const cookie = document.cookie.split('; ').find((row) => row.startsWith(`${cookieName}=`));
       if (cookie) {
         const parts = cookie.split('=');
         const value = parts.length > 1 ? decodeURIComponent(parts.slice(1).join('=')) : '';
@@ -23,7 +28,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   } else {
     // On server, use useCookie
-    const authStateCookie = useCookie<{ user: { role?: string } | null; authMode: string } | null>('lt-auth-state');
+    const authStateCookie = useCookie<{ user: { role?: string } | null; authMode: string } | null>(cookieName);
     isAuthenticated = !!authStateCookie.value?.user;
     isAdmin = authStateCookie.value?.user?.role === 'admin';
   }

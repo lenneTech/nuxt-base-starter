@@ -1,4 +1,6 @@
 node_modules
+.pnpm-store/
+node-compile-cache/
 *.log*
 .nuxt
 .nitro
