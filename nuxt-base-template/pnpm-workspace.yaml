@@ -1,0 +1,95 @@
+# pnpm settings for the nuxt-base-template (single-package project).
+#
+# IMPORTANT: This file intentionally has NO `packages:` field. It carries
+# ONLY workspace-scoped settings (overrides, ignoredOptionalDependencies,
+# allowBuilds / onlyBuiltDependencies). This is the pnpm-recommended home for
+# these keys and is read by pnpm 10 AND pnpm 11. (pnpm 11 silently ignores the
+# same keys when they live in package.json's `pnpm` block.)
+#
+# All override TARGETS (right-hand side) are FIXED versions, never ranges,
+# to prevent silent major-version jumps (see TurboOps incident, April 2026).
+# The LEFT side may carry a range to scope which vulnerable versions are
+# replaced. The advisory table for every override lives in CLAUDE.md.
+
+# pnpm 11 renamed `onlyBuiltDependencies` to `allowBuilds` (map of pkg -> bool).
+# We keep BOTH keys so the file works across pnpm 10 (reads onlyBuiltDependencies)
+# and pnpm 11 (reads allowBuilds); each version ignores the key it doesn't know.
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  sharp: true
+  simple-git-hooks: true
+  vue-demi: true
+
+ignoredOptionalDependencies:
+  - '@img/sharp-linux-arm'
+  - '@img/sharp-linux-arm64'
+  - '@img/sharp-linux-ppc64'
+  - '@img/sharp-linux-riscv64'
+  - '@img/sharp-linux-s390x'
+  - '@img/sharp-linux-x64'
+  - '@img/sharp-linuxmusl-arm64'
+  - '@img/sharp-linuxmusl-x64'
+  - '@img/sharp-win32-arm64'
+  - '@img/sharp-win32-ia32'
+  - '@img/sharp-win32-x64'
+  - '@img/sharp-wasm32'
+  - '@img/sharp-libvips-linux-arm'
+  - '@img/sharp-libvips-linux-arm64'
+  - '@img/sharp-libvips-linux-ppc64'
+  - '@img/sharp-libvips-linux-riscv64'
+  - '@img/sharp-libvips-linux-s390x'
+  - '@img/sharp-libvips-linux-x64'
+  - '@img/sharp-libvips-linuxmusl-arm64'
+  - '@img/sharp-libvips-linuxmusl-x64'
+  - '@resvg/resvg-js-android-arm-eabi'
+  - '@resvg/resvg-js-android-arm64'
+  - '@resvg/resvg-js-linux-arm-gnueabihf'
+  - '@resvg/resvg-js-linux-arm64-gnu'
+  - '@resvg/resvg-js-linux-arm64-musl'
+  - '@resvg/resvg-js-linux-x64-gnu'
+  - '@resvg/resvg-js-linux-x64-musl'
+  - '@resvg/resvg-js-win32-arm64-msvc'
+  - '@resvg/resvg-js-win32-ia32-msvc'
+  - '@resvg/resvg-js-win32-x64-msvc'
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild
+  - sharp
+  - simple-git-hooks
+  - vue-demi
+
+overrides:
+  '@hono/node-server@<1.19.14': 1.19.14
+  'brace-expansion@>=2.0.0 <2.0.3': 2.1.0
+  'brace-expansion@>=4.0.0 <5.0.6': 5.0.6
+  'drizzle-orm@<0.45.2': 0.45.2
+  'fast-xml-builder@<1.1.7': 1.2.0
+  'fast-xml-parser@<5.7.3': 5.7.3
+  'readdir-glob@<2.0.3': 3.0.0
+  'defu@<=6.1.4': 6.1.7
+  'devalue@<5.8.1': 5.8.1
+  'effect@<3.20.0': 3.21.2
+  'h3@<1.15.9': 1.15.11
+  'h3@>=2.0.0-0 <2.0.1-rc.18': 2.0.1-rc.22
+  h3-next: npm:h3@2.0.1-rc.22
+  'hono@<4.12.18': 4.12.18
+  'js-cookie@<3.0.7': 3.0.7
+  'kysely@>=0.26.0 <0.28.17': 0.28.17
+  'lodash@>=4.0.0 <=4.17.23': 4.18.1
+  'minimatch@>=9.0.0 <9.0.7': 9.0.9
+  'node-forge@<1.4.0': 1.4.0
+  'nuxt-og-image@>=6.2.5 <6.4.9': 6.4.9
+  'picomatch@<2.3.2': 2.3.2
+  'picomatch@>=4.0.0 <4.0.4': 4.0.4
+  'rollup@>=4.0.0 <4.60.3': 4.60.3
+  'serialize-javascript@<=7.0.4': 7.0.5
+  'simple-git@<3.36.0': 3.36.0
+  'srvx@<0.11.13': 0.11.15
+  'tar@<=7.5.10': 7.5.15
+  'unhead@<=2.1.12': 2.1.13
+  'vite@>=7.0.0 <7.3.2': 7.3.2
+  'ws@>=8.0.0 <8.20.1': 8.21.0
+  'yaml@>=2.0.0 <2.8.3': 2.8.3
+  'postcss@<8.5.14': 8.5.14

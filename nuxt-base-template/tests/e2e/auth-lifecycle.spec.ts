@@ -148,9 +148,12 @@ interface Features {
 // Constants
 // =============================================================================
 
-const MONGO_URI = 'mongodb://127.0.0.1/nest-server-local';
-const API_BASE = 'http://localhost:3000';
-const FRONTEND_BASE = 'http://localhost:3001';
+// Env-driven so the same suite runs against classic ports (3000/3001), a
+// `lt dev up` session (https://<slug>.localhost via the .lt-dev/.env bridge)
+// and CI. Falls back to the classic localhost defaults when nothing is set.
+const MONGO_URI = process.env.NSC__MONGOOSE__URI || process.env.MONGO_URI || 'mongodb://127.0.0.1/nest-server-local';
+const API_BASE = process.env.NUXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3000';
+const FRONTEND_BASE = process.env.NUXT_PUBLIC_SITE_URL || process.env.APP_URL || 'http://localhost:3001';
 
 // Better-Auth collection names (default without prefix)
 const COLLECTIONS = ['session', 'account', 'verification', 'passkey', 'twoFactor', 'backupCode'];
