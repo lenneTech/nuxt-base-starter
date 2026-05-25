@@ -83,6 +83,11 @@ export default defineNuxtConfig({
   // lenne.tech Nuxt Extensions
   // ============================================================================
   ltExtensions: {
+    ai: {
+      // AI assistant composables. basePath must match the nest-server AI controller.
+      enabled: true,
+      basePath: '/ai',
+    },
     auth: {
       enabled: true,
       // baseURL: resolved at runtime via NUXT_PUBLIC_API_URL (not baked at build time)

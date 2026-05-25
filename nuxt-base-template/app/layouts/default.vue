@@ -12,26 +12,21 @@ async function handleLogout() {
   await navigateTo('/auth/login');
 }
 
-const headerItems = computed<NavigationMenuItem[]>(() => [
-  {
-    label: 'Docs',
-    to: '#',
-  },
-  {
-    label: 'Components',
-    to: '#',
-  },
-  {
-    label: 'Figma',
-    target: '_blank',
-    to: '#',
-  },
-  {
-    label: 'Releases',
-    target: '_blank',
-    to: '#',
-  },
-]);
+const isAdmin = computed(() => (user.value as { role?: string } | null)?.role === 'admin');
+
+const headerItems = computed<NavigationMenuItem[]>(() => {
+  if (!isAuthenticated.value) {
+    return [{ label: 'Docs', to: '#' }];
+  }
+  const items: NavigationMenuItem[] = [
+    { icon: 'i-lucide-sparkles', label: 'KI-Assistent', to: '/app/ai' },
+    { icon: 'i-lucide-settings', label: 'KI-Einstellungen', to: '/app/settings/ai' },
+  ];
+  if (isAdmin.value) {
+    items.push({ icon: 'i-lucide-shield', label: 'Administration', to: '/app/admin' });
+  }
+  return items;
+});
 
 const footerItems: NavigationMenuItem[] = [
   {
