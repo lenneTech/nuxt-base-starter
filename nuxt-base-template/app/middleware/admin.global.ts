@@ -1,3 +1,9 @@
+// nest-server users carry roles as an array (`roles: string[]`); some Better Auth
+// setups additionally expose a singular `role`. Accept either.
+function isAdminUser(user: { role?: string; roles?: string[] } | null | undefined): boolean {
+  return !!user?.roles?.includes('admin') || user?.role === 'admin';
+}
+
 export default defineNuxtRouteMiddleware(async (to) => {
   // Only check routes starting with /app/admin
   if (!to.path.startsWith('/app/admin')) {
@@ -21,16 +27,16 @@ export default defineNuxtRouteMiddleware(async (to) => {
         const value = parts.length > 1 ? decodeURIComponent(parts.slice(1).join('=')) : '';
         const state = JSON.parse(value);
         isAuthenticated = !!state?.user;
-        isAdmin = state?.user?.role === 'admin';
+        isAdmin = isAdminUser(state?.user);
       }
     } catch {
       // Ignore parse errors
     }
   } else {
     // On server, use useCookie
-    const authStateCookie = useCookie<{ user: { role?: string } | null; authMode: string } | null>(cookieName);
+    const authStateCookie = useCookie<{ authMode: string; user: { role?: string; roles?: string[] } | null } | null>(cookieName);
     isAuthenticated = !!authStateCookie.value?.user;
-    isAdmin = authStateCookie.value?.user?.role === 'admin';
+    isAdmin = isAdminUser(authStateCookie.value?.user);
   }
 
   // Redirect to login if not authenticated
