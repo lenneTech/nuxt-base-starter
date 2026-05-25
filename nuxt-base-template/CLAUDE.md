@@ -57,6 +57,7 @@ lt dev status                  # show running PIDs + active URLs
 lt dev status --all            # list all registered projects
 lt dev doctor                  # diagnose Caddy / CA / DNS / port issues
 ```
+
 First run in a fresh project: just `lt dev init` then `lt dev up`. (`lt dev migrate` still works as an alias for `init`.)
 
 `lt dev up` exports the env vars the template respects:

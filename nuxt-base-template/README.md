@@ -149,14 +149,14 @@ npm run generate-types
 Ready-to-use UI for the `@lenne.tech/nest-server` **AI module**, built on the
 `useLtAi*` composables from `@lenne.tech/nuxt-extensions` (NuxtUI + Valibot + toasts).
 
-| Route | Audience | Purpose |
-|-------|----------|---------|
-| `/app/ai` | any user | Streaming chat (`AiChat`) with confirmation flow + budget badge |
-| `/app/settings/ai` | any user | Pick the personal default connection + view token usage |
-| `/app/admin/ai/connections` | admin | Connection CRUD + capability auto-detection |
-| `/app/admin/ai/preferences` | admin | Tenant/user default connections (+ enforced) |
-| `/app/admin/ai/budgets` | admin | Per-user/tenant token & prompt limits |
-| `/app/admin/ai/interactions` | admin | Prompt audit log (requires `ai.audit`) |
+| Route                        | Audience | Purpose                                                         |
+| ---------------------------- | -------- | --------------------------------------------------------------- |
+| `/app/ai`                    | any user | Streaming chat (`AiChat`) with confirmation flow + budget badge |
+| `/app/settings/ai`           | any user | Pick the personal default connection + view token usage         |
+| `/app/admin/ai/connections`  | admin    | Connection CRUD + capability auto-detection                     |
+| `/app/admin/ai/preferences`  | admin    | Tenant/user default connections (+ enforced)                    |
+| `/app/admin/ai/budgets`      | admin    | Per-user/tenant token & prompt limits                           |
+| `/app/admin/ai/interactions` | admin    | Prompt audit log (requires `ai.audit`)                          |
 
 Components live in `app/components/Ai/` (`AiChat`, `AiMessage`, `AiConnectionPicker`,
 `AiUsageBadge`, `ModalAiConnection`). Admin routes are gated by `admin.global.ts`.
