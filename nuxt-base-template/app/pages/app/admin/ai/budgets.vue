@@ -99,9 +99,7 @@ async function remove(limit: LtAiBudgetLimit): Promise<void> {
         <div v-for="limit in limits" :key="limit.id" class="flex items-center justify-between py-3">
           <div>
             <p class="font-medium">{{ limit.scope === 'user' ? 'Nutzer' : 'Tenant' }} · {{ limit.refId }}</p>
-            <p class="text-xs text-muted">
-              {{ limit.maxTokens || '∞' }} Tokens · {{ limit.maxPrompts || '∞' }} Anfragen · {{ limit.period }}
-            </p>
+            <p class="text-xs text-muted">{{ limit.maxTokens || '∞' }} Tokens · {{ limit.maxPrompts || '∞' }} Anfragen · {{ limit.period }}</p>
           </div>
           <UButton size="sm" variant="ghost" color="error" icon="i-lucide-trash" @click="remove(limit)" />
         </div>

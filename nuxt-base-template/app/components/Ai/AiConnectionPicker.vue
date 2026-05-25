@@ -37,15 +37,7 @@ async function choose(id: string): Promise<void> {
 <template>
   <div v-if="connections.length > 1" class="flex items-center gap-2">
     <UIcon name="i-lucide-plug" class="size-4 text-muted" />
-    <USelectMenu
-      v-model="selectedId"
-      :items="items"
-      value-key="value"
-      :disabled="locked"
-      placeholder="KI-Verbindung wählen"
-      size="sm"
-      class="min-w-48"
-    />
+    <USelectMenu v-model="selectedId" :items="items" value-key="value" :disabled="locked" placeholder="KI-Verbindung wählen" size="sm" class="min-w-48" />
     <UTooltip v-if="locked" text="Die Verbindung ist vorgegeben und kann nicht geändert werden.">
       <UIcon name="i-lucide-lock" class="size-4 text-muted" />
     </UTooltip>

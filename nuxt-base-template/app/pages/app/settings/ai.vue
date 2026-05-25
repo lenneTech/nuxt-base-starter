@@ -46,17 +46,15 @@ function pct(used: number, max?: number): number {
       </template>
 
       <div class="space-y-3">
-        <UAlert
-          v-if="locked"
-          color="info"
-          variant="subtle"
-          icon="i-lucide-lock"
-          description="Die Verbindung ist vorgegeben und kann nicht geändert werden."
-        />
+        <UAlert v-if="locked" color="info" variant="subtle" icon="i-lucide-lock" description="Die Verbindung ist vorgegeben und kann nicht geändert werden." />
         <p v-if="!connections.length" class="py-4 text-center text-muted">Keine KI-Verbindung verfügbar.</p>
         <div v-for="conn in connections" :key="conn.id" class="flex items-center justify-between py-2">
           <div class="flex items-center gap-3">
-            <UIcon :name="conn.id === selected?.id ? 'i-lucide-check-circle' : 'i-lucide-circle'" class="size-5" :class="conn.id === selected?.id ? 'text-primary' : 'text-muted'" />
+            <UIcon
+              :name="conn.id === selected?.id ? 'i-lucide-check-circle' : 'i-lucide-circle'"
+              class="size-5"
+              :class="conn.id === selected?.id ? 'text-primary' : 'text-muted'"
+            />
             <div>
               <p class="font-medium">{{ conn.name || conn.id }}</p>
               <p class="text-xs text-muted">{{ conn.model }}<span v-if="conn.isDefault"> · Standard</span></p>

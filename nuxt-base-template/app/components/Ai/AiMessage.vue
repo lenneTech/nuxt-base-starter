@@ -17,10 +17,7 @@ const emit = defineEmits<{
 
 <template>
   <div class="flex" :class="message.role === 'user' ? 'justify-end' : 'justify-start'">
-    <div
-      class="max-w-[85%] rounded-lg px-4 py-2 text-sm"
-      :class="message.role === 'user' ? 'bg-primary text-inverted' : 'bg-elevated text-default'"
-    >
+    <div class="max-w-[85%] rounded-lg px-4 py-2 text-sm" :class="message.role === 'user' ? 'bg-primary text-inverted' : 'bg-elevated text-default'">
       <!-- Text (streamed or final) -->
       <p class="whitespace-pre-wrap break-words">{{ message.content }}</p>
       <span v-if="message.pending" class="inline-block animate-pulse text-muted">▍</span>
@@ -40,14 +37,7 @@ const emit = defineEmits<{
       </div>
 
       <!-- Denied (plan mode, missing permissions) -->
-      <UAlert
-        v-if="message.denied"
-        class="mt-2"
-        color="error"
-        variant="subtle"
-        icon="i-lucide-shield-x"
-        :description="'Es wurde nichts ausgeführt.'"
-      />
+      <UAlert v-if="message.denied" class="mt-2" color="error" variant="subtle" icon="i-lucide-shield-x" :description="'Es wurde nichts ausgeführt.'" />
 
       <!-- Confirmation gate -->
       <div v-if="message.requiresConfirmation" class="mt-3 space-y-2">
