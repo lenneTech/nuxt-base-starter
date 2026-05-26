@@ -9,6 +9,8 @@ const cards = [
   { description: 'Standard-Verbindung pro Tenant/Nutzer', icon: 'i-lucide-list-checks', title: 'KI-Präferenzen', to: '/app/admin/ai/preferences' },
   { description: 'Token-/Anfrage-Limits', icon: 'i-lucide-gauge', title: 'KI-Budgets', to: '/app/admin/ai/budgets' },
   { description: 'Protokoll der Prompt-Läufe', icon: 'i-lucide-scroll-text', title: 'KI-Audit-Log', to: '/app/admin/ai/interactions' },
+  { description: 'Prompt-Bausteine bearbeiten', icon: 'i-lucide-file-pen', title: 'KI-Prompt-Vorlagen', to: '/app/admin/ai/prompt-templates' },
+  { description: 'Gelernte Hinweise prüfen & freigeben', icon: 'i-lucide-graduation-cap', title: 'KI-Lern-Hinweise', to: '/app/admin/ai/prompt-hints' },
 ];
 </script>
 

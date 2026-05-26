@@ -19,4 +19,14 @@ test.describe('AI assistant', () => {
     // admin.global redirects unauthenticated users to login (and non-admins to /app).
     await expect(page).toHaveURL(/\/auth\/login|\/app(\/|$)/);
   });
+
+  test('protects the AI prompt-templates admin page (admin-only)', async ({ goto, page }) => {
+    await goto('/app/admin/ai/prompt-templates', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/auth\/login|\/app(\/|$)/);
+  });
+
+  test('protects the AI prompt-hints admin page (admin-only)', async ({ goto, page }) => {
+    await goto('/app/admin/ai/prompt-hints', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/auth\/login|\/app(\/|$)/);
+  });
 });
