@@ -123,7 +123,6 @@ export default defineNuxtConfig({
     '@nuxt/test-utils/module', // E2E testing with Playwright
     '@lenne.tech/bug.lt', // Bug reporting to Linear
     '@vueuse/nuxt', // Vue composition utilities
-    'dayjs-nuxt', // Date/time handling
     '@nuxt/image', // Image optimization
     '@nuxt/ui', // NuxtUI component library
     '@nuxtjs/plausible', // Privacy-friendly analytics
