@@ -15,7 +15,7 @@ const props = withDefaults(
   { showConnectionPicker: true },
 );
 
-const { budget, clear, confirm, error, messages, send, stop, streaming } = useLtAiChat({
+const { budget, clear, confirm, contextWindow, error, messages, send, stop, streaming } = useLtAiChat({
   conversationId: props.conversationId,
   // Enrich each prompt with lightweight client context (untrusted, capped server-side).
   metadata: () => ({ url: import.meta.client ? window.location.href : undefined }),
@@ -46,7 +46,9 @@ async function onSubmit(): Promise<void> {
     <!-- Toolbar -->
     <div class="flex flex-wrap items-center justify-between gap-2">
       <AiConnectionPicker v-if="showConnectionPicker" />
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-3">
+        <AiTokenBar :budget="budget" />
+        <AiContextWindow :context-window="contextWindow" />
         <AiUsageBadge :budget="budget" />
         <UButton v-if="messages.length" size="sm" color="neutral" variant="ghost" icon="i-lucide-eraser" @click="clear"> Leeren </UButton>
       </div>
