@@ -116,8 +116,9 @@ async function toggleEnabled(template: LtAiPromptTemplate): Promise<void> {
       <h1 class="text-2xl font-bold">KI-Prompt-Vorlagen</h1>
       <p class="text-muted">
         Bausteine des System-Prompts. Das Backend liefert für jeden Slot sinnvolle Standards — ein Eintrag hier
-        <strong>überschreibt</strong> den Standard für seinen Slot (optional je Sprache/Modus). Platzhalter wie <code>{{ '{{roles}}' }}</code>, <code>{{ '{{tools}}' }}</code>,
-        <code>{{ '{{toolCatalog}}' }}</code> oder <code>{{ '{{documentation}}' }}</code> werden zur Laufzeit ersetzt.
+        <strong>überschreibt</strong> den Standard für seinen Slot (optional je Sprache/Modus). Platzhalter wie <code>&#123;&#123;roles&#125;&#125;</code>,
+        <code>&#123;&#123;tools&#125;&#125;</code>, <code>&#123;&#123;toolCatalog&#125;&#125;</code> oder <code>&#123;&#123;documentation&#125;&#125;</code> werden zur Laufzeit
+        ersetzt.
       </p>
     </div>
 
@@ -142,7 +143,7 @@ async function toggleEnabled(template: LtAiPromptTemplate): Promise<void> {
           <UInput v-model="form.description" placeholder="Wofür ist dieser Baustein?" />
         </UFormField>
         <UFormField label="Inhalt" class="sm:col-span-2">
-          <UTextarea v-model="form.content" :rows="5" placeholder="Fragment-Text (unterstützt {{platzhalter}})" />
+          <UTextarea v-model="form.content" :rows="5" placeholder="Fragment-Text (Platzhalter in doppelten geschweiften Klammern)" />
         </UFormField>
         <UFormField label="Aktiv">
           <USwitch v-model="form.enabled" />
