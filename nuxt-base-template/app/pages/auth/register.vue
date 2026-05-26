@@ -139,6 +139,22 @@ const schema = computed(() => (requireTerms.value ? termsSchema : baseSchema));
 type Schema = InferOutput<typeof baseSchema> | InferOutput<typeof termsSchema>;
 
 // ============================================================================
+// Race-safe submit guard (capture-phase preventDefault)
+// ============================================================================
+// `<UAuthForm>`'s onSubmit calls preventDefault inside its bubble listener,
+// which only attaches during component hydration. If a fast user / automated
+// test submits before that, the browser runs the native form GET and leaks
+// the password into the URL. This capture-phase listener attaches as soon as
+// the wrapper mounts and unconditionally prevents the default.
+const formRoot = ref<HTMLElement | null>(null);
+onMounted(() => {
+  const form = formRoot.value?.querySelector?.('form');
+  if (form instanceof HTMLFormElement) {
+    form.addEventListener('submit', (event) => event.preventDefault(), { capture: true });
+  }
+});
+
+// ============================================================================
 // Functions
 // ============================================================================
 async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
@@ -247,38 +263,40 @@ async function skipPasskey(): Promise<void> {
 <template>
   <UPageCard class="w-md" variant="naked">
     <template v-if="!showPasskeyPrompt">
-      <UAuthForm
-        :schema="schema"
-        title="Registrieren"
-        icon="i-lucide-user-plus"
-        :fields="fields"
-        :loading="loading"
-        :submit="{
-          label: 'Konto erstellen',
-          block: true,
-        }"
-        @submit="onSubmit"
-      >
-        <template v-if="requireTerms" #termsAccepted-field="slotProps">
-          <UCheckbox v-model="(slotProps as any).state.termsAccepted">
-            <template #label>
-              <span class="text-sm">
-                Ich akzeptiere die
-                <ULink to="/legal/terms" class="text-primary font-medium" target="_blank">AGB</ULink>
-                und
-                <ULink to="/legal/privacy" class="text-primary font-medium" target="_blank">Datenschutzerklärung</ULink>
-              </span>
-            </template>
-          </UCheckbox>
-        </template>
+      <div ref="formRoot">
+        <UAuthForm
+          :schema="schema"
+          title="Registrieren"
+          icon="i-lucide-user-plus"
+          :fields="fields"
+          :loading="loading"
+          :submit="{
+            label: 'Konto erstellen',
+            block: true,
+          }"
+          @submit="onSubmit"
+        >
+          <template v-if="requireTerms" #termsAccepted-field="slotProps">
+            <UCheckbox v-model="(slotProps as any).state.termsAccepted">
+              <template #label>
+                <span class="text-sm">
+                  Ich akzeptiere die
+                  <ULink to="/legal/terms" class="text-primary font-medium" target="_blank">AGB</ULink>
+                  und
+                  <ULink to="/legal/privacy" class="text-primary font-medium" target="_blank">Datenschutzerklärung</ULink>
+                </span>
+              </template>
+            </UCheckbox>
+          </template>
 
-        <template #footer>
-          <p class="text-center text-sm text-muted">
-            Bereits ein Konto?
-            <ULink to="/auth/login" class="text-primary font-medium">Anmelden</ULink>
-          </p>
-        </template>
-      </UAuthForm>
+          <template #footer>
+            <p class="text-center text-sm text-muted">
+              Bereits ein Konto?
+              <ULink to="/auth/login" class="text-primary font-medium">Anmelden</ULink>
+            </p>
+          </template>
+        </UAuthForm>
+      </div>
     </template>
 
     <template v-else>

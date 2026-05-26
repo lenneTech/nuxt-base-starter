@@ -121,6 +121,24 @@ async function onPasskeyLogin(): Promise<void> {
 }
 
 // ============================================================================
+// Race-safe submit guard (capture-phase preventDefault)
+// ============================================================================
+// Vue's `<UAuthForm>` handler calls `event.preventDefault()` inside its bubble
+// listener — but that listener is attached during per-component hydration. If a
+// user (or an automated/MCP test) submits the form BEFORE this listener has
+// attached, the browser performs the native form GET — leaking the password
+// into the URL. This capture-phase listener attaches as soon as the wrapper
+// mounts and unconditionally prevents the default, closing that race window.
+// Vue's own bubble handler still runs once attached and performs the real sign-in.
+const formRoot = ref<HTMLElement | null>(null);
+onMounted(() => {
+  const form = formRoot.value?.querySelector?.('form');
+  if (form instanceof HTMLFormElement) {
+    form.addEventListener('submit', (event) => event.preventDefault(), { capture: true });
+  }
+});
+
+// ============================================================================
 // Functions
 // ============================================================================
 async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
@@ -192,34 +210,36 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
 <template>
   <UPageCard class="w-md" variant="naked">
-    <UAuthForm
-      :schema="schema"
-      title="Anmelden"
-      icon="i-lucide-user"
-      :fields="fields"
-      :loading="loading"
-      :submit="{
-        label: 'Anmelden',
-        block: true,
-      }"
-      @submit="onSubmit"
-    >
-      <template #password-hint>
-        <ULink to="/auth/forgot-password" class="text-primary font-medium" tabindex="-1">Passwort vergessen?</ULink>
-      </template>
+    <div ref="formRoot">
+      <UAuthForm
+        :schema="schema"
+        title="Anmelden"
+        icon="i-lucide-user"
+        :fields="fields"
+        :loading="loading"
+        :submit="{
+          label: 'Anmelden',
+          block: true,
+        }"
+        @submit="onSubmit"
+      >
+        <template #password-hint>
+          <ULink to="/auth/forgot-password" class="text-primary font-medium" tabindex="-1">Passwort vergessen?</ULink>
+        </template>
 
-      <template #footer>
-        <div class="flex flex-col gap-4">
-          <USeparator label="oder" />
+        <template #footer>
+          <div class="flex flex-col gap-4">
+            <USeparator label="oder" />
 
-          <UButton block color="neutral" variant="outline" icon="i-lucide-key" :loading="passkeyLoading" @click="onPasskeyLogin"> Mit Passkey anmelden </UButton>
+            <UButton block color="neutral" variant="outline" icon="i-lucide-key" :loading="passkeyLoading" @click="onPasskeyLogin"> Mit Passkey anmelden </UButton>
 
-          <p v-if="features.signUpEnabled !== false" class="text-center text-sm text-muted">
-            Noch kein Konto?
-            <ULink to="/auth/register" class="text-primary font-medium">Registrieren</ULink>
-          </p>
-        </div>
-      </template>
-    </UAuthForm>
+            <p v-if="features.signUpEnabled !== false" class="text-center text-sm text-muted">
+              Noch kein Konto?
+              <ULink to="/auth/register" class="text-primary font-medium">Registrieren</ULink>
+            </p>
+          </div>
+        </template>
+      </UAuthForm>
+    </div>
   </UPageCard>
 </template>
