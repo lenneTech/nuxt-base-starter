@@ -26,6 +26,7 @@ const headerItems = computed<NavigationMenuItem[]>(() => {
   }
   const items: NavigationMenuItem[] = [
     { icon: 'i-lucide-sparkles', label: 'KI-Assistent', to: '/app/ai' },
+    { icon: 'i-lucide-clipboard-list', label: 'KI-Vorlagen', to: '/app/settings/ai-snippets' },
     { icon: 'i-lucide-settings', label: 'KI-Einstellungen', to: '/app/settings/ai' },
   ];
   if (isAdmin.value) {
