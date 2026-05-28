@@ -40,12 +40,12 @@ async function onSubmit(): Promise<void> {
   await send(text);
 }
 
-function onSnippetSelect(snippet: { content: string }): void {
-  // Append snippet text to the current draft (with a separator if needed) so the
+function onPromptSelect(prompt: { content: string }): void {
+  // Append prompt text to the current draft (with a separator if needed) so the
   // user can still tweak it before sending. Focuses the existing draft instead
-  // of replacing it — picking a snippet is additive.
+  // of replacing it — picking a prompt is additive.
   const sep = input.value && !/\s$/.test(input.value) ? '\n' : '';
-  input.value = `${input.value}${sep}${snippet.content}`;
+  input.value = `${input.value}${sep}${prompt.content}`;
 }
 </script>
 
@@ -78,7 +78,7 @@ function onSnippetSelect(snippet: { content: string }): void {
 
     <!-- Input -->
     <form class="flex items-end gap-2" @submit.prevent="onSubmit">
-      <AiSnippetPicker @select="onSnippetSelect" />
+      <AiPromptPicker @select="onPromptSelect" />
       <UTextarea v-model="input" :rows="1" autoresize class="flex-1" placeholder="Nachricht eingeben …" :disabled="streaming" @keydown.enter.exact.prevent="onSubmit" />
       <UButton v-if="streaming" color="neutral" variant="outline" icon="i-lucide-square" aria-label="Stop" @click="stop" />
       <UButton v-else type="submit" color="primary" icon="i-lucide-send" :disabled="!input.trim()" aria-label="Senden" />

@@ -4,14 +4,14 @@
 // The backend ships built-in defaults for every key; a row here OVERRIDES the
 // default for its key (optionally scoped by locale/capability).
 // ============================================================================
-import type { LtAiPromptTemplate, LtAiPromptTemplateInput } from '@lenne.tech/nuxt-extensions';
+import type { LtAiSlot, LtAiSlotInput } from '@lenne.tech/nuxt-extensions';
 
-useHead({ title: 'KI-Prompt-Vorlagen' });
+useHead({ title: 'KI-Slots' });
 
 const admin = useLtAiAdmin();
 const toast = useToast();
 
-const templates = ref<LtAiPromptTemplate[]>([]);
+const templates = ref<LtAiSlot[]>([]);
 const loading = ref(false);
 const saving = ref(false);
 const editId = ref<null | string>(null);
@@ -22,18 +22,18 @@ const capabilityItems = [
   { label: 'Emulierte Tools', value: 'emulated' },
 ];
 
-function emptyForm(): LtAiPromptTemplateInput {
+function emptyForm(): LtAiSlotInput {
   return { capability: 'all', content: '', description: '', enabled: true, key: '', locale: '', order: 100 };
 }
 
-const form = reactive<LtAiPromptTemplateInput>(emptyForm());
+const form = reactive<LtAiSlotInput>(emptyForm());
 
 onMounted(load);
 
 async function load(): Promise<void> {
   loading.value = true;
   try {
-    templates.value = await admin.listPromptTemplates();
+    templates.value = await admin.listSlots();
   } catch (err) {
     toast.add({ color: 'error', description: (err as Error).message, title: 'Fehler' });
   } finally {
@@ -46,7 +46,7 @@ function reset(): void {
   Object.assign(form, emptyForm());
 }
 
-function edit(template: LtAiPromptTemplate): void {
+function edit(template: LtAiSlot): void {
   editId.value = template.id;
   Object.assign(form, {
     capability: template.capability || 'all',
@@ -70,12 +70,12 @@ async function save(): Promise<void> {
   }
   saving.value = true;
   try {
-    const payload: LtAiPromptTemplateInput = { ...form, locale: form.locale?.trim() || undefined };
+    const payload: LtAiSlotInput = { ...form, locale: form.locale?.trim() || undefined };
     if (editId.value) {
-      await admin.updatePromptTemplate(editId.value, payload);
+      await admin.updateSlot(editId.value, payload);
       toast.add({ color: 'success', description: 'Vorlage aktualisiert.', title: 'Erfolg' });
     } else {
-      await admin.createPromptTemplate(payload);
+      await admin.createSlot(payload);
       toast.add({ color: 'success', description: 'Vorlage angelegt.', title: 'Erfolg' });
     }
     reset();
@@ -87,9 +87,9 @@ async function save(): Promise<void> {
   }
 }
 
-async function remove(template: LtAiPromptTemplate): Promise<void> {
+async function remove(template: LtAiSlot): Promise<void> {
   try {
-    await admin.deletePromptTemplate(template.id);
+    await admin.deleteSlot(template.id);
     toast.add({ color: 'success', description: 'Vorlage gelöscht.', title: 'Erfolg' });
     if (editId.value === template.id) {
       reset();
@@ -100,9 +100,9 @@ async function remove(template: LtAiPromptTemplate): Promise<void> {
   }
 }
 
-async function toggleEnabled(template: LtAiPromptTemplate): Promise<void> {
+async function toggleEnabled(template: LtAiSlot): Promise<void> {
   try {
-    await admin.updatePromptTemplate(template.id, { enabled: template.enabled === false });
+    await admin.updateSlot(template.id, { enabled: template.enabled === false });
     await load();
   } catch (err) {
     toast.add({ color: 'error', description: (err as Error).message, title: 'Fehler' });
@@ -113,7 +113,7 @@ async function toggleEnabled(template: LtAiPromptTemplate): Promise<void> {
 <template>
   <div class="mx-auto max-w-4xl space-y-6">
     <div>
-      <h1 class="text-2xl font-bold">KI-Prompt-Vorlagen</h1>
+      <h1 class="text-2xl font-bold">KI-Slots</h1>
       <p class="text-muted">
         Bausteine des System-Prompts. Das Backend liefert für jeden Slot sinnvolle Standards — ein Eintrag hier
         <strong>überschreibt</strong> den Standard für seinen Slot (optional je Sprache/Modus). Platzhalter wie <code>&#123;&#123;roles&#125;&#125;</code>,
