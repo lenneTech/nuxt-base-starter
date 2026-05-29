@@ -58,8 +58,8 @@ function onPromptSelect(prompt: { content: string }): void {
         <AiTokenBar :budget="budget" />
         <AiContextWindow :context-window="contextWindow" />
         <AiUsageBadge :budget="budget" />
-        <UButton v-if="messages.length" size="sm" color="neutral" variant="ghost" icon="i-lucide-eraser" @click="clear"> Leeren </UButton>
       </div>
+      <UButton v-if="messages.length" size="sm" color="neutral" variant="ghost" icon="i-lucide-eraser" title="Konversation leeren" @click="clear"> Konversation leeren </UButton>
     </div>
 
     <!-- Messages -->
