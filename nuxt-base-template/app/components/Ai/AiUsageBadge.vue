@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // ============================================================================
-// Token-usage badge — zeigt den Verbrauch der LETZTEN Anfrage (promptTokens).
-// Der kumulierte Periodenverbrauch (usedTokens) wird vom Token-Bar abgedeckt.
-// Tooltip zeigt das Reset-Datum, wenn eine Periode aktiv ist.
+// Token usage badge — shows the LAST request's cost (`promptTokens`). The
+// running per-period total (`usedTokens`) belongs to the token bar.
+// Tooltip surfaces the period reset time when one is active.
 // ============================================================================
 import type { LtAiBudgetSummary } from '@lenne.tech/nuxt-extensions';
 

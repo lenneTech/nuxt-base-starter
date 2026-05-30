@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // ============================================================================
-// Context-Window-Indikator — schließender Kreis im Claude-Code-Stil. Erscheint
-// erst ab 60% Nutzung; bei 100% ist der Kreis voll geschlossen. Tooltip auf
-// Hover zeigt den exakten Prozentsatz und die Token-Werte.
+// Context window indicator — a closing ring in the Claude-Code style. Only
+// shown once usage hits 60 %; at 100 % the ring is fully closed. Hover
+// surfaces the exact percentage + token values via tooltip.
 // ============================================================================
 const props = defineProps<{
   contextWindow?: { total: number; used: number } | null;

@@ -1,19 +1,18 @@
 <script setup lang="ts">
 // ============================================================================
-// Token-Usage-Balken — kumulativer Verbrauch im aktuellen Zeitraum gegen das
-// aktuelle Limit. Klick öffnet ein Popover mit allen Details (Quelle des
-// Limits, kumulativ verbraucht, verbleibend, letzte Anfrage, Reset).
+// Token usage bar — cumulative period usage against the current limit. A
+// click opens a popover with all details (source of the limit, cumulative
+// usage, remaining, last request, reset).
 //
-// Limit-Resolution (Backend liefert das bereits aufgelöst):
-//   1. Nutzer-Limit (admin-konfiguriert; harte Sperre via 429)
-//   2. Tenant-Limit (admin-konfiguriert; harte Sperre via 429)
-//   3. Anbieter-Quota (`connection.defaultUserMaxTokens`, admin-gepflegt;
-//      weiches Default für scope='llm')
-//   4. LLM-Kontextfenster (allerletzter Fallback; scope='llm')
+// Limit resolution (the backend resolves this; the bar just renders it):
+//   1. User limit       (admin-configured; hard 429 on overflow)
+//   2. Tenant limit     (admin-configured; hard 429 on overflow)
+//   3. Provider quota   (`connection.defaultUserMaxTokens`, admin-pinned;
+//                        soft default for scope='llm')
+//   4. LLM context window  (last-resort soft default; scope='llm')
 //
-// `usedTokens` ist IMMER der kumulierte Periodenverbrauch — auch bei scope='llm'.
-// Wenn `maxTokens` nicht gesetzt ist (kein Limit irgendeiner Art), rendert die
-// Komponente nichts.
+// `usedTokens` is ALWAYS the running per-period total — including scope='llm'.
+// When `maxTokens` isn't set (no limit of any kind) the component renders nothing.
 // ============================================================================
 import type { LtAiBudgetSummary } from '@lenne.tech/nuxt-extensions';
 
