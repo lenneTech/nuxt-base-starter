@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.8.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.7.2...v2.8.0) (2026-06-01)
+
+
+### Features
+
+* **ai:** AI assistant UI (chat, settings, admin) for the nest-server AI module ([30df8ba](https://github.com/lenneTech/nuxt-base-starter/commit/30df8baff5a50d816de3b44fa37ea1f917a9527a))
+* **ai:** admin UI for prompt templates and learned hints ([796d7bc](https://github.com/lenneTech/nuxt-base-starter/commit/796d7bc81a75cd629a0ac01a39b977adaebe8e3f))
+* **ai:** let the connection form pick a provider (OpenAI-compatible / Claude CLI) ([1600a0b](https://github.com/lenneTech/nuxt-base-starter/commit/1600a0bf0ca95b7dc9a02d147cb35c1bd53487ac))
+* **ai:** token-usage bar + closing-circle context-window indicator in chat ([3672d7c](https://github.com/lenneTech/nuxt-base-starter/commit/3672d7c9aa4e9f2479fc2df5d96b66fb3fc9b9a2))
+* **ai:** user-facing prompt snippet picker + Vorlagen settings page ([23c698d](https://github.com/lenneTech/nuxt-base-starter/commit/23c698d2eab6798e15c1c76487279e7f401b611a))
+* **ai:** tenant-aware Slots-UI with override/reset + dynamic placeholder helper ([4858fb6](https://github.com/lenneTech/nuxt-base-starter/commit/4858fb681f3a7c4309feb4b53cc2584b96500638))
+* **ai:** token bar shows cumulative per-period usage at every scope ([5e514df](https://github.com/lenneTech/nuxt-base-starter/commit/5e514dfd248ce8756fc5db055b8e56225a596a5f))
+* **ai:** token bar opens a click-popover with all numbers; "Konversation leeren" moved out of the token group ([b4099dd](https://github.com/lenneTech/nuxt-base-starter/commit/b4099dd7c19a61d7cfbe03de0a454ecbbb918e53))
+
+
+### Bug Fixes
+
+* **ai:** admin gating via roles array + meaningful usage badge for unlimited users ([6b8bdfc](https://github.com/lenneTech/nuxt-base-starter/commit/6b8bdfc57e96e0e0f4f015e8c0b508022ef7d65b))
+* **ai:** badge shows the last request's tokens, bar handles cumulative period usage ([8d09258](https://github.com/lenneTech/nuxt-base-starter/commit/8d09258f6453cbd65e7fc97886bdaea9a082a2f7))
+* **ai:** token-bar shows the last request when the limit is the context window ([744fa29](https://github.com/lenneTech/nuxt-base-starter/commit/744fa297f2e115094510eb9f9cdf3dcbc6fb9619))
+* **auth:** capture-phase preventDefault closes the login-form hydration race ([8926130](https://github.com/lenneTech/nuxt-base-starter/commit/89261300aa1621acc451d6fe263ad5388f9297f8))
+* **deps:** remove unused dayjs-nuxt module (Vite optimizeDeps interop break) ([2dee546](https://github.com/lenneTech/nuxt-base-starter/commit/2dee546f246044a8c53d405a62e16b0b9ab43389))
+
+
+### Code Refactoring
+
+* **ai:** rename Snippets→Prompts, Prompt-Templates→Slots in UI; drop global scope ([046930f](https://github.com/lenneTech/nuxt-base-starter/commit/046930f9736f580e200d254d27195f0b5de0603f))
+* **ai:** apply code-review findings (perf, isAdmin dedup, docs, tests, SSR) ([d390396](https://github.com/lenneTech/nuxt-base-starter/commit/d3903962e4f5a5d6cd00cb1b03e1a0e3a8a2e9e8))
+
+
+### Dependencies
+
+* bump @lenne.tech/nuxt-extensions to 1.7.1 + routine patch updates (@better-auth 1.6.13, valibot 1.4.1, @nuxt/ui 4.8.1, vue 3.5.35, lint-staged 17.0.7, @hey-api/openapi-ts 0.97.3, @iconify-json/lucide 1.2.111) ([c489fb9](https://github.com/lenneTech/nuxt-base-starter/commit/c489fb988d44dbdec4b5ecd97e55be771e1a6a63))
+
+
+### Highlights for adopters
+
+* **AI assistant UI.** New chat (`/app/ai`) with SSE streaming, token-bar with click-popover, context-window indicator, prompt picker, placeholder hint sidebar, plus 6 admin pages under `/app/admin/ai/*` (connections, preferences, budgets, audit log, slots, prompt-hints), the user-facing Vorlagen page (`/app/settings/ai-prompts`), and `/app/settings/ai`. Backed by `@lenne.tech/nuxt-extensions` 1.7.x `useLtAi*` composables and the `@lenne.tech/nest-server` 11.26.x AI module.
+* **Auth-form hardening.** Capture-phase `preventDefault` on login + register closes a hydration-race credential-leak window. New `tests/e2e/auth-form-hardening.spec.ts` + `tests/e2e/helpers/safe-form-submit.ts`. **Fork-customized auth pages MUST port this patch — see [migration-guides/2.8.0-ai-module.md](migration-guides/2.8.0-ai-module.md).**
+* **`isAdminUser` utility.** Canonical dual-shape admin check (`role: string` ∪ `roles: string[]`) extracted to `app/utils/is-admin-user.ts`; auto-imported and used by `admin.global.ts`, `layouts/default.vue`, and `pages/app/settings/ai-prompts.vue`. Guarded by `tests/unit/utils/is-admin-user.test.ts` (6 cases).
+* **Migration guide.** Full 2.7 → 2.8 upgrade path at [migration-guides/2.8.0-ai-module.md](migration-guides/2.8.0-ai-module.md).
+* **`ltExtensions.ai`** config block (`{ enabled, basePath }`) added to `nuxt.config.ts`. Set `enabled: false` to opt out of the AI module entirely.
+* **Layout nav** gains four entries for authenticated users: `KI-Assistent`, `KI-Vorlagen`, `KI-Einstellungen`, plus `Administration` (admins only).
+
 ### [2.7.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.7.1...v2.7.2) (2026-05-24)
 
 ### [2.7.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.7.0...v2.7.1) (2026-05-24)
