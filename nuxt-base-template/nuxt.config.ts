@@ -83,6 +83,11 @@ export default defineNuxtConfig({
   // lenne.tech Nuxt Extensions
   // ============================================================================
   ltExtensions: {
+    ai: {
+      // AI assistant composables. basePath must match the nest-server AI controller.
+      enabled: true,
+      basePath: '/ai',
+    },
     auth: {
       enabled: true,
       // baseURL: resolved at runtime via NUXT_PUBLIC_API_URL (not baked at build time)
@@ -118,7 +123,6 @@ export default defineNuxtConfig({
     '@nuxt/test-utils/module', // E2E testing with Playwright
     '@lenne.tech/bug.lt', // Bug reporting to Linear
     '@vueuse/nuxt', // Vue composition utilities
-    'dayjs-nuxt', // Date/time handling
     '@nuxt/image', // Image optimization
     '@nuxt/ui', // NuxtUI component library
     '@nuxtjs/plausible', // Privacy-friendly analytics

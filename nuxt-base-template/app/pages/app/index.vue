@@ -5,6 +5,15 @@
 const { user, signOut } = useLtAuth();
 
 // ============================================================================
+// Navigation — wrapper because `navigateTo` is auto-imported in <script setup>
+// but not exposed to the template scope (template gets the component's `this`,
+// not the module scope).
+// ============================================================================
+function goTo(path: string): ReturnType<typeof navigateTo> {
+  return navigateTo(path);
+}
+
+// ============================================================================
 // Variables
 // ============================================================================
 const pages = [
@@ -39,7 +48,7 @@ async function handleSignOut(): Promise<void> {
     <div class="mb-8">
       <h2 class="mb-4 text-xl font-semibold">Schnellzugriff</h2>
       <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <UCard v-for="page in pages" :key="page.to" class="cursor-pointer transition-shadow hover:shadow-lg" @click="navigateTo(page.to)">
+        <UCard v-for="page in pages" :key="page.to" class="cursor-pointer transition-shadow hover:shadow-lg" @click="goTo(page.to)">
           <div class="flex items-start gap-4">
             <div class="rounded-lg bg-primary/10 p-3">
               <UIcon :name="page.icon" class="size-6 text-primary" />

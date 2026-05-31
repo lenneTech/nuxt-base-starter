@@ -1,3 +1,7 @@
+// `isAdminUser` is the project's single source of truth for the dual-shape
+// role check (`role: string` vs `roles: string[]`) — see app/utils/is-admin-user.ts.
+// It is auto-imported by Nuxt.
+
 export default defineNuxtRouteMiddleware(async (to) => {
   // Only check routes starting with /app/admin
   if (!to.path.startsWith('/app/admin')) {
@@ -21,16 +25,16 @@ export default defineNuxtRouteMiddleware(async (to) => {
         const value = parts.length > 1 ? decodeURIComponent(parts.slice(1).join('=')) : '';
         const state = JSON.parse(value);
         isAuthenticated = !!state?.user;
-        isAdmin = state?.user?.role === 'admin';
+        isAdmin = isAdminUser(state?.user);
       }
     } catch {
       // Ignore parse errors
     }
   } else {
     // On server, use useCookie
-    const authStateCookie = useCookie<{ user: { role?: string } | null; authMode: string } | null>(cookieName);
+    const authStateCookie = useCookie<{ authMode: string; user: { role?: string; roles?: string[] } | null } | null>(cookieName);
     isAuthenticated = !!authStateCookie.value?.user;
-    isAdmin = authStateCookie.value?.user?.role === 'admin';
+    isAdmin = isAdminUser(authStateCookie.value?.user);
   }
 
   // Redirect to login if not authenticated

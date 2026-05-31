@@ -57,6 +57,7 @@ lt dev status                  # show running PIDs + active URLs
 lt dev status --all            # list all registered projects
 lt dev doctor                  # diagnose Caddy / CA / DNS / port issues
 ```
+
 First run in a fresh project: just `lt dev init` then `lt dev up`. (`lt dev migrate` still works as an alias for `init`.)
 
 `lt dev up` exports the env vars the template respects:
@@ -92,6 +93,58 @@ PORT=4011 NUXT_PUBLIC_SITE_URL=https://crm.localhost NUXT_PUBLIC_API_URL=https:/
 | Modals           | `useOverlay()` (programmatic)                                      |
 | Auth             | `useBetterAuth()` from `@lenne.tech/nuxt-extensions`               |
 | Protected Routes | `middleware: 'auth'` in page `definePageMeta`                      |
+
+## AI Module (since v2.8.0)
+
+The starter ships a full AI assistant UI on top of `@lenne.tech/nuxt-extensions` 1.7.x
+composables (which talk to the `@lenne.tech/nest-server` 11.26.0+ AI module).
+
+**Composables consumed** (auto-imported when `ltExtensions.ai.enabled: true` in `nuxt.config.ts`):
+
+| Composable              | Used by                                                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `useLtAiChat()`         | `app/components/Ai/AiChat.vue` — streaming + budget + ctx                                                  |
+| `useLtAiPrompts()`      | `app/components/Ai/AiPromptPicker.vue`, `pages/app/settings/ai-prompts.vue`                                |
+| `useLtAiPlaceholders()` | `app/components/Ai/AiPlaceholderHint.vue`                                                                  |
+| `useLtAiConnections()`  | `app/components/Ai/AiConnectionPicker.vue`, `pages/app/settings/ai.vue`                                    |
+| `useLtAiUsage()`        | `pages/app/settings/ai.vue`                                                                                |
+| `useLtAiAdmin()`        | `pages/app/admin/ai/*.vue` (CRUD for connections, budgets, slots, prompt-hints, preferences, interactions) |
+
+**Config block** (`nuxt.config.ts`):
+
+```ts
+ltExtensions: {
+  ai: {
+    enabled: true,         // Set false to disable the AI module entirely.
+    basePath: '/ai',       // Must match the nest-server AI controller mount point.
+  },
+  // ...
+}
+```
+
+**Performance notes:**
+
+- `AiChat.vue` passes `maxMessages: 100` to `useLtAiChat()` to cap history growth.
+- The auto-scroll watcher source is `[messages.value.length, messages.value.at(-1)?.content]` (O(1) per SSE token); never re-introduce a `messages.map(...).join(...)` source.
+
+## Admin Gating — `isAdminUser`
+
+The project's admin role check has to accept **two shapes** because backend providers
+differ:
+
+- **`role: string`** — Better Auth singular form (default for the standalone Better Auth setup).
+- **`roles: string[]`** — nest-server projection (`AuthService` flattens user roles to an array).
+
+The canonical helper lives in `app/utils/is-admin-user.ts` (auto-imported as `isAdminUser`).
+It is used by every site that gates admin functionality:
+
+- `app/middleware/admin.global.ts` — route guard for `/app/admin/**`
+- `app/layouts/default.vue` — admin nav entry
+- `app/pages/app/settings/ai-prompts.vue` — mutate-foreign-prompt gate
+
+**Rule:** never re-implement the dual-shape check inline. Always import / call
+`isAdminUser(user)`. The Vitest spec at `tests/unit/utils/is-admin-user.test.ts`
+guards the contract (no user / `role:'admin'` / `roles:['admin']` / both / neither).
 
 ## Framework: @lenne.tech/nuxt-extensions
 
@@ -230,6 +283,17 @@ All override targets use fixed versions (not ranges) to prevent silent major-ver
 The `ignoredOptionalDependencies` block in `pnpm-workspace.yaml` suppresses 30 platform-specific native binaries (`@img/sharp-*`, `@resvg/resvg-js-*`) that are pulled in by `@nuxtjs/seo` 5.x's OG image engine. Only the host-platform binary is needed at build time.
 
 Build-script approval for native deps (`sharp`, `esbuild`, `@parcel/watcher`, `simple-git-hooks`, `vue-demi`) is declared twice in `pnpm-workspace.yaml` for cross-version compatibility: `allowBuilds` (pnpm 11 key) and `onlyBuiltDependencies` (pnpm 10 key). Each pnpm version reads its own key and ignores the other.
+
+### `minimumReleaseAgeExclude` (pnpm 11 supply-chain policy)
+
+`pnpm-workspace.yaml` carries a `minimumReleaseAgeExclude` block listing exact `pkg@version` entries that are allowed to bypass the global minimum-release-age supply-chain guard (the guard rejects packages released within the last few days unless explicitly excluded). pnpm 11 auto-appends entries the first time a fresh dependency is installed, so the block grows whenever the project pulls in a same-day Better Auth / nuxt-extensions / nest-server release.
+
+**Maintenance rules:**
+
+- Each entry is intentional — it covers exactly one fresh version of one package. Do NOT loosen to a version range.
+- When bumping a covered dep, also remove the now-stale entry (e.g. after `1.7.1` ages out, drop the `1.7.1` line on the next bump).
+- Removing an entry without first removing the dependency or waiting for the age threshold will block `pnpm install` for everyone with the same lockfile until the age threshold is met.
+- Never disable the policy globally — it is the project's first line of defense against supply-chain attacks via freshly published malicious versions.
 
 ## Notable Version Changes (v2.5.x)
 

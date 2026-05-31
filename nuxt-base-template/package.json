@@ -48,21 +48,21 @@
     "fix": "pnpm run lint:fix && pnpm run format"
   },
   "dependencies": {
-    "@better-auth/passkey": "1.6.11",
+    "@better-auth/passkey": "1.6.13",
     "@lenne.tech/bug.lt": "latest",
-    "@lenne.tech/nuxt-extensions": "1.6.0",
+    "@lenne.tech/nuxt-extensions": "1.7.1",
     "@nuxt/image": "2.0.0",
-    "@nuxt/ui": "4.8.0",
+    "@nuxt/ui": "4.8.1",
     "@pinia/nuxt": "0.11.3",
     "@vueuse/nuxt": "14.3.0",
-    "better-auth": "1.6.11",
+    "better-auth": "1.6.13",
     "qrcode": "1.5.4",
     "tus-js-client": "4.3.1",
-    "valibot": "1.4.0"
+    "valibot": "1.4.1"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "0.97.2",
-    "@iconify-json/lucide": "1.2.109",
+    "@hey-api/openapi-ts": "0.97.3",
+    "@iconify-json/lucide": "1.2.111",
     "@nuxt/devtools": "3.2.4",
     "@nuxt/test-utils": "4.0.3",
     "@nuxtjs/plausible": "3.0.2",
@@ -74,9 +74,8 @@
     "@types/qrcode": "1.5.6",
     "@vitejs/plugin-vue": "6.0.7",
     "@vue/test-utils": "2.4.10",
-    "dayjs-nuxt": "2.1.11",
     "happy-dom": "20.9.0",
-    "lint-staged": "17.0.5",
+    "lint-staged": "17.0.7",
     "mongodb": "7.2.0",
     "nuxt": "4.4.6",
     "oxfmt": "0.28.0",
@@ -86,7 +85,7 @@
     "tailwindcss": "4.3.0",
     "typescript": "6.0.3",
     "vitest": "4.1.7",
-    "vue": "3.5.33"
+    "vue": "3.5.35"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged",

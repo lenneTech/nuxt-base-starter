@@ -8,3 +8,4 @@
 - [oxfmt/oxlint latest pin](feedback_oxfmt_oxlint_latest_pin.md) — oxfmt/oxlint now pinned exactly (0.28.0/1.43.0); do NOT bump — newer versions reformat docs and break the gate
 - [Project Structure](project_structure.md) — Two-level package.json structure: root (create-nuxt-base) + nuxt-base-template/; npm-mode peer contract
 - [CHANGELOG .prettierignore](project_changelog_format.md) — Root CHANGELOG.md is generated; excluded from oxfmt via .prettierignore
+- [pnpm 11 auto-exclude](feedback_pnpm11_auto_minimum_release_age.md) — `pnpm add` auto-appends to `minimumReleaseAgeExclude` for fresh versions including transitives; expected, not a bug
