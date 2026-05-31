@@ -15,7 +15,12 @@ const { user } = useLtAuth();
 const toast = useToast();
 const { create, error, load, loading, remove, prompts, update } = useLtAiPrompts();
 
-const isAdmin = computed(() => Array.isArray(user.value?.roles) && user.value!.roles!.includes('admin'));
+// nest-server users carry roles as an array (`roles: string[]`); some Better Auth
+// setups additionally expose a singular `role`. Accept either.
+const isAdmin = computed(() => {
+  const u = user.value as { role?: string; roles?: string[] } | null;
+  return !!u?.roles?.includes('admin') || u?.role === 'admin';
+});
 const myUserId = computed(() => user.value?.id);
 
 const scopeItems = [
