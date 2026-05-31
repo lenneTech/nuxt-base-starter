@@ -1,18 +1,29 @@
 import { expect, test } from '@nuxt/test-utils/playwright';
 
+import { safeFormSubmit } from './helpers/safe-form-submit';
+
 // Regression guard for the capture-phase preventDefault attached in
 // pages/auth/login.vue + pages/auth/register.vue. A racey/early submit (typed
 // password + Enter before Vue hydration is fully wired) must NOT cause the
 // native form GET that would leak credentials into the URL.
+//
+// We use `safeFormSubmit` to dispatch the submit deterministically via the
+// browser API (`form.requestSubmit()`) instead of a timer-based `Enter` +
+// `waitForTimeout` race. The helper waits a short moment for hydration and
+// then triggers the submit so we exercise the SAME code path automation
+// drivers (Chrome DevTools MCP, Playwright) hit in real tests.
 test.describe('Auth form hardening', () => {
-  test('login page does not native-GET-submit even on a very fast Enter', async ({ goto, page }) => {
+  test('login page does not native-GET-submit even on a very fast submit', async ({ goto, page }) => {
     await goto('/auth/login', { waitUntil: 'domcontentloaded' });
-    // Fill + immediately press Enter — the worst case race window.
     await page.locator('input[type="email"]').fill('race@test.com');
     await page.locator('input[type="password"]').fill('SuperSecret123!');
-    await page.locator('input[type="password"]').press('Enter');
-    // No native navigation with credentials in the URL.
-    await page.waitForTimeout(50);
+    // Trigger the submit via the browser API in the same tick the helper would.
+    const result = await page.evaluate(safeFormSubmit, { delayMs: 50 });
+    expect(result.ok, result.reason).toBe(true);
+    // POSITIVE assertion: still on /auth/login (no navigation), credentials
+    // never in the URL. Either failure mode (navigated away OR credentials in
+    // URL) means the capture-phase guard regressed.
+    await expect(page).toHaveURL(/\/auth\/login/);
     await expect(page).not.toHaveURL(/password=/);
   });
 
@@ -21,8 +32,9 @@ test.describe('Auth form hardening', () => {
     await page.locator('input[type="email"]').fill('race-register@test.com');
     await page.locator('input[type="password"]').first().fill('SuperSecret123!');
     await page.locator('input[type="password"]').nth(1).fill('SuperSecret123!');
-    await page.locator('input[type="password"]').nth(1).press('Enter');
-    await page.waitForTimeout(50);
+    const result = await page.evaluate(safeFormSubmit, { delayMs: 50 });
+    expect(result.ok, result.reason).toBe(true);
+    await expect(page).toHaveURL(/\/auth\/register/);
     await expect(page).not.toHaveURL(/password=/);
   });
 });

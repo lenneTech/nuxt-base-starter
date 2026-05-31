@@ -5,6 +5,7 @@
 import type { LtAiInteraction } from '@lenne.tech/nuxt-extensions';
 
 useHead({ title: 'KI-Audit-Log' });
+definePageMeta({ ssr: false });
 
 const admin = useLtAiAdmin();
 const toast = useToast();

@@ -1,8 +1,6 @@
-// nest-server users carry roles as an array (`roles: string[]`); some Better Auth
-// setups additionally expose a singular `role`. Accept either.
-function isAdminUser(user: { role?: string; roles?: string[] } | null | undefined): boolean {
-  return !!user?.roles?.includes('admin') || user?.role === 'admin';
-}
+// `isAdminUser` is the project's single source of truth for the dual-shape
+// role check (`role: string` vs `roles: string[]`) — see app/utils/is-admin-user.ts.
+// It is auto-imported by Nuxt.
 
 export default defineNuxtRouteMiddleware(async (to) => {
   // Only check routes starting with /app/admin

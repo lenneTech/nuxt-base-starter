@@ -7,6 +7,7 @@
 import type { LtAiPromptHint, LtAiPromptHintInput } from '@lenne.tech/nuxt-extensions';
 
 useHead({ title: 'KI-Lern-Hinweise' });
+definePageMeta({ ssr: false });
 
 const admin = useLtAiAdmin();
 const toast = useToast();

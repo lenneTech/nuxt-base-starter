@@ -5,6 +5,7 @@
 import type { LtAiBudgetLimit } from '@lenne.tech/nuxt-extensions';
 
 useHead({ title: 'KI-Budgets' });
+definePageMeta({ ssr: false });
 
 const admin = useLtAiAdmin();
 const toast = useToast();

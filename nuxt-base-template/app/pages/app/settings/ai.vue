@@ -3,6 +3,7 @@
 // User AI settings: pick the personal default connection and view token usage.
 // ============================================================================
 useHead({ title: 'KI-Einstellungen' });
+definePageMeta({ ssr: false });
 
 const toast = useToast();
 const { connections, load: loadConnections, locked, select, selected } = useLtAiConnections();

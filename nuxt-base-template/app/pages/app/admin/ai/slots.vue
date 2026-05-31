@@ -9,6 +9,7 @@
 import type { LtAiEffectiveSlot, LtAiSlotInput } from '@lenne.tech/nuxt-extensions';
 
 useHead({ title: 'KI-Slots' });
+definePageMeta({ ssr: false });
 
 const admin = useLtAiAdmin();
 const toast = useToast();

@@ -5,6 +5,7 @@
 import type { LtAiConnection, LtAiConnectionPreference } from '@lenne.tech/nuxt-extensions';
 
 useHead({ title: 'KI-Verbindungs-Präferenzen' });
+definePageMeta({ ssr: false });
 
 const admin = useLtAiAdmin();
 const toast = useToast();

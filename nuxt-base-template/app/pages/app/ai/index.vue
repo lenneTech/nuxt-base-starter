@@ -3,6 +3,9 @@
 // AI assistant chat page (any authenticated user — protected by auth.global).
 // ============================================================================
 useHead({ title: 'KI-Assistent' });
+// Authenticated SPA — data loads client-side via composables; SSR would only
+// emit an empty skeleton and waste server CPU.
+definePageMeta({ ssr: false });
 </script>
 
 <template>

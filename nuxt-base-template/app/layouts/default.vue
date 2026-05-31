@@ -12,13 +12,7 @@ async function handleLogout() {
   await navigateTo('/auth/login');
 }
 
-// nest-server users carry roles as an array (`roles: string[]`); some Better Auth
-// setups additionally expose a singular `role`. Accept either so the admin nav
-// shows up regardless of the auth shape.
-const isAdmin = computed(() => {
-  const u = user.value as { role?: string; roles?: string[] } | null;
-  return !!u?.roles?.includes('admin') || u?.role === 'admin';
-});
+const isAdmin = computed(() => isAdminUser(user.value));
 
 const headerItems = computed<NavigationMenuItem[]>(() => {
   if (!isAuthenticated.value) {

@@ -17,6 +17,8 @@ const props = withDefaults(
 
 const { budget, clear, confirm, contextWindow, error, messages, send, stop, streaming } = useLtAiChat({
   conversationId: props.conversationId,
+  // Cap history so long-running chat tabs don't grow `messages` unbounded.
+  maxMessages: 100,
   // Enrich each prompt with lightweight client context (untrusted, capped server-side).
   metadata: () => ({ url: import.meta.client ? window.location.href : undefined }),
   mode: props.mode,
@@ -25,9 +27,11 @@ const { budget, clear, confirm, contextWindow, error, messages, send, stop, stre
 const input = ref('');
 const listEl = ref<HTMLElement | null>(null);
 
-// Auto-scroll to the latest message while streaming.
+// Auto-scroll to the latest message while streaming. Watch only length + the
+// last message's content so the source stays O(1) per SSE token — the previous
+// `messages.map(...).join('|')` allocated an O(n·m) string on every token.
 watch(
-  () => messages.value.map((m) => m.content).join('|'),
+  () => [messages.value.length, messages.value.at(-1)?.content],
   async () => {
     await nextTick();
     listEl.value?.scrollTo({ behavior: 'smooth', top: listEl.value.scrollHeight });

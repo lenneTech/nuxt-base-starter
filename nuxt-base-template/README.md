@@ -149,20 +149,35 @@ npm run generate-types
 Ready-to-use UI for the `@lenne.tech/nest-server` **AI module**, built on the
 `useLtAi*` composables from `@lenne.tech/nuxt-extensions` (NuxtUI + Valibot + toasts).
 
-| Route                        | Audience | Purpose                                                         |
-| ---------------------------- | -------- | --------------------------------------------------------------- |
-| `/app/ai`                    | any user | Streaming chat (`AiChat`) with confirmation flow + budget badge |
-| `/app/settings/ai`           | any user | Pick the personal default connection + view token usage         |
-| `/app/admin/ai/connections`  | admin    | Connection CRUD + capability auto-detection                     |
-| `/app/admin/ai/preferences`  | admin    | Tenant/user default connections (+ enforced)                    |
-| `/app/admin/ai/budgets`      | admin    | Per-user/tenant token & prompt limits                           |
-| `/app/admin/ai/interactions` | admin    | Prompt audit log (requires `ai.audit`)                          |
+| Route                        | Audience | Purpose                                                                |
+| ---------------------------- | -------- | ---------------------------------------------------------------------- |
+| `/app/ai`                    | any user | Streaming chat (`AiChat`) with confirmation flow + token bar + popover |
+| `/app/settings/ai`           | any user | Pick the personal default connection + view token usage                |
+| `/app/settings/ai-prompts`   | any user | Manage own re-usable prompts ("Vorlagen"), share with tenant           |
+| `/app/admin/ai/connections`  | admin    | Connection CRUD + capability auto-detection                            |
+| `/app/admin/ai/preferences`  | admin    | Tenant/user default connections (+ enforced)                           |
+| `/app/admin/ai/budgets`      | admin    | Per-user/tenant token & prompt limits                                  |
+| `/app/admin/ai/interactions` | admin    | Prompt audit log (requires `ai.audit`)                                 |
+| `/app/admin/ai/slots`        | admin    | System-prompt slot editor: override / reset / soft-delete defaults     |
+| `/app/admin/ai/prompt-hints` | admin    | Learned hint review (approve / reject / activate)                      |
 
-Components live in `app/components/Ai/` (`AiChat`, `AiMessage`, `AiConnectionPicker`,
-`AiUsageBadge`, `ModalAiConnection`). Admin routes are gated by `admin.global.ts`.
+Components live in `app/components/Ai/`: `AiChat`, `AiMessage`, `AiConnectionPicker`,
+`AiContextWindow`, `AiPlaceholderHint`, `AiPromptPicker`, `AiTokenBar`, `AiUsageBadge`,
+`ModalAiConnection`. The header navigation gains four AI entries for authenticated users
+("KI-Assistent", "KI-Vorlagen", "KI-Einstellungen" + "Administration" for admins).
+Admin routes are gated by `app/middleware/admin.global.ts` (which delegates the
+role check to the auto-imported `isAdminUser()` helper in `app/utils/`).
 
-**Requirements:** the backend must run the AI module (an `ai` config block) with at
-least one connection (admin-created or seeded via `AI_BASE_URL`). The streaming
+**Opt-out:** set `ltExtensions.ai.enabled: false` in `nuxt.config.ts` to disable the
+client-side AI surface entirely (the layout nav entries and pages will still ship
+but the composables short-circuit). For a full opt-out, also delete `app/components/Ai/`,
+`app/pages/app/ai/`, `app/pages/app/admin/ai/`, `app/pages/app/settings/ai*.vue`
+and the corresponding header entries in `app/layouts/default.vue`.
+
+**Requirements:** the backend must run the `@lenne.tech/nest-server` AI module
+(11.26.0+) with at least one connection (admin-created or seeded via `AI_BASE_URL`).
+The expected REST routes are `/ai/{prompt,stream,connections,preferences,budget-limits,
+interactions,slots,prompts,prompt-hints,placeholders,usage,features}`. The streaming
 endpoint (`POST /ai/stream`) flows through the existing `/api` dev proxy. Configure the
 client base path in `nuxt.config.ts` (`ltExtensions.ai.basePath`, default `/ai`).
 
@@ -196,6 +211,7 @@ NUXT_PUBLIC_STORAGE_PREFIX=base-dev      # Local storage prefix
 app/
 ├── assets/css/      # Tailwind CSS styles
 ├── components/      # Vue components (auto-imported)
+│   ├── Ai/          # AI assistant UI (Chat, TokenBar, ContextWindow, ...)
 │   ├── Modal/       # Modal components
 │   ├── Transition/  # Transition animations
 │   └── Upload/      # File upload components
@@ -209,13 +225,20 @@ app/
 ├── lib/             # Auth client configuration
 ├── middleware/      # Route guards (auth, admin, guest)
 ├── pages/           # File-based routing
-│   ├── auth/        # Authentication pages
+│   ├── auth/        # Authentication pages (login, register hardening, 2FA, ...)
 │   └── app/         # Protected app pages
-├── utils/           # Utility functions
+│       ├── admin/   # Admin dashboard + AI admin (connections, budgets, slots, ...)
+│       ├── ai/      # AI chat
+│       └── settings/# User settings (security, ai, ai-prompts, ...)
+├── utils/           # Utility functions (auto-imported)
+│   └── is-admin-user.ts  # Dual-shape admin check (role vs roles[])
 └── app.config.ts    # NuxtUI configuration
 
 docs/                # Dev-only documentation layer
-tests/               # Playwright E2E tests
+tests/
+├── unit/            # Vitest unit tests (utils, composables, env)
+└── e2e/             # Playwright E2E tests
+    └── helpers/     # Shared test helpers (safe-form-submit, ...)
 ```
 
 ## Documentation

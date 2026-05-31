@@ -10,17 +10,13 @@
 import type { LtAiPrompt, LtAiPromptInput } from '@lenne.tech/nuxt-extensions';
 
 useHead({ title: 'KI-Vorlagen' });
+definePageMeta({ ssr: false });
 
 const { user } = useLtAuth();
 const toast = useToast();
 const { create, error, load, loading, remove, prompts, update } = useLtAiPrompts();
 
-// nest-server users carry roles as an array (`roles: string[]`); some Better Auth
-// setups additionally expose a singular `role`. Accept either.
-const isAdmin = computed(() => {
-  const u = user.value as { role?: string; roles?: string[] } | null;
-  return !!u?.roles?.includes('admin') || u?.role === 'admin';
-});
+const isAdmin = computed(() => isAdminUser(user.value));
 const myUserId = computed(() => user.value?.id);
 
 const scopeItems = [

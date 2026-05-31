@@ -8,6 +8,7 @@ import type { LtAiConnection } from '@lenne.tech/nuxt-extensions';
 import ModalAiConnection from '~/components/Ai/ModalAiConnection.vue';
 
 useHead({ title: 'KI-Verbindungen' });
+definePageMeta({ ssr: false });
 
 const admin = useLtAiAdmin();
 const overlay = useOverlay();
