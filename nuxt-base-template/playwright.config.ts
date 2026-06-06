@@ -17,6 +17,14 @@ const devicesToTest = [
   // { ...devices['Desktop Chrome'], channel: 'chrome' },
 ] satisfies Array<(typeof devices)[string] | string>;
 
+// `lt dev test --shard N` runs N built stacks + N Chromium concurrently, which
+// saturates the CPU and slows SSR navigation 2-3x. The CLI exports
+// `LT_DEV_TEST_SHARDS` so we relax timeouts ONLY under that load — serial + CI
+// keep their tight defaults (fast-failure feedback unchanged). For per-call
+// `waitForURL` overrides, gate them on this too, e.g.:
+//   const NAV = Number(process.env.LT_DEV_TEST_SHARDS || '0') > 1 ? 60_000 : 15_000;
+const SHARDED = Number(process.env.LT_DEV_TEST_SHARDS || '0') > 1;
+
 /* See https://playwright.dev/docs/test-configuration. */
 export default defineConfig<ConfigOptions>({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -29,14 +37,25 @@ export default defineConfig<ConfigOptions>({
   /* Retry on CI only */
   retries: isCI ? 2 : 0,
   testDir: './tests/e2e',
-  timeout: isWindows ? 60000 : undefined,
+  timeout: isWindows ? 60000 : SHARDED ? 180_000 : undefined,
+  /* Assertion timeout: Playwright default in serial/CI; relaxed under sharded load. */
+  expect: { timeout: SHARDED ? 30_000 : undefined },
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     baseURL: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
 
+    // Accept the `lt dev` Caddy self-signed cert on `https://*.localhost` (Node
+    // trusts it via NODE_EXTRA_CA_CERTS, but Playwright's bundled Chromium uses
+    // its own trust store). No-op in CI (plain http://localhost).
+    ignoreHTTPSErrors: true,
+
+    // Navigation/action ceilings ONLY under sharded load (serial/CI = defaults).
+    actionTimeout: SHARDED ? 30_000 : undefined,
+    navigationTimeout: SHARDED ? 60_000 : undefined,
+
     launchOptions: {
-      // Slows down Playwright operations by the specified amount of milliseconds
-      slowMo: 10,
+      // No artificial slow-down — it only adds latency (×N under sharding).
+      slowMo: 0,
     },
 
     // Use German language
@@ -49,16 +68,24 @@ export default defineConfig<ConfigOptions>({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
-  webServer: [
-    {
-      command: 'npm run start',
-      reuseExistingServer: !process.env.CI,
-      stderr: 'pipe',
-      stdout: 'pipe',
-      timeout: 120 * 1000,
-      url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
-    },
-  ],
+  // Under `lt dev` / `lt dev test` the App is already served behind Caddy
+  // (the CLI exports `LT_DEV_ACTIVE` into the test env and sets
+  // `NUXT_PUBLIC_SITE_URL` to the running App URL). In that case Playwright must
+  // NOT start or manage its own server — it just targets the provided baseURL.
+  // This keeps `lt dev test` (isolated stack) from ever spawning a stray
+  // `npm run start` on the wrong port when the reuse check is flaky.
+  webServer: process.env.LT_DEV_ACTIVE
+    ? undefined
+    : [
+        {
+          command: 'npm run start',
+          reuseExistingServer: !process.env.CI,
+          stderr: 'pipe',
+          stdout: 'pipe',
+          timeout: 120 * 1000,
+          url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
+        },
+      ],
   /* Use single worker to prevent WebAuthn virtual authenticator conflicts across test files */
   workers: 1,
 });
