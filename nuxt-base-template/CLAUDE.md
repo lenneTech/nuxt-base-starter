@@ -4,6 +4,24 @@
 
 Starter template for Nuxt 4 applications using the lenne.tech stack. Used by `lt fullstack init` to scaffold new frontend projects.
 
+## Framework Mode (npm vs. vendor) — read first
+
+This project consumes `@lenne.tech/nuxt-extensions` in one of two modes. Detect it:
+
+- **vendor mode** if `app/core/VENDOR.md` exists → the module is vendored into
+  `app/core/` as first-class project code (no npm dependency). Read framework code from
+  `app/core/`, not `node_modules/`.
+- **npm mode** otherwise → the framework is the `@lenne.tech/nuxt-extensions` dependency.
+
+| Action | vendor mode | npm mode |
+|---|---|---|
+| Update framework | `/lt-dev:frontend:update-nuxt-extensions-core` (also raises npm packages to at least the upstream baseline via `/lt-dev:maintenance:maintain`) | `pnpm update @lenne.tech/nuxt-extensions` |
+| Contribute a generally-useful core fix upstream | `/lt-dev:frontend:contribute-nuxt-extensions-core` | open a PR on `@lenne.tech/nuxt-extensions` |
+
+In vendor mode, `app/core/` mirrors upstream — edit it **only** for changes useful to
+every consumer. Project-specific code stays outside `app/core/`. Full details in the
+"Framework: @lenne.tech/nuxt-extensions" section below and in `app/core/VENDOR.md`.
+
 ## Tech Stack
 
 - **Framework:** Nuxt 4.x with TypeScript 6.0.x
