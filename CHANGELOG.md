@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.9.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.8.3...v2.9.0) (2026-06-14)
+
+
+### Features
+
+* **admin:** add system page to detect App/API build drift via commit SHA ([7f5885d](https://github.com/lenneTech/nuxt-base-starter/commit/7f5885d93fe7bd78a8b206c6eee4aa465060b3f7))
+
 ### [2.8.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.8.2...v2.8.3) (2026-06-07)
 
 ### [2.8.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.8.1...v2.8.2) (2026-06-06)
