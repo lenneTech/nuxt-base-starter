@@ -11,6 +11,7 @@ const cards = [
   { description: 'Protokoll der Prompt-Läufe', icon: 'i-lucide-scroll-text', title: 'KI-Audit-Log', to: '/app/admin/ai/interactions' },
   { description: 'Prompt-Bausteine bearbeiten', icon: 'i-lucide-file-pen', title: 'KI-Slots', to: '/app/admin/ai/slots' },
   { description: 'Gelernte Hinweise prüfen & freigeben', icon: 'i-lucide-graduation-cap', title: 'KI-Lern-Hinweise', to: '/app/admin/ai/prompt-hints' },
+  { description: 'Build-Informationen von App & API (Drift-Erkennung)', icon: 'i-lucide-server-cog', title: 'System', to: '/app/admin/system' },
 ];
 </script>
 

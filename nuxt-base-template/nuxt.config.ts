@@ -1,6 +1,16 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from '@tailwindcss/vite';
 
+import pkg from './package.json';
+
+// Build identity surfaced under /app/admin/system so we can always tell which
+// build is running and compare App vs. API. The commit SHA is baked at build
+// time via the APP_VERSION_COMMIT Docker ARG (fed from the CI commit SHA); it
+// falls back to "unknown" for local dev builds. runtimeConfig.public freezes
+// these at build time, so the value reflects this exact App bundle.
+const appVersion = (pkg as { version?: string }).version || '0.0.0';
+const appCommit = process.env.APP_VERSION_COMMIT || 'unknown';
+
 export default defineNuxtConfig({
   // ============================================================================
   // App Configuration
@@ -162,6 +172,11 @@ export default defineNuxtConfig({
     // Local dev: .env provides http://localhost:3000
     apiUrl: '',
     public: {
+      // Build identity, frozen into the bundle at build time (see top of file).
+      // Compared against the API's GET /meta under /app/admin/system to detect a
+      // drifted / stale deployment. Auto-mapped from NUXT_PUBLIC_APP_* if set.
+      appCommit,
+      appVersion,
       // Client-side — NUXT_PUBLIC_API_URL overrides at runtime
       // Local dev: .env provides http://localhost:3000
       apiUrl: '',

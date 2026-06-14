@@ -18,6 +18,13 @@ FROM node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2
 WORKDIR /app
 RUN corepack enable
 
+# Bake the build's git commit SHA into the Nuxt bundle so /app/admin/system can
+# show which App build is running and compare it against the API. Must be set
+# BEFORE `nuxt build` because runtimeConfig.public is frozen at build time. Fed
+# from the CI commit SHA via docker build args; defaults to "unknown" locally.
+ARG APP_VERSION_COMMIT=unknown
+ENV APP_VERSION_COMMIT=$APP_VERSION_COMMIT
+
 COPY --from=deps /app ./
 COPY projects/app/ ./projects/app/
 
