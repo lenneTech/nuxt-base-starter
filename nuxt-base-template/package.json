@@ -12,7 +12,8 @@
   },
   "scripts": {
     "c": "pnpm run check",
-    "check": "pnpm audit && pnpm run format:check && pnpm run lint && pnpm test && pnpm run build && bash scripts/check-server-start.sh",
+    "check": "node scripts/check.mjs",
+    "check:raw": "pnpm audit && pnpm run format:check && pnpm run lint && pnpm test && pnpm run build && bash scripts/check-server-start.sh",
     "check:fix": "pnpm install && pnpm audit --fix && pnpm run format && pnpm run lint:fix && pnpm test && pnpm run build && bash scripts/check-server-start.sh",
     "check:naf": "pnpm install && pnpm run format && pnpm run lint:fix && pnpm test && pnpm run build && bash scripts/check-server-start.sh",
     "cf": "pnpm run check:fix",
@@ -51,7 +52,7 @@
   "dependencies": {
     "@better-auth/passkey": "1.6.13",
     "@lenne.tech/bug.lt": "latest",
-    "@lenne.tech/nuxt-extensions": "1.8.0",
+    "@lenne.tech/nuxt-extensions": "1.8.1",
     "@nuxt/image": "2.0.0",
     "@nuxt/ui": "4.8.1",
     "@pinia/nuxt": "0.11.3",
