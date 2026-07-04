@@ -29,6 +29,10 @@ const SHARDED = Number(process.env.LT_DEV_TEST_SHARDS || '0') > 1;
 export default defineConfig<ConfigOptions>({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!isCI,
+  /* Hard ceiling for the WHOLE run (per-test timeouts don't cover hangs outside
+     tests: webServer reuse checks, reporters, teardown). Prevents a wedged run
+     from spinning forever — the Playwright equivalent of the check.mjs watchdog. */
+  globalTimeout: 60 * 60 * 1000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   projects: devicesToTest.map((p) => (typeof p === 'string' ? { name: p, use: devices[p] } : p)),

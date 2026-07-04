@@ -152,3 +152,8 @@ overrides:
   # Security: special-character handling / prototype pollution in js-yaml
   # (patched in 4.2.0; 4.1.2 was never published) - transitive via the toolchain.
   'js-yaml@<4.2.0': 4.2.0
+  # Security: @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking
+  # credentials via GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via
+  # @lenne.tech/bug.lt, which hard-pins @nuxt/ui@4.2.1. Target 4.8.1 == the app's own
+  # @nuxt/ui version, so this also dedupes the tree onto a single @nuxt/ui.
+  '@nuxt/ui@<4.7.2': 4.8.1
