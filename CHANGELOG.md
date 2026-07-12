@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.12.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.11.0...v2.12.0) (2026-07-12)
+
+
+### Features
+
+* make the app template buildable and testable standalone, not just inside the monorepo ([89608a6](https://github.com/lenneTech/nuxt-base-starter/commit/89608a672a0e89566f8ee177a2b75c32bcd4691e))
+
 ## [2.11.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.10.0...v2.11.0) (2026-07-12)
 
 ## [2.10.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.9.1...v2.10.0) (2026-07-04)
