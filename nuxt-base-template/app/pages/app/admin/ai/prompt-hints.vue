@@ -101,7 +101,17 @@ async function create(): Promise<void> {
           Anleitung — sie können das Rechtemanagement nie aufweichen (das wird serverseitig unabhängig erzwungen).
         </p>
       </div>
-      <UButton icon="i-lucide-plus" variant="soft" @click="showCreate = !showCreate"> Manuell </UButton>
+      <UButton
+        icon="i-lucide-plus"
+        variant="soft"
+        @click="
+          () => {
+            showCreate = !showCreate;
+          }
+        "
+      >
+        Manuell
+      </UButton>
     </div>
 
     <UCard v-if="showCreate">

@@ -1,44 +1,58 @@
+# Docker reads this file from the build CONTEXT ROOT, and its patterns are
+# resolved relative to that root — not to this file's directory. In an
+# lt-monorepo the context is the repo root, so `projects/app/.dockerignore` is
+# never consulted at all. Every pattern that must also hit `projects/*` therefore
+# uses a `**/` glob, so the same list works for a standalone build (context =
+# this directory) and for a copy placed at the monorepo root. The Dockerfile
+# additionally purges the build-read artefacts, so a missing root .dockerignore
+# can never bake a developer's local config into an image.
+
 # Dependencies
-node_modules
+**/node_modules
+.pnpm-store
 .npm
 
 # Build output
-.nuxt
-.output
-dist
+**/.nuxt
+**/.output
+**/dist
 
-# IDE
-.idea
-.vscode
-*.swp
-*.swo
+# IDE / tooling
+**/.idea
+**/.vscode
+**/.claude
+**/.husky
+**/*.swp
+**/*.swo
 
 # Logs
-*.log
-npm-debug.log*
+**/*.log
+**/npm-debug.log*
 
 # Testing
-coverage
-test-results
-playwright-report
+**/coverage
+**/test-results
+**/playwright-report
 
-# Environment
-.env.local
-.env.*.local
+# Environment — `nuxt build` reads .env, so a developer's local config would be
+# baked into the image. .env.example stays (it is documentation, never read).
+**/.env
+**/.env.local
+**/.env.*.local
 
 # Git
 .git
-.gitignore
+**/.gitignore
 
 # Docker
-Dockerfile*
-docker-compose*
-.dockerignore
+**/Dockerfile*
+**/docker-compose*
+**/.dockerignore
 
 # Documentation
-*.md
+**/*.md
 !README.md
 
 # Misc
-.DS_Store
-*.tgz
+**/.DS_Store
+**/*.tgz

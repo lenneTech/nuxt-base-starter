@@ -64,6 +64,8 @@ export default defineConfig<ConfigOptions>({
 
     // Use German language
     locale: 'de',
+    /* Capture a screenshot on failure — aids CI failure diagnosis. */
+    screenshot: 'only-on-failure',
     /* Nuxt configuration options */
     nuxt: {
       host: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
@@ -86,7 +88,9 @@ export default defineConfig<ConfigOptions>({
           reuseExistingServer: !process.env.CI,
           stderr: 'pipe',
           stdout: 'pipe',
-          timeout: 120 * 1000,
+          // Cold CI runners need longer than a warm local machine to build +
+          // boot the Nuxt app before the readiness probe passes.
+          timeout: (isCI ? 300 : 120) * 1000,
           url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
         },
       ],

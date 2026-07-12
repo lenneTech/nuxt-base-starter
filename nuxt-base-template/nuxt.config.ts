@@ -4,12 +4,27 @@ import tailwindcss from '@tailwindcss/vite';
 import pkg from './package.json';
 
 // Build identity surfaced under /app/admin/system so we can always tell which
-// build is running and compare App vs. API. The commit SHA is baked at build
-// time via the APP_VERSION_COMMIT Docker ARG (fed from the CI commit SHA); it
-// falls back to "unknown" for local dev builds. runtimeConfig.public freezes
-// these at build time, so the value reflects this exact App bundle.
+// build is running and compare App vs. API. These are the build-time defaults;
+// the production image overrides appCommit at runtime via NUXT_PUBLIC_APP_COMMIT
+// (see Dockerfile), which keeps the commit out of the `nuxt build` cache key.
+// APP_VERSION_COMMIT stays as the escape hatch for local / manual builds.
 const appVersion = (pkg as { version?: string }).version || '0.0.0';
 const appCommit = process.env.APP_VERSION_COMMIT || 'unknown';
+
+// Deployment environment. NUXT_PUBLIC_APP_ENV wins when set; otherwise fall back
+// to NODE_ENV so `nuxt dev` (NODE_ENV=development) gets dev features on a fresh
+// clone WITHOUT a copied .env. Every other NODE_ENV resolves to "production" —
+// including an unset one, which nuxi defaults to "production" at build time — so
+// a Docker image with .env stripped and no build-arg stays production-safe. Note
+// `build:test` (NODE_ENV=test) therefore also ships as production unless it sets
+// NUXT_PUBLIC_APP_ENV explicitly.
+const appEnv = process.env.NUXT_PUBLIC_APP_ENV || (process.env.NODE_ENV === 'development' ? 'local' : 'production');
+
+// Dev-only surfaces — the ./docs layer and the landing-page dev card — are BAKED
+// at build time. The runtime NUXT_PUBLIC_APP_ENV can relabel a running container
+// but cannot add a route that was never built, so anything linking into ./docs
+// must gate on this build-time flag, not on the runtime public.appEnv.
+const devBuild = ['development', 'local'].includes(appEnv);
 
 export default defineNuxtConfig({
   // ============================================================================
@@ -23,11 +38,28 @@ export default defineNuxtConfig({
   },
 
   // ============================================================================
+  // App Config (build-frozen, reaches the client via useAppConfig())
+  // ============================================================================
+  appConfig: {
+    // Were dev-only surfaces (./docs layer + landing-page dev card) built into
+    // THIS bundle? Kept in app config, NOT runtimeConfig.public, precisely so a
+    // NUXT_PUBLIC_* env var cannot flip it at runtime — the client gates the dev
+    // card on it so the card never links to a /docs route the build omitted.
+    devBuild,
+  },
+
+  // ============================================================================
   // Bug Reporting (Linear Integration via @lenne.tech/bug.lt)
   // ============================================================================
   // @ts-ignore bug.lt module has no type declarations
   bug: {
-    enabled: process.env.NUXT_PUBLIC_APP_ENV !== 'production',
+    // Module options are frozen at build time, so the reporter widget is a BUILD
+    // choice: the image built without NUXT_PUBLIC_APP_ENV stays production and
+    // ships no widget, while a staging image built with NUXT_PUBLIC_APP_ENV set
+    // (see Dockerfile builder ARG) enables it. A running container cannot toggle
+    // this — bug.lt returns early on `enabled: false` and never registers the
+    // runtimeConfig it would need to re-enable at runtime.
+    enabled: appEnv !== 'production',
     linearApiKey: process.env.NUXT_LINEAR_API_KEY,
     linearProjectName: process.env.NUXT_LINEAR_PROJECT_NAME,
     linearTeamName: process.env.NUXT_LINEAR_TEAM_NAME,
@@ -59,7 +91,7 @@ export default defineNuxtConfig({
   // ============================================================================
   // Environment-specific Layers
   // ============================================================================
-  extends: ['local', 'development'].includes(process.env.NUXT_PUBLIC_APP_ENV || '') ? ['./docs'] : [],
+  extends: devBuild ? ['./docs'] : [],
 
   // ============================================================================
   // Image Optimization
@@ -137,17 +169,8 @@ export default defineNuxtConfig({
     '@nuxt/ui', // NuxtUI component library
     '@nuxtjs/plausible', // Privacy-friendly analytics
     '@nuxtjs/seo', // SEO optimization (sitemap, robots, og-image)
-    '@pinia/nuxt', // State management
+    '@pinia/nuxt', // State management — `pinia` is its required peer dependency (kept explicit in package.json; do not drop it as "unused")
   ],
-
-  // ============================================================================
-  // OG Image Configuration
-  // ============================================================================
-  ogImage: {
-    defaults: {
-      renderer: 'chromium',
-    },
-  },
 
   // ============================================================================
   // Analytics (Plausible)
@@ -161,7 +184,10 @@ export default defineNuxtConfig({
   // SEO: Robots.txt
   // ============================================================================
   robots: {
-    disallow: ['/app', '/auth', '/admin'],
+    // '/docs' is only built into dev bundles (see `extends`), but list it anyway
+    // as defense-in-depth: if a dev build is ever relabeled to production at
+    // runtime, the docs route stays out of crawlers regardless.
+    disallow: ['/app', '/auth', '/admin', '/docs'],
   },
 
   // ============================================================================
@@ -172,10 +198,16 @@ export default defineNuxtConfig({
     // Local dev: .env provides http://localhost:3000
     apiUrl: '',
     public: {
-      // Build identity, frozen into the bundle at build time (see top of file).
-      // Compared against the API's GET /meta under /app/admin/system to detect a
-      // drifted / stale deployment. Auto-mapped from NUXT_PUBLIC_APP_* if set.
+      // Build identity (see top of file). Compared against the API's GET /meta
+      // under /app/admin/system to detect a drifted / stale deployment. Nitro
+      // applies NUXT_PUBLIC_APP_COMMIT / _APP_VERSION over these on boot — but
+      // only for keys declared here, hence the explicit defaults.
       appCommit,
+      // Deployment environment ("local", "development", "production", ...).
+      // MUST be declared for NUXT_PUBLIC_APP_ENV to take effect at runtime; the
+      // baked default follows the build (production unless this is a dev build),
+      // so an unset variable never unlocks dev-only UI on a production image.
+      appEnv,
       appVersion,
       // Client-side — NUXT_PUBLIC_API_URL overrides at runtime
       // Local dev: .env provides http://localhost:3000

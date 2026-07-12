@@ -97,6 +97,13 @@ jobs:
       - name: Build application
         run: pnpm run build
 
+      # Boot-test the freshly built production bundle: the same hardened smoke
+      # gate `pnpm run check` runs locally, but against `.output` in CI. Catches
+      # the mis-traced-externals class of failure (bundle listens, then throws on
+      # every render) that a build-only job would ship undetected.
+      - name: Smoke-test production server (boot + render GET /)
+        run: bash scripts/check-server-start.sh
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:

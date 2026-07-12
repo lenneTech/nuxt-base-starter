@@ -338,7 +338,16 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
 
         <template v-if="is2FAEnabled && !show2FADisable">
           <div class="flex gap-2">
-            <UButton variant="outline" @click="show2FADisable = true"> 2FA deaktivieren </UButton>
+            <UButton
+              variant="outline"
+              @click="
+                () => {
+                  show2FADisable = true;
+                }
+              "
+            >
+              2FA deaktivieren
+            </UButton>
             <UButton variant="outline" color="neutral" @click="openBackupCodesModal()"> Backup-Codes anzeigen </UButton>
           </div>
         </template>
@@ -351,7 +360,17 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
             </UFormField>
             <div class="flex gap-2">
               <UButton type="submit" color="error" :loading="loading"> 2FA deaktivieren </UButton>
-              <UButton variant="outline" color="neutral" @click="show2FADisable = false"> Abbrechen </UButton>
+              <UButton
+                variant="outline"
+                color="neutral"
+                @click="
+                  () => {
+                    show2FADisable = false;
+                  }
+                "
+              >
+                Abbrechen
+              </UButton>
             </div>
           </UForm>
         </template>
@@ -391,7 +410,17 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
         </template>
 
         <template v-if="!showAddPasskey">
-          <UButton variant="outline" icon="i-lucide-plus" @click="showAddPasskey = true"> Passkey hinzufügen </UButton>
+          <UButton
+            variant="outline"
+            icon="i-lucide-plus"
+            @click="
+              () => {
+                showAddPasskey = true;
+              }
+            "
+          >
+            Passkey hinzufügen
+          </UButton>
         </template>
 
         <template v-else>

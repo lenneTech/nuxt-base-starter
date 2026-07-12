@@ -3,6 +3,7 @@
 // Composables
 // ============================================================================
 const config = useRuntimeConfig();
+const appConfig: ReturnType<typeof useAppConfig> = useAppConfig();
 
 // ============================================================================
 // Variables
@@ -42,7 +43,12 @@ const features: Array<{
 // ============================================================================
 // Computed Properties
 // ============================================================================
-const isDevelopment = computed<boolean>(() => config.public.appEnv !== 'production');
+// The ./docs layer and this card's target are baked at build time
+// (appConfig.devBuild, which is NOT env-overridable); the runtime appEnv only
+// decides whether an existing build EXPOSES them. Gate on both so the card never
+// links to a /docs route that was not built (404) and hides once relabelled to
+// production.
+const isDevelopment = computed<boolean>(() => appConfig.devBuild && config.public.appEnv !== 'production');
 </script>
 
 <template>

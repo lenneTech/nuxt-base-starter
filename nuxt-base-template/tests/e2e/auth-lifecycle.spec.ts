@@ -1,6 +1,7 @@
 import { expect, test } from '@nuxt/test-utils/playwright';
 import type { BrowserContext, Page } from '@playwright/test';
 import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { MongoClient } from 'mongodb';
 import {
   extractTOTPSecret,
@@ -198,29 +199,70 @@ async function resetTestData(email: string): Promise<void> {
 }
 
 /**
+ * Read the backend server log(s) that contain the email verification lines.
+ * Robust across environments: honours NEST_SERVER_LOG, then searches upward
+ * from cwd for the `lt dev` log files (`.lt-dev/api.test.log` under
+ * `lt dev test`, `.lt-dev/api.log` under `lt dev up`), then the classic
+ * `/tmp/nest-server.log`. All existing candidates are concatenated so the
+ * token is found regardless of which file the active stack writes to.
+ */
+function readServerLog(): string {
+  const candidates: string[] = [];
+  if (process.env.NEST_SERVER_LOG) {
+    candidates.push(process.env.NEST_SERVER_LOG);
+  }
+  let dir = process.cwd();
+  for (let i = 0; i < 6; i++) {
+    candidates.push(path.resolve(dir, '.lt-dev/api.test.log'));
+    candidates.push(path.resolve(dir, '.lt-dev/api.log'));
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      break;
+    }
+    dir = parent;
+  }
+  candidates.push('/tmp/nest-server.log');
+
+  let content = '';
+  const seen = new Set<string>();
+  for (const candidate of candidates) {
+    const resolved = path.resolve(candidate);
+    if (seen.has(resolved)) {
+      continue;
+    }
+    seen.add(resolved);
+    try {
+      content += fs.readFileSync(resolved, 'utf-8') + '\n';
+    } catch {
+      // Candidate log file does not exist — skip.
+    }
+  }
+  return content;
+}
+
+/**
  * Extract email verification token from backend server logs.
  *
  * The nest-server logs verification URLs in this format:
  * [EMAIL VERIFICATION] User: <email>, URL: <baseUrl>/auth/verify-email?token=<jwt>
  *
  * The token is a JWT (not stored in MongoDB), so we must read it from the logs.
- * Set NEST_SERVER_LOG env var to point to the server log file.
- * Default: /tmp/nest-server.log
+ * A global scan is used so the freshest token wins on retries — never a stale
+ * earlier one.
  */
 async function getVerificationToken(email: string, maxRetries = 10): Promise<string | null> {
-  const logPath = process.env.NEST_SERVER_LOG || '/tmp/nest-server.log';
+  const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   for (let i = 0; i < maxRetries; i++) {
-    try {
-      const log = fs.readFileSync(logPath, 'utf-8');
-      // Find the verification line for this email
-      const regex = new RegExp(`\\[EMAIL VERIFICATION\\] User: ${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}, URL: .+?token=([^&\\s]+)`);
-      const match = log.match(regex);
-      if (match?.[1]) {
-        return match[1];
-      }
-    } catch {
-      // Log file may not exist yet
+    const log = readServerLog();
+    const regex = new RegExp(`\\[EMAIL VERIFICATION\\] User: ${escaped}, URL: \\S*?[?&]token=([^&\\s]+)`, 'g');
+    let match: null | RegExpExecArray;
+    let token: null | string = null;
+    while ((match = regex.exec(log)) !== null) {
+      token = match[1];
+    }
+    if (token) {
+      return token;
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }

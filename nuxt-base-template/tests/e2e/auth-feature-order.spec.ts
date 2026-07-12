@@ -1,6 +1,8 @@
 import { expect, test } from '@nuxt/test-utils/playwright';
 import type { Page } from '@playwright/test';
 import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { MongoClient } from 'mongodb';
 import { extractTOTPSecret, fillInput, generateTestUser, generateTOTP, gotoAndWaitForHydration, waitForURLAndHydration } from '@lenne.tech/nuxt-extensions/testing';
 
 /**
@@ -46,25 +48,113 @@ interface Features {
 // and CI. Falls back to the classic localhost defaults when nothing is set.
 const API_BASE = process.env.NUXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3000';
 const FRONTEND_BASE = process.env.NUXT_PUBLIC_SITE_URL || process.env.APP_URL || 'http://localhost:3001';
+const MONGO_URI = process.env.NSC__MONGOOSE__URI || process.env.MONGO_URI || 'mongodb://127.0.0.1/nest-server-local';
+
+// Better-Auth collection names (default without prefix)
+const COLLECTIONS = ['session', 'account', 'verification', 'passkey', 'twoFactor', 'backupCode'];
 
 // =============================================================================
 // Helpers
 // =============================================================================
 
 /**
- * Extract email verification token from backend server logs.
- * The nest-server logs: [EMAIL VERIFICATION] User: <email>, URL: ...?token=<jwt>
+ * Delete a test user and its Better-Auth satellite documents so repeated runs
+ * do not accumulate orphan `@test.com` accounts. Mirrors `auth-lifecycle.spec.ts`
+ * `resetTestData` — kept as a local copy because the two E2E specs share no
+ * helper module (the clean fix would be to hoist both this and `readServerLog`
+ * into `@lenne.tech/nuxt-extensions/testing`, out of scope for this change).
+ */
+async function resetTestData(email: string): Promise<void> {
+  const client = new MongoClient(MONGO_URI);
+  try {
+    await client.connect();
+    const db = client.db();
+
+    const user = await db.collection('users').findOne({ email });
+    if (user) {
+      const userId = user._id.toString();
+      for (const coll of COLLECTIONS) {
+        try {
+          await db.collection(coll).deleteMany({ userId });
+        } catch {
+          // Collection may not exist yet
+        }
+      }
+      try {
+        await db.collection('webauthn_challenge_mappings').deleteMany({ userId });
+      } catch {
+        // Collection may not exist
+      }
+      try {
+        await db.collection('verification').deleteMany({ identifier: email });
+      } catch {
+        // Collection may not exist
+      }
+      await db.collection('users').deleteOne({ _id: user._id });
+    }
+  } finally {
+    await client.close();
+  }
+}
+
+/**
+ * Read the backend server log(s) that contain the email verification lines.
+ * Robust across environments: honours NEST_SERVER_LOG, then searches upward
+ * from cwd for the `lt dev` log files (`.lt-dev/api.test.log` under
+ * `lt dev test`, `.lt-dev/api.log` under `lt dev up`), then the classic
+ * `/tmp/nest-server.log`. All existing candidates are concatenated so the
+ * token is found regardless of which file the active stack writes to.
+ */
+function readServerLog(): string {
+  const candidates: string[] = [];
+  if (process.env.NEST_SERVER_LOG) {
+    candidates.push(process.env.NEST_SERVER_LOG);
+  }
+  let dir = process.cwd();
+  for (let i = 0; i < 6; i++) {
+    candidates.push(path.resolve(dir, '.lt-dev/api.test.log'));
+    candidates.push(path.resolve(dir, '.lt-dev/api.log'));
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      break;
+    }
+    dir = parent;
+  }
+  candidates.push('/tmp/nest-server.log');
+
+  let content = '';
+  const seen = new Set<string>();
+  for (const candidate of candidates) {
+    const resolved = path.resolve(candidate);
+    if (seen.has(resolved)) {
+      continue;
+    }
+    seen.add(resolved);
+    try {
+      content += fs.readFileSync(resolved, 'utf-8') + '\n';
+    } catch {
+      // Candidate log file does not exist — skip.
+    }
+  }
+  return content;
+}
+
+/**
+ * Extract the freshest email verification token for `email` from the backend
+ * server log. The nest-server logs (non-production):
+ *   [EMAIL VERIFICATION] User: <email>, URL: <appUrl>/auth/verify-email?token=<jwt>
+ * The last match wins so retries pick up the newest token, never a stale one.
  */
 function getVerificationTokenFromLog(email: string): string | null {
-  const logPath = process.env.NEST_SERVER_LOG || '/tmp/nest-server.log';
-  try {
-    const log = fs.readFileSync(logPath, 'utf-8');
-    const regex = new RegExp(`\\[EMAIL VERIFICATION\\] User: ${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}, URL: .+?token=([^&\\s]+)`);
-    const match = log.match(regex);
-    return match?.[1] ?? null;
-  } catch {
-    return null;
+  const log = readServerLog();
+  const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`\\[EMAIL VERIFICATION\\] User: ${escaped}, URL: \\S*?[?&]token=([^&\\s]+)`, 'g');
+  let match: null | RegExpExecArray;
+  let token: null | string = null;
+  while ((match = regex.exec(log)) !== null) {
+    token = match[1];
   }
+  return token;
 }
 
 /**
@@ -245,6 +335,10 @@ test.beforeAll(async ({ request }) => {
 test.describe.serial('Test 1: Register -> 2FA -> Passkey (no logout)', () => {
   const testUser = generateTestUser('2fa-then-passkey');
 
+  test.afterAll(async () => {
+    await resetTestData(testUser.email);
+  });
+
   test('Register, enable 2FA, then add Passkey without logout', async ({ page, context }) => {
     test.skip(!apiAvailable, 'Servers not running');
 
@@ -288,6 +382,10 @@ test.describe.serial('Test 1: Register -> 2FA -> Passkey (no logout)', () => {
 
 test.describe.serial('Test 2: Register -> Passkey -> 2FA (no logout)', () => {
   const testUser = generateTestUser('passkey-then-2fa');
+
+  test.afterAll(async () => {
+    await resetTestData(testUser.email);
+  });
 
   test('Register, add Passkey, then enable 2FA without logout', async ({ page, context }) => {
     test.skip(!apiAvailable, 'Servers not running');
@@ -340,7 +438,13 @@ test.describe('Test 3: Error Translations', () => {
 
     await loginWithEmail(page, 'invalid@test.com', 'WrongPassword123!');
 
-    const toast = page.locator('li[role="alert"]');
+    // NuxtUI 4 renders the visible toast as `<li data-slot="root">` in the toast
+    // viewport; reka-ui puts role="alert" only on an off-screen 1×1px live-region
+    // <span> that sits BESIDE the toast. So any role-based selector is wrong:
+    // `li[role="alert"]` matches nothing (the visible <li> has no role), while a
+    // bare `[role="alert"]` matches the always-"visible" 1×1 span. Anchor on the
+    // stable data-slot instead.
+    const toast = page.locator('li[data-slot="root"]').filter({ hasText: 'Anmeldung fehlgeschlagen' });
     await expect(toast).toBeVisible({ timeout: 10000 });
     await expect(toast).toContainText('Ungültige Anmeldedaten');
   });

@@ -33,12 +33,8 @@ Start the development server on http://localhost:3001
 npm run dev
 ```
 
-### Docker Development
-
-```bash
-docker build -f Dockerfile.dev -t nuxt-app-dev .
-docker run -p 3001:3001 -v $(pwd):/app nuxt-app-dev
-```
+Inside an `lt fullstack` workspace use `lt dev up` instead — it serves app and API
+behind stable HTTPS URLs and injects the project-specific environment.
 
 ## Production
 
@@ -61,6 +57,32 @@ npm run build:develop    # Development environment
 npm run build:test       # Test environment
 npm run build:prod       # Production environment
 ```
+
+### Docker (Production Image)
+
+The production `Dockerfile` is a multi-stage build (non-root runner, self-contained
+Nitro output, digest-pinned base). It is built with the **monorepo root** as build
+context — the same context `lt-monorepo/docker-compose.yml` uses — so pnpm can
+resolve the workspace:
+
+```bash
+# From the monorepo root (-f points at the app Dockerfile):
+docker build -f projects/app/Dockerfile --build-arg APP_VERSION_COMMIT=$CI_COMMIT_SHA .
+```
+
+- **`APP_VERSION_COMMIT`** (runner build-arg) → injected at runtime as
+  `NUXT_PUBLIC_APP_COMMIT` and surfaced under `/app/admin/system`. It lives in the
+  runner stage on purpose, so the volatile SHA never invalidates the cached
+  `nuxt build` layer.
+- **`NUXT_PUBLIC_APP_ENV`** (builder build-arg, optional) → pass
+  `--build-arg NUXT_PUBLIC_APP_ENV=development` to bake the `./docs` layer + dev
+  card + bug.lt reporter into a **staging** image. Leave unset for production (dev
+  surfaces are then never built and cannot be re-enabled at runtime).
+- The container listens on **port 3000** (`EXPOSE 3000`, `HOST=0.0.0.0`); compose
+  maps host `3001` → container `3000`. A `HEALTHCHECK` probes `GET /`.
+
+Local development does **not** use Docker — run `lt dev up` (see above). Migrating
+an existing fork? See [`migration-guides/2.11.0-docker-workflow.md`](../migration-guides/2.11.0-docker-workflow.md).
 
 ## Code Quality
 
@@ -190,7 +212,10 @@ Create a `.env` file with the following variables:
 NUXT_PUBLIC_SITE_URL=http://localhost:3001
 NUXT_API_URL=http://localhost:3000
 NUXT_PUBLIC_API_URL=http://localhost:3000
-NUXT_PUBLIC_APP_ENV=development
+# Deployment environment. Build-time: `local`/`development` bake the ./docs layer
+# + dev card + bug.lt reporter into the bundle; unset resolves to `production`.
+# Runtime: relabels a running container (cannot conjure an un-built dev surface).
+NUXT_PUBLIC_APP_ENV=local
 NODE_ENV=development
 ```
 
@@ -198,6 +223,7 @@ Optional variables:
 
 ```env
 NUXT_PUBLIC_WEB_PUSH_KEY=                # Web push notifications
+NUXT_PUBLIC_APP_COMMIT=unknown           # Build identity (/app/admin/system); normally injected at runtime/CI
 NUXT_LINEAR_API_KEY=              # Bug reporting
 NUXT_LINEAR_TEAM_NAME=            # Bug reporting
 NUXT_LINEAR_PROJECT_NAME=         # Bug reporting

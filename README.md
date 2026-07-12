@@ -71,8 +71,12 @@ Pre-built auth pages: login, register, forgot-password, reset-password, 2fa
 
 ### Docker Support
 
-- `Dockerfile.dev` for containerized development
-- Hot reload enabled
+- Multi-stage production `Dockerfile` (non-root runner, self-contained Nitro output)
+- Built from the **monorepo root** as build context: `docker build -f projects/app/Dockerfile .`
+- Build identity injected at runtime via `NUXT_PUBLIC_APP_COMMIT`
+- `HEALTHCHECK` on `GET /`; container listens on port 3000 (compose maps host 3001 → 3000)
+- Local development runs via `lt dev up`, not in a container
+- Migrating an existing fork? See [`migration-guides/2.11.0-docker-workflow.md`](migration-guides/2.11.0-docker-workflow.md)
 
 ## Project Structure
 
