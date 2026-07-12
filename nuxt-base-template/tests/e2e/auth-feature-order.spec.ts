@@ -438,23 +438,21 @@ test.describe('Test 3: Error Translations', () => {
 
     await loginWithEmail(page, 'invalid@test.com', 'WrongPassword123!');
 
-    // NuxtUI 4 renders the visible toast as `<li data-slot="root">` in the toast
-    // viewport; reka-ui puts role="alert" only on an off-screen 1×1px live-region
-    // <span> that sits BESIDE the toast. So any role-based selector is wrong:
-    // `li[role="alert"]` matches nothing (the visible <li> has no role), while a
-    // bare `[role="alert"]` matches the always-"visible" 1×1 span. Anchor on the
-    // stable data-slot instead.
-    const toast = page.locator('li[data-slot="root"]').filter({ hasText: 'Anmeldung fehlgeschlagen' });
-    await expect(toast).toBeVisible({ timeout: 10000 });
-    await expect(toast).toContainText('Ungültige Anmeldedaten');
+    // The backend returns "#LTNS_0010: Invalid credentials"; the app translates
+    // it and surfaces it as a NuxtUI toast in the Notifications region. Assert on
+    // the translated text (role-agnostic — NuxtUI toast markup is not `li[role=alert]`
+    // and the toast title/heading text is not stable across versions).
+    const notifications = page.getByRole('region', { name: /Notifications/i });
+    await expect(notifications.getByText('Ungültige Anmeldedaten')).toBeVisible({ timeout: 10000 });
   });
 
-  test('3.2 Error translations are loaded from backend', async ({ page }) => {
+  test('3.2 Error translations are loaded from backend', async ({ request }) => {
     test.skip(!apiAvailable, 'Servers not running');
 
-    await gotoAndWaitForHydration(page, '/auth/login');
-
-    const response = await page.request.get(`${FRONTEND_BASE}/api/i18n/errors/de`);
+    // The app loads its error translations directly from the backend
+    // (GET /i18n/errors/:locale). Hit the API directly so the check is
+    // env-agnostic — the Nuxt `/api` proxy is disabled under `lt dev`.
+    const response = await request.get(`${API_BASE}/i18n/errors/de`);
     expect([200, 304]).toContain(response.status());
 
     if (response.status() === 200) {

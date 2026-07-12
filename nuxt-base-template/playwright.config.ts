@@ -2,7 +2,11 @@ import type { ConfigOptions } from '@nuxt/test-utils/playwright';
 
 import { defineConfig, devices } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
-import { isCI, isWindows } from 'std-env';
+
+// Node-native equivalents (avoid an undeclared `std-env` dependency that a fresh
+// project's strict node_modules cannot resolve → ERR_MODULE_NOT_FOUND at load).
+const isCI = !!process.env.CI;
+const isWindows = process.platform === 'win32';
 
 const devicesToTest = [
   'Desktop Chrome',

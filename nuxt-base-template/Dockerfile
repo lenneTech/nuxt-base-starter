@@ -1,25 +1,36 @@
-# Production image for the Nuxt app.
+# Production image for the Nuxt app. Works in both monorepo and standalone mode.
 #
-# Built with the MONOREPO ROOT as build context (see lt-monorepo/docker-compose.yml):
-#   docker build -f projects/app/Dockerfile --build-arg APP_VERSION_COMMIT=$CI_COMMIT_SHA .
+# Monorepo (build context = monorepo root):
+#   docker build -f projects/app/Dockerfile --build-arg API_DIR=projects/api \
+#     --build-arg APP_DIR=projects/app --build-arg APP_VERSION_COMMIT=$CI_COMMIT_SHA .
+# Standalone (build context = the app repo root, APP_DIR defaults to .):
+#   docker build --build-arg APP_VERSION_COMMIT=$CI_COMMIT_SHA .
+
+ARG APP_DIR=.
 
 # Stage 1: Install dependencies
 FROM node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2ec13ee22a00 AS deps
 WORKDIR /app
 RUN corepack enable
 
-# Copy workspace configuration
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-
-# Copy all project manifests (required for pnpm workspace resolution)
-COPY projects/api/package.json ./projects/api/
-COPY projects/app/package.json ./projects/app/
+# Copy every package.json (+ the workspace files) so pnpm resolves deps in both
+# monorepo (multiple project manifests) and standalone (a single root manifest)
+# mode. Copying everything then installing is the simplest cross-mode approach —
+# mirrors projects/api/Dockerfile.
+COPY . /tmp/src
+RUN find /tmp/src -maxdepth 3 -name "package.json" -not -path "*/node_modules/*" \
+      -exec sh -c 'dir=$(dirname "$1" | sed "s|^/tmp/src|.|"); mkdir -p "/app/$dir"; cp "$1" "/app/$dir/"' _ {} \; \
+    && cp -f /tmp/src/pnpm-lock.yaml /app/ 2>/dev/null || true \
+    && cp -f /tmp/src/pnpm-workspace.yaml /app/ 2>/dev/null || true \
+    && cp -f /tmp/src/.npmrc /app/ 2>/dev/null || true \
+    && rm -rf /tmp/src
 
 # Install dependencies (--ignore-scripts prevents husky/simple-git-hooks errors in Docker)
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Stage 2: Build
 FROM node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2ec13ee22a00 AS builder
+ARG APP_DIR=.
 WORKDIR /app
 RUN corepack enable
 
@@ -31,7 +42,7 @@ ARG NUXT_PUBLIC_APP_ENV
 ENV NUXT_PUBLIC_APP_ENV=$NUXT_PUBLIC_APP_ENV
 
 COPY --from=deps /app ./
-COPY projects/app/ ./projects/app/
+COPY ${APP_DIR}/ ./${APP_DIR}/
 
 # Primary filter for the COPY above is the build CONTEXT ROOT `.dockerignore`
 # (lt-monorepo ships one; it excludes `**/node_modules`, `**/.output`, `**/.env`,
@@ -48,12 +59,13 @@ COPY projects/app/ ./projects/app/
 # `pnpm --filter app` matches nothing — and pnpm exits 0 on a no-match, silently
 # skipping the build. `cd` is name-agnostic and fails loudly. This mirrors
 # projects/api/Dockerfile, which uses `cd ${API_DIR} && pnpm run build`.
-RUN rm -rf projects/app/.output projects/app/.nuxt projects/app/.env \
-    && cd projects/app \
+RUN rm -rf ${APP_DIR}/.output ${APP_DIR}/.nuxt ${APP_DIR}/.env \
+    && cd ${APP_DIR} \
     && pnpm run build
 
 # Stage 3: Production runner
 FROM node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2ec13ee22a00 AS runner
+ARG APP_DIR=.
 WORKDIR /app
 # Pin the listen address instead of relying on Nitro's implicit defaults — the
 # same "don't trust the implicit port" reasoning the smoke test applies with
@@ -68,7 +80,7 @@ ENV NODE_ENV=production \
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 # Nuxt output is self-contained (Nitro bundles all dependencies)
-COPY --from=builder --chown=nodejs:nodejs /app/projects/app/.output ./.output
+COPY --from=builder --chown=nodejs:nodejs /app/${APP_DIR}/.output ./.output
 
 # Build identity for /app/admin/system, which compares it against the API's
 # GET /meta to spot a stale container after a partial rollout. Injected at
