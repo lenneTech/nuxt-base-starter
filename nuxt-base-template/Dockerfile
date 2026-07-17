@@ -9,9 +9,8 @@
 ARG APP_DIR=.
 
 # Stage 1: Install dependencies
-FROM node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2ec13ee22a00 AS deps
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS deps
 WORKDIR /app
-RUN corepack enable
 
 # Copy every package.json (+ the workspace files) so pnpm resolves deps in both
 # monorepo (multiple project manifests) and standalone (a single root manifest)
@@ -25,14 +24,18 @@ RUN find /tmp/src -maxdepth 3 -name "package.json" -not -path "*/node_modules/*"
     && cp -f /tmp/src/.npmrc /app/ 2>/dev/null || true \
     && rm -rf /tmp/src
 
+# Provision the exact pnpm declared in package.json (single source of truth).
+# No corepack: Node >= 25 no longer ships it. The +sha512 suffix is stripped;
+# npm enforces registry integrity for the tarball itself.
+RUN npm install -g "$(node -p "require('./package.json').packageManager.split('+')[0]")"
+
 # Install dependencies (--ignore-scripts prevents husky/simple-git-hooks errors in Docker)
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Stage 2: Build
-FROM node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2ec13ee22a00 AS builder
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS builder
 ARG APP_DIR=.
 WORKDIR /app
-RUN corepack enable
 
 # Deployment environment, baked into the bundle. Docs layer + dev widgets are a
 # BUILD choice (see nuxt.config.ts): unset stays production; a staging pipeline
@@ -43,6 +46,11 @@ ENV NUXT_PUBLIC_APP_ENV=$NUXT_PUBLIC_APP_ENV
 
 COPY --from=deps /app ./
 COPY ${APP_DIR}/ ./${APP_DIR}/
+
+# Provision the exact pnpm declared in package.json (single source of truth).
+# No corepack: Node >= 25 no longer ships it. The +sha512 suffix is stripped;
+# npm enforces registry integrity for the tarball itself.
+RUN npm install -g "$(node -p "require('./package.json').packageManager.split('+')[0]")"
 
 # Primary filter for the COPY above is the build CONTEXT ROOT `.dockerignore`
 # (lt-monorepo ships one; it excludes `**/node_modules`, `**/.output`, `**/.env`,
@@ -64,7 +72,7 @@ RUN rm -rf ${APP_DIR}/.output ${APP_DIR}/.nuxt ${APP_DIR}/.env \
     && pnpm run build
 
 # Stage 3: Production runner
-FROM node:22-alpine@sha256:8094c002d08262dba12645a3b4a15cd6cd627d30bc782f53229a2ec13ee22a00 AS runner
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
 ARG APP_DIR=.
 WORKDIR /app
 # Pin the listen address instead of relying on Nitro's implicit defaults — the

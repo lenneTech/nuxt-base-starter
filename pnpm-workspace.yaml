@@ -1,15 +1,17 @@
 # pnpm settings for the create-nuxt-base scaffolder (single-package project).
 #
 # IMPORTANT: This file intentionally has NO `packages:` field. It carries
-# ONLY workspace-scoped settings (overrides). This is the pnpm-recommended
-# home for these keys and is read by pnpm 10 AND pnpm 11. (pnpm 11 silently
-# ignores the same keys when they live in package.json's `pnpm` block.)
+# ONLY workspace-scoped settings. This is the pnpm-recommended home for these
+# keys and is read by pnpm 10 AND pnpm 11. (pnpm 11 silently ignores the same
+# keys when they live in package.json's `pnpm` block.)
 #
-# All override TARGETS (right-hand side) are FIXED versions, never ranges.
-# These patch vulnerable transitive dependencies pulled in by standard-version.
-
-overrides:
-  'brace-expansion@>=4.0.0 <5.0.5': 5.0.5 # ReDoS via zero-step sequences (GHSA-f886-m6hf-6m8v) - transitive via standard-version
-  'handlebars@>=4.0.0 <=4.7.8': 4.7.9 # prototype pollution / RCE in handlebars <=4.7.8 (GHSA-g9r4-xpmj-mj65) - transitive via standard-version
-  'lodash@>=4.0.0 <=4.17.23': 4.18.1 # prototype pollution in lodash <=4.17.23 (GHSA-x5rq-j2xg-h7qm) - transitive via standard-version
-  'minimatch@<3.1.4': 3.1.5 # ReDoS in minimatch <3.1.4 (GHSA-f8q6-p94x-37v3) - transitive via standard-version
+# There are currently NO overrides here, and that is intentional: standard-version's
+# transitive tree now resolves to patched versions on its own (handlebars 4.7.9,
+# lodash 4.18.1, minimatch 3.1.5, brace-expansion 1.1.16), so the four overrides that
+# used to live here were dead weight and were removed. Verified by resolving with zero
+# overrides and no lockfile: `pnpm audit` reports no known vulnerabilities.
+#
+# If you ever need to add one back: the override TARGET (right-hand side) must be a
+# FIXED version, never a range — an unbounded target like `>=X` lets pnpm jump a major.
+# Only override packages this project actually resolves; verify a candidate is live
+# with: grep "'\?<pkg>@[0-9]" pnpm-lock.yaml

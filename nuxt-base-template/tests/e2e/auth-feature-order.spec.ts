@@ -152,7 +152,7 @@ function getVerificationTokenFromLog(email: string): string | null {
   let match: null | RegExpExecArray;
   let token: null | string = null;
   while ((match = regex.exec(log)) !== null) {
-    token = match[1];
+    token = match[1] ?? null;
   }
   return token;
 }

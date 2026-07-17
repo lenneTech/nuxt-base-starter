@@ -25,7 +25,7 @@ function parseError(errorMessage: string): { code: string | null; message: strin
   // Format: "#LTNS_0100: Message text"
   const match = errorMessage.match(/^#([A-Z_0-9]+):\s*(.*)$/);
   if (match) {
-    return { code: match[1], message: match[2] };
+    return { code: match[1] ?? null, message: match[2] ?? '' };
   }
   return { code: null, message: errorMessage };
 }
@@ -34,14 +34,16 @@ function parseError(errorMessage: string): { code: string | null; message: strin
 function translateError(error: string | { message?: string; code?: string }): string {
   if (typeof error === 'string') {
     const parsed = parseError(error);
-    if (parsed.code && mockErrorTranslations[parsed.code]) {
-      return mockErrorTranslations[parsed.code];
+    const translated = parsed.code ? mockErrorTranslations[parsed.code] : undefined;
+    if (translated) {
+      return translated;
     }
     return parsed.message;
   }
 
-  if (error.code && mockErrorTranslations[error.code]) {
-    return mockErrorTranslations[error.code];
+  const translated = error.code ? mockErrorTranslations[error.code] : undefined;
+  if (translated) {
+    return translated;
   }
 
   return error.message || 'Ein unbekannter Fehler ist aufgetreten.';

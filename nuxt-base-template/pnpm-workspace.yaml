@@ -78,82 +78,25 @@ onlyBuiltDependencies:
 # lockfile) is useless here and, inside an lt-monorepo, a range selector like
 # `pkg@<X` can shadow the api's bare `pkg: <newer>` override and re-introduce the
 # CVE. Verify a candidate is live: grep "'\?<pkg>@[0-9]" pnpm-lock.yaml
+#
+# This list is deliberately minimal: it is the set that `pnpm audit` proves is still
+# load-bearing. Every other override was removed once upstream shipped the fix
+# naturally (verified by resolving with zero overrides — only the three below
+# re-introduced advisories). Re-check with the same method before adding any new one.
+#
+# NOTE: deliberately NO `hono` override here. hono is a BACKEND-only dependency
+# (via @lenne.tech/nest-server > @modelcontextprotocol/sdk) and never resolves in
+# the standalone frontend — any hono override here is dead. Worse, in an lt-monorepo
+# a range selector like `hono@<X` WINS over the api's bare `hono: <newer>` override
+# and pins the OLD version, silently re-introducing the patched CVEs. hono is owned
+# by nest-server's overrides. Do not add it back.
 overrides:
-  # ReDoS via zero-step sequences (GHSA-f886-m6hf-6m8v).
-  'brace-expansion@>=2.0.0 <2.0.3': 2.1.0
-  # ReDoS via zero-step sequences (5.x) + ReDoS in 5.0.x patched in 5.0.6 (GHSA-f886-m6hf-6m8v, GHSA-jxxr-4gwj-5jf2).
-  'brace-expansion@>=4.0.0 <5.0.6': 5.0.6
-  # Attribute-quote + comment-regex bypass (GHSA-5wm8-gmm8-39j9, GHSA-45c6-75p6-83cc); via @nuxtjs/seo>sitemap>fast-xml-parser.
-  'fast-xml-builder@<1.1.7': 1.2.0
-  # XML comment / CDATA injection via unescaped delimiters (GHSA-gh4j-gqv2-49f6); via @nuxtjs/seo>sitemap.
-  'fast-xml-parser@<5.7.3': 5.7.3
-  # Forces minimatch upgrade for the brace-expansion fix (transitive).
-  'readdir-glob@<2.0.3': 3.0.0
-  # Prototype pollution (GHSA-mchp-fgcf-hmfj).
-  'defu@<=6.1.4': 6.1.7
-  # XSS via crafted input + prototype pollution / DoS patched in 5.8.1 (GHSA-77p6-w3v8-rqwf, GHSA-77vg-94rm-hx3p).
-  'devalue@<5.8.1': 5.8.1
-  # Path traversal (GHSA-wr4h-v87w-p3r7).
-  'h3@<1.15.9': 1.15.11
-  # Cookie DoS + SSE injection (GHSA-q5pr-72pq-83v3).
-  'h3@>=2.0.0-0 <2.0.1-rc.18': 2.0.1-rc.22
-  # NOTE: deliberately NO `hono` override here. hono is a BACKEND-only dependency
-  # (via @lenne.tech/nest-server > @modelcontextprotocol/sdk) and never resolves in
-  # the standalone frontend — any hono override here is dead. Worse, in an lt-monorepo
-  # a range selector like `hono@<X` WINS over the api's bare `hono: <newer>` override
-  # and pins the OLD version, silently re-introducing the patched CVEs. hono is owned
-  # by nest-server's overrides. Do not add it back.
-  # Insecure cookie handling (GHSA-qjx8-664m-686j); via @vue/test-utils>js-beautify (dev/test only).
-  'js-cookie@<3.0.7': 3.0.7
-  # SQL injection (≤0.28.13) + additional SQL injection patched in 0.28.17 (GHSA-4hxq-5gxr-453h, GHSA-pv5w-4p9q-p3v2).
-  'kysely@>=0.26.0 <0.28.17': 0.28.17
-  # Prototype pollution (GHSA-x5rq-j2xg-h7qm).
-  'lodash@>=4.0.0 <=4.17.23': 4.18.1
-  # ReDoS via brace-expansion (GHSA-f886-m6hf-6m8v).
+  # ReDoS via brace-expansion (GHSA-f886-m6hf-6m8v); minimatch 9.x is still pulled below 9.0.7.
   'minimatch@>=9.0.0 <9.0.7': 9.0.9
-  # RSA signature forgery (GHSA-997c-fj8j-rq5h).
-  'node-forge@<1.4.0': 1.4.0
-  # SSRF — bypass of the v6.2.5 fix via IPv6 + redirect (GHSA-c2rm-g55x-8hr5); via @nuxtjs/seo.
-  'nuxt-og-image@>=6.2.5 <6.4.9': 6.4.9
-  # ReDoS (GHSA-26j4-r882-m4jm).
-  'picomatch@<2.3.2': 2.3.2
-  # Same ReDoS advisory, 4.x range (GHSA-26j4-r882-m4jm).
-  'picomatch@>=4.0.0 <4.0.4': 4.0.4
-  # DOM clobbering in output (GHSA-gcx4-mw62-g3rm).
-  'rollup@>=4.0.0 <4.60.3': 4.60.3
-  # XSS via crafted object (GHSA-cqmj-v5x6-4hg7).
-  'serialize-javascript@<=7.0.4': 7.0.5
-  # Remote code execution (GHSA-hffm-xvc3-vprc); via @nuxt/devtools.
-  'simple-git@<3.36.0': 3.36.0
-  # Open redirect (GHSA-4r4v-8rg6-5crc).
-  'srvx@<0.11.13': 0.11.15
-  # Path traversal (GHSA-jg7w-cxjv-98c2).
-  'tar@<7.5.16': 7.5.16
-  # XSS via meta tags + hasDangerousProtocol() bypass via leading-zero padded entities (GHSA-gxhp-jfhg-5fv8, GHSA-95h2-gj7x-gx9w).
-  'unhead@<=2.1.12': 2.1.13
-  # fs.deny bypass, arbitrary file read via WebSocket, path traversal in .map (GHSA-v2wj-q39q-566r, GHSA-p9ff-h696-f583, GHSA-4w7w-66w2-5vf9).
-  'vite@>=7.0.0 <7.3.5': 7.3.5
-  # DoS via memory exhaustion on crafted frames (GHSA-58qx-3vcg-4xpx); via vitest>happy-dom (dev/test only).
-  'ws@>=8.0.0 <8.20.1': 8.21.0
-  # Code execution via crafted YAML (GHSA-4hm9-844j-jmxp).
-  'yaml@>=2.0.0 <2.8.3': 2.8.3
-  # Defensive: force the latest postcss patch across consumers; covers historical advisories.
-  'postcss@<8.5.14': 8.5.14
-  # Security: argument injection in shell-quote <1.8.4 (GHSA-g4rg-993h-g6gf, critical).
-  'shell-quote@<1.8.4': 1.8.4
-  # Security: esbuild dev-server request smuggling (<0.28.1) - transitive via vite tooling.
+  # @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking credentials via
+  # GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via @lenne.tech/bug.lt,
+  # which hard-pins @nuxt/ui@4.2.1. Target 4.9.0 == the app's own @nuxt/ui version, so
+  # this also dedupes the tree onto a single @nuxt/ui.
+  '@nuxt/ui@<4.7.2': 4.9.0
+  # esbuild dev-server request smuggling (GHSA-67mh-4wv8-2f99, >=0.27.3 <0.28.1) - transitive via vite tooling.
   'esbuild@<0.28.1': 0.28.1
-  # Security: launch-editor command injection (<2.14.1) - transitive via Nuxt devtools.
-  'launch-editor@<2.14.1': 2.14.1
-  # Security: @babel/core (<7.29.1) advisory - transitive via the build toolchain.
-  '@babel/core@<7.29.6': 7.29.6
-  # Security: multiple Nuxt advisories fixed in 4.4.7 (low/moderate/high).
-  'nuxt@<4.4.7': 4.4.7
-  # Security: special-character handling / prototype pollution in js-yaml
-  # (patched in 4.2.0; 4.1.2 was never published) - transitive via the toolchain.
-  'js-yaml@<4.2.0': 4.2.0
-  # Security: @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking
-  # credentials via GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via
-  # @lenne.tech/bug.lt, which hard-pins @nuxt/ui@4.2.1. Target 4.8.1 == the app's own
-  # @nuxt/ui version, so this also dedupes the tree onto a single @nuxt/ui.
-  '@nuxt/ui@<4.7.2': 4.8.1

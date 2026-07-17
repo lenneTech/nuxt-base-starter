@@ -89,7 +89,14 @@ export default defineConfig<ConfigOptions>({
     : [
         {
           command: 'npm run start',
-          reuseExistingServer: !process.env.CI,
+          // Fail fast instead of silently testing a FOREIGN server: on a
+          // multi-project machine, `reuseExistingServer: true` makes a classic
+          // (non-`lt dev`) run reuse whatever is already bound to :3001 — which
+          // can be ANOTHER checkout's app, so the suite tests the wrong code.
+          // With `false`, Playwright errors clearly when the port is taken.
+          // The isolated `lt dev test` path (own port, own DB) is unaffected —
+          // it never uses this webServer block (see LT_DEV_ACTIVE above).
+          reuseExistingServer: false,
           stderr: 'pipe',
           stdout: 'pipe',
           // Cold CI runners need longer than a warm local machine to build +

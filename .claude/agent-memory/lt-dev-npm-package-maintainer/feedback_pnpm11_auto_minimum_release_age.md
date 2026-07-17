@@ -1,16 +1,22 @@
 ---
 name: pnpm11-auto-minimum-release-age-exclude
-description: pnpm 11 auto-appends to minimumReleaseAgeExclude when adding fresh versions; expect noisy diffs and clean up transitives
+description: pnpm 11 auto-excludes fresh versions from the release-age gate, but repo policy is to WAIT it out and pick an older version — plus how to escape the stale-lock deadlock
 metadata:
   type: feedback
 ---
 
-When running `pnpm add -E pkg@version` in `nuxt-base-template/`, pnpm 11.1.3 auto-appends entries to `minimumReleaseAgeExclude` in `pnpm-workspace.yaml` for every package whose release age is below the "minimumReleaseAge" threshold. This includes ALL same-version transitives — not just the direct dep being bumped.
+When running `pnpm add -E pkg@version` in `nuxt-base-template/`, pnpm 11 auto-appends entries to `minimumReleaseAgeExclude` in `pnpm-workspace.yaml` for every package published inside the gate window (default 1 day) — including ALL same-version transitives, not just the direct dep. Output: `Added N entries to minimumReleaseAgeExclude ... (loose mode allowed these immature versions)`.
 
-**Why:** Observed 2026-05-31 during a routine patch bump (`better-auth 1.6.11 → 1.6.13`). pnpm added NINE entries (`@better-auth/core@1.6.13`, `@better-auth/drizzle-adapter@1.6.13`, `@better-auth/kysely-adapter@1.6.13`, `@better-auth/memory-adapter@1.6.13`, `@better-auth/mongo-adapter@1.6.13`, `@better-auth/passkey@1.6.13`, `@better-auth/prisma-adapter@1.6.13`, `@better-auth/telemetry@1.6.13`, `better-auth@1.6.13`) for a single user-facing 2-patch bump. Similar happens for any same-day npm release. Output line: `Added N entries to minimumReleaseAgeExclude in pnpm-workspace.yaml (loose mode allowed these immature versions)`.
+**Do NOT keep those auto-added entries** (this supersedes the older "leave them in place for the run" advice). The workspace file's own policy states: *"Do NOT add third-party packages here as a habit ... Prefer simply waiting out the ~1-day gate."* The `@lenne.tech/*` glob is the only standing exemption. Pick the newest version already PAST the gate instead.
 
 **How to apply:**
-- This is expected pnpm 11 behavior, not a bug — leave the entries in place for the duration of the maintenance run so install stays reproducible.
-- Stale exclude entries from PREVIOUS sessions (e.g. `@lenne.tech/nuxt-extensions@1.7.1`) should be reviewed during cleanup — if the targeted version is now past the minimumReleaseAge window (default 7 days), the entry is dead weight and can be pruned. Don't prune entries added during the CURRENT run.
-- The auto-added entries do NOT need to be reflected in CLAUDE.md's override table — that table is for `overrides:` only, not `minimumReleaseAgeExclude:`.
-- Don't try to disable the auto-add behavior; it's the "loose mode" safety valve that lets pnpm proceed when a fresh release would otherwise be blocked by the age policy.
+- BEFORE bumping, check age: `pnpm view <pkg> time --json`; anything <24h old will be gated. Choose the highest gate-passing version. On 2026-07-16: `vue` 3.5.40 was 7h old → used 3.5.39; `@nuxt/ui` 4.10.0 was 3h → used 4.9.0; `@pinia/nuxt` 1.0.1 was 1h → used 1.0.0. Report the deferred ones rather than exempting them.
+- Then strip any entries pnpm auto-wrote, leaving only `- '@lenne.tech/*'`.
+
+**The deadlock (important):** once a fresh version is IN the lockfile, removing the excludes makes every later command fail with `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` — pnpm verifies the lockfile *before* resolving, so it will never re-resolve the offending entries away. `pnpm update pkg@older` just says "Already up to date", because transitives requested via `^3.5.x` legitimately satisfy at the fresh version. Escape that works (used 2026-07-16 to purge vue 3.5.40 → 3.5.39):
+1. Temporarily re-add the auto-excludes so lockfile verification passes.
+2. Add TEMPORARY exact `overrides:` for the package **and its whole sub-family** (`vue` + every `@vue/*`) pinned to the wanted older version — overrides are the only thing that forces transitive re-resolution.
+3. `pnpm install` → fresh version purged; confirm `grep -c "<fresh-version>" pnpm-lock.yaml` = 0.
+4. Remove BOTH the temp overrides and temp excludes, `pnpm install` again. Resolution is sticky so it stays on the older version, and the gate is fully active again.
+
+Never use `--trust-lockfile` / `trustLockfile` to escape this — it skips verification and KEEPS the immature version, the opposite of the policy's intent.

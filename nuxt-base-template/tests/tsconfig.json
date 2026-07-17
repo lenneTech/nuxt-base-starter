@@ -1,0 +1,14 @@
+{
+  // Test files live outside every include of the Nuxt-generated tsconfig
+  // (.nuxt/tsconfig.json covers app/** and tests/nuxt/**, with "types": []),
+  // so without this file the IDE type-checks tests/ without Node built-ins
+  // (node:fs, process, import.meta.dirname, …). Extending the root config
+  // keeps Nuxt's path aliases and module resolution; only the file scope and
+  // the Node types are added here. The check gate has no typecheck step —
+  // this exists for editor diagnostics and future vue-tsc adoption.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["./**/*"]
+}

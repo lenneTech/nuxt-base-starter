@@ -259,7 +259,7 @@ async function getVerificationToken(email: string, maxRetries = 10): Promise<str
     let match: null | RegExpExecArray;
     let token: null | string = null;
     while ((match = regex.exec(log)) !== null) {
-      token = match[1];
+      token = match[1] ?? null;
     }
     if (token) {
       return token;

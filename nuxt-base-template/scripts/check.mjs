@@ -115,16 +115,29 @@ function toFixCommand(kind, cmd) {
 }
 
 // ── metric parsers ─────────────────────────────────────────────────────────
+// Sum capture group 1 across every match of `re` (which must carry the `g` flag).
+// Returns null when nothing matched, so callers can tell "absent" from "zero".
+function sumMatches(clean, re) {
+  let total = null;
+  for (const m of clean.matchAll(re)) {
+    const n = Number(m[1]);
+    if (Number.isFinite(n)) total = (total ?? 0) + n;
+  }
+  return total;
+}
+// A single test step may invoke vitest more than once (e.g. `vitest:unit && vitest`),
+// emitting one summary block per run. Sum them all — reading only the first
+// silently under-reports every later run.
 function parseVitest(out) {
   const clean = stripAnsi(out);
-  const tests = clean.match(/Tests\s+(?:(\d+)\s+failed[^\n]*?)?(\d+)\s+passed/i);
-  const files = clean.match(/Test Files\s+(?:(\d+)\s+failed[^\n]*?)?(\d+)\s+passed/i);
-  const failed = clean.match(/Tests\s+(\d+)\s+failed/i);
-  if (!tests && !files) return null;
+  const passed = sumMatches(clean, /Tests\s+(?:\d+\s+failed[^\n]*?)?(\d+)\s+passed/gi);
+  const files = sumMatches(clean, /Test Files\s+(?:\d+\s+failed[^\n]*?)?(\d+)\s+passed/gi);
+  const failed = sumMatches(clean, /Tests\s+(\d+)\s+failed/gi);
+  if (passed == null && files == null) return null;
   return {
-    failed: failed ? Number(failed[1]) : 0,
-    files: files ? Number(files[2]) : null,
-    passed: tests ? Number(tests[2]) : null,
+    failed: failed ?? 0,
+    files,
+    passed,
   };
 }
 function parseLint(out) {
@@ -470,15 +483,21 @@ async function main() {
     if (!TTY) process.stdout.write(`  ${C.dim('→')} audit\n`);
     else drawLive([`${C.cyan(FRAMES[0])} audit`]);
     const audit = await runAudit(auditCmd);
-    liveCount = 0;
     const dur = Date.now() - t;
     if (audit.blocking) {
+      liveCount = 0; // the failure line must survive — nothing may overwrite it
       const summary = audit.counts ? `${audit.total} vuln (${renderVulnLine(audit.counts)})` : 'failed';
       console.log(`${C.red('✗')} audit  ${C.red(summary)} ${C.dim(`(${fmtDuration(dur)})`)}`);
       return fail(`audit (${auditCmd})`, audit.counts ? renderVulnLine(audit.counts) : audit.reason, started);
     }
-    console.log(`${C.green('✓')} audit  ${audit.counts ? renderVulnLine(audit.counts) : C.dim('0')} ${C.dim(`(${fmtDuration(dur)})`)}`);
+    if (!TTY) {
+      process.stdout.write(`  ${C.green('✓')} audit  ${audit.counts ? renderVulnLine(audit.counts) : C.dim('0')} ${C.dim(`(${fmtDuration(dur)})`)}\n`);
+    }
+    // TTY success: NO permanent line — the live status view overwrites the audit
+    // row (like every other step); the result lands in the report twice: the
+    // Steps list (entry below) and the Vulnerabilities section.
     results.push({ audit, kind: 'audit' });
+    results.push({ dur, kind: 'step', label: 'audit', project: '.' });
   }
 
   // Per-project steps — parallel by default, serial with --sequential.

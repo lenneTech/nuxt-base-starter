@@ -7,5 +7,12 @@
   // nuxt-base-template has its own .editorconfig with `[*.md] insert_final_newline = false`
   // which doesn't propagate up when oxfmt runs from the starter root. Skip it here;
   // the sub-project has its own `pnpm run format:check`.
+  //
+  // This entry only takes effect together with `--disable-nested-config` in the root
+  // `format`/`format:check` scripts. Since oxfmt 0.59 the formatter discovers configs in
+  // SUBDIRECTORIES: it finds nuxt-base-template/.oxfmtrc.jsonc and lets that config govern
+  // the template dir, which of course does not ignore itself — so the entry below is
+  // silently overridden and the root run pulls all 85 files in (vs. 10), then fights the
+  // template's .editorconfig over the final newline in CLAUDE.md / README.md.
   "ignorePatterns": ["node_modules", "dist", "nuxt-base-template"],
 }

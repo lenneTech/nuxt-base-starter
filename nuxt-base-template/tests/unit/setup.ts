@@ -30,12 +30,12 @@ Object.defineProperty(document, 'cookie', {
       .join('; ');
   },
   set: (value: string) => {
-    const [cookiePart] = value.split(';');
-    const [key, val] = cookiePart.split('=');
+    const [cookiePart = ''] = value.split(';');
+    const [key = '', val] = cookiePart.split('=');
     if (val === '' || value.includes('max-age=0')) {
       delete cookies[key];
     } else {
-      cookies[key] = val;
+      cookies[key] = val ?? '';
     }
   },
 });
