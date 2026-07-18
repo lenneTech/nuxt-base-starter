@@ -22,8 +22,8 @@ importers:
         specifier: 1.6.9
         version: 1.6.9(ac3216d49f4c4aaed8a67a4b3f22c34e)
       '@lenne.tech/nuxt-extensions':
-        specifier: 1.10.3
-        version: 1.10.3(f431e37cbf907ad1339e3aeb18ce2d11)
+        specifier: 1.11.0
+        version: 1.11.0(f431e37cbf907ad1339e3aeb18ce2d11)
       '@nuxt/image':
         specifier: 2.0.0
         version: 2.0.0(db0@0.3.4)(ioredis@5.10.1)(magicast@0.5.3)
@@ -737,8 +737,8 @@ packages:
   '@lenne.tech/bug.lt@1.6.9':
     resolution: {integrity: sha512-1lLNiYqqKiPT1p/lU3f07L2moKq+0oM5SiE3PJ9069RglVrOyJ5IcPhL246qEWEg5gBzbVful1vrK368HqZmUg==}
 
-  '@lenne.tech/nuxt-extensions@1.10.3':
-    resolution: {integrity: sha512-REgu+GQxAON3Sczn0EmkmnGk4NCfoJDFpqryc+kb36FkZ0s/TgcZS9I1hshG2/9/WALtCosqG0rcUul57EsY1w==}
+  '@lenne.tech/nuxt-extensions@1.11.0':
+    resolution: {integrity: sha512-r5hfjI4dVvyIwCwkmcGlTXDAmvmsh4OzCqzSORkjnmGK+KI/HkkcDlHeyPxRPE//rFKNNFB1KLTZtM1I1ZreQw==}
     engines: {node: '>= 22', pnpm: ^11.0.0}
     peerDependencies:
       '@better-auth/passkey': '>=1.0.0'
@@ -6861,7 +6861,7 @@ snapshots:
       - webpack
       - yup
 
-  '@lenne.tech/nuxt-extensions@1.10.3(f431e37cbf907ad1339e3aeb18ce2d11)':
+  '@lenne.tech/nuxt-extensions@1.11.0(f431e37cbf907ad1339e3aeb18ce2d11)':
     dependencies:
       '@nuxt/kit': 4.4.8(magicast@0.5.3)
       better-auth: 1.6.23(mongodb@7.5.0)(vitest@4.1.10(@types/node@26.1.1)(happy-dom@20.10.6)(vite@7.3.5(@types/node@26.1.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.46.0)(yaml@2.9.0)))(vue@3.5.40(typescript@6.0.3))
@@ -8777,7 +8777,7 @@ snapshots:
 
   '@tiptap/extension-bubble-menu@3.24.0(@tiptap/core@3.24.0(@tiptap/pm@3.24.0))(@tiptap/pm@3.24.0)':
     dependencies:
-      '@floating-ui/dom': 1.7.6
+      '@floating-ui/dom': 1.8.0
       '@tiptap/core': 3.24.0(@tiptap/pm@3.24.0)
       '@tiptap/pm': 3.24.0
 
@@ -8814,7 +8814,7 @@ snapshots:
 
   '@tiptap/extension-drag-handle@3.24.0(@tiptap/core@3.24.0(@tiptap/pm@3.24.0))(@tiptap/extension-collaboration@3.24.0(@tiptap/core@3.24.0(@tiptap/pm@3.24.0))(@tiptap/pm@3.24.0)(@tiptap/y-tiptap@3.0.7(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))(yjs@13.6.29))(@tiptap/extension-node-range@3.24.0(@tiptap/core@3.24.0(@tiptap/pm@3.24.0))(@tiptap/pm@3.24.0))(@tiptap/pm@3.24.0)(@tiptap/y-tiptap@3.0.7(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))':
     dependencies:
-      '@floating-ui/dom': 1.7.6
+      '@floating-ui/dom': 1.8.0
       '@tiptap/core': 3.24.0(@tiptap/pm@3.24.0)
       '@tiptap/extension-collaboration': 3.24.0(@tiptap/core@3.24.0(@tiptap/pm@3.24.0))(@tiptap/pm@3.24.0)(@tiptap/y-tiptap@3.0.7(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.6)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))(yjs@13.6.29)
       '@tiptap/extension-node-range': 3.24.0(@tiptap/core@3.24.0(@tiptap/pm@3.24.0))(@tiptap/pm@3.24.0)
