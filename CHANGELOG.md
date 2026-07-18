@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.14.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.13.2...v2.14.0) (2026-07-18)
+
+
+### Features
+
+* **check:** group the Steps report by project (monorepo/api/app) ([b57677d](https://github.com/lenneTech/nuxt-base-starter/commit/b57677d10fe6b51f94aec653cc66379779773cf1))
+* update [@lenne](https://github.com/lenne).tech/nuxt-extensions to 1.11.0 and add unhead single-major guard test ([a452aea](https://github.com/lenneTech/nuxt-base-starter/commit/a452aea4368fc557182a8470bf6f6de1342578d9))
+
+
+### Bug Fixes
+
+* **check:** bring the orchestrator up to family parity (realChain + root-only steps) ([78665a4](https://github.com/lenneTech/nuxt-base-starter/commit/78665a428f80a76f4fda0c2568001110461e9b11))
+
 ### [2.13.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.13.1...v2.13.2) (2026-07-18)
 
 ### [2.13.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.13.0...v2.13.1) (2026-07-18)
