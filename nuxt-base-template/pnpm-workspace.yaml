@@ -109,8 +109,8 @@ overrides:
   'minimatch@>=9.0.0 <9.0.7': 9.0.9
   # @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking credentials via
   # GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via @lenne.tech/bug.lt,
-  # which hard-pins @nuxt/ui@4.2.1. Target 4.9.0 == the app's own @nuxt/ui version, so
+  # which hard-pins @nuxt/ui@4.2.1. Target 4.10.0 == the app's own @nuxt/ui version, so
   # this also dedupes the tree onto a single @nuxt/ui.
-  '@nuxt/ui@<4.7.2': 4.9.0
+  '@nuxt/ui@<4.7.2': 4.10.0
   # esbuild dev-server request smuggling (GHSA-67mh-4wv8-2f99, >=0.27.3 <0.28.1) - transitive via vite tooling.
   'esbuild@<0.28.1': 0.28.1
