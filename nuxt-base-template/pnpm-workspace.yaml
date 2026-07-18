@@ -91,6 +91,20 @@ onlyBuiltDependencies:
 # and pins the OLD version, silently re-introducing the patched CVEs. hono is owned
 # by nest-server's overrides. Do not add it back.
 overrides:
+  # Build integrity, not a CVE: nuxt 4.4.x is built against unhead v2
+  # (@unhead/vue ^2.1.15), but nuxt-seo-utils >=8.1.10 hard-depends on
+  # @unhead/bundler v3 and nuxt-schema-org resolves its `unhead ^2 || ^3`
+  # peer to v3 — TWO unhead majors in the tree. Nitro's externals tracer
+  # then copies a partial unhead v3 into `.output/server/node_modules/unhead`
+  # (missing dist/server.mjs), so EVERY SSR request of the built app dies
+  # with 500 ERR_MODULE_NOT_FOUND (dev mode is unaffected; Playwright E2E
+  # against the built output catches it). Pin the SEO chain to the last
+  # pure-v2 nuxt-seo-utils and force the unhead peer to nuxt's own version
+  # so exactly ONE unhead resolves. Remove both once nuxt itself moves to
+  # unhead v3 (then drop the pins and re-verify with `pnpm why unhead`:
+  # exactly one version must remain).
+  'nuxt-seo-utils': 8.1.8
+  'unhead': 2.1.15
   # ReDoS via brace-expansion (GHSA-f886-m6hf-6m8v); minimatch 9.x is still pulled below 9.0.7.
   'minimatch@>=9.0.0 <9.0.7': 9.0.9
   # @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking credentials via
