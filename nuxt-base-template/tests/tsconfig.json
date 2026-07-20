@@ -1,14 +1,30 @@
 {
-  // Test files live outside every include of the Nuxt-generated tsconfig
-  // (.nuxt/tsconfig.json covers app/** and tests/nuxt/**, with "types": []),
-  // so without this file the IDE type-checks tests/ without Node built-ins
-  // (node:fs, process, import.meta.dirname, …). Extending the root config
-  // keeps Nuxt's path aliases and module resolution; only the file scope and
-  // the Node types are added here. The check gate has no typecheck step —
-  // this exists for editor diagnostics and future vue-tsc adoption.
+  // Shared type-check settings for the test suites (tests/unit + tests/e2e),
+  // used by BOTH the editor and the `check` gate:
+  //   - the IDE picks up this file automatically for anything under tests/;
+  //   - tsconfig.tests.json (repo root) extends it to add the CLI gate's
+  //     root-relative file scope + noEmit. `pnpm run typecheck:tests` (wired
+  //     into `check` and CI) runs tsc over that gate config.
+  // Keep the common knobs (types, strictness relaxations) HERE so the editor
+  // and the gate never diverge — otherwise a spec can be green in one and red
+  // in the other.
+  //
+  // Extending the root config keeps Nuxt's path aliases + module resolution
+  // (and the app's ES2022 target); this file adds only the test-specific file
+  // scope, the Node/vitest ambient types, and the fixture-indexing relaxation.
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "types": ["node"]
+    // node: built-ins (node:fs, process, import.meta.*). vitest/globals: the
+    // ambient describe/it/expect that unit specs may use (vitest.config sets
+    // `globals: true`). e2e specs import test/expect from
+    // @nuxt/test-utils/playwright explicitly, so the vitest globals never
+    // collide there.
+    "types": ["node", "vitest/globals"],
+    // Relaxed vs. the app config: specs index into known-shaped fixtures
+    // constantly; requiring `!` on every access is churn that catches no real
+    // bug. Full `strict` still applies. Kept here (not only in the gate) so the
+    // editor shows exactly the diagnostics the gate enforces.
+    "noUncheckedIndexedAccess": false
   },
   "include": ["./**/*"]
 }
