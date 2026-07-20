@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.15.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.14.0...v2.15.0) (2026-07-20)
+
+
+### Features
+
+* type-check the test suites (tests/unit + tests/e2e) in check + CI ([fba4ee0](https://github.com/lenneTech/nuxt-base-starter/commit/fba4ee0ce409ba39d6215a1f6b9c8cccc760d958))
+
 ## [2.14.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.13.2...v2.14.0) (2026-07-18)
 
 
