@@ -1,0 +1,34 @@
+{
+  // CLI type-check gate for the test suites (tests/unit + tests/e2e).
+  //
+  // `nuxt build` and `oxlint app/` never look at tests/, and vitest / Playwright
+  // transpile without type-checking — so type errors in specs (wrong helper
+  // arity, missing imports, stale API shapes) land unnoticed. `pnpm run
+  // typecheck:tests` (wired into `check` and CI) runs tsc over this config to
+  // close that gap.
+  //
+  // Shares every common knob (types, strictness relaxations, path aliases,
+  // ES2022 target) with the editor config in tests/tsconfig.json by extending
+  // it — so the gate and the IDE never diverge. This file adds only what the
+  // CLI run needs on top: the root-relative file scope (tests/tsconfig.json's
+  // own include is relative to tests/) and an explicit noEmit — it is a pure
+  // gate.
+  //
+  // The extends chain (tests/tsconfig.json → tsconfig.json → .nuxt/tsconfig.json)
+  // makes specs resolve the same way vitest does at runtime (`~` → app/,
+  // auto-imports via .nuxt ambient types). It needs a prior `nuxt prepare`; the
+  // typecheck:tests script runs that first.
+  //
+  // Tool choice — plain `tsc`, not `vue-tsc`: the starter's specs import only
+  // `.ts` (relative app utils, node, vitest, Playwright), so `tsc` covers them
+  // fully with the pinned TypeScript. Once your project's specs start importing
+  // `.vue` components or via the `~` alias (which pulls SFCs through
+  // `#components`), plain `tsc` can no longer resolve `.vue` — switch this
+  // script to `vue-tsc` then (and pin a `vue-tsc` version compatible with your
+  // `typescript`; vue-tsc 3.x does not run on TypeScript 6.x).
+  "extends": "./tests/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [".nuxt/nuxt.d.ts", "tests/**/*.ts"]
+}

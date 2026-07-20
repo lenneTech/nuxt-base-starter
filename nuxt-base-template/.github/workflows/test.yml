@@ -67,6 +67,35 @@ jobs:
       - name: Check formatting
         run: pnpm run format:check
 
+  typecheck:
+    name: Type-Check Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Type-check the test suites (tests/unit + tests/e2e). `nuxt build` and
+      # `oxlint app/` never look at tests/, and vitest / Playwright transpile
+      # without type-checking — so spec type errors would land unnoticed. The
+      # script self-preps `.nuxt` (tsc needs the generated types). Kept in its
+      # own job so it stays off the lint → build critical path (build needs
+      # [unit-tests, lint]); branch protection still gates the merge on it.
+      - name: Type-check test suites
+        run: pnpm run typecheck:tests
+
   build:
     name: Build
     runs-on: ubuntu-latest
