@@ -1,0 +1,31 @@
+{
+  // Type-check for the test suites (tests/unit + tests/e2e).
+  //
+  // `nuxt build` and `oxlint app/` never look at tests/, and vitest / Playwright
+  // transpile without type-checking — so type errors in specs (wrong helper
+  // arity, missing imports, stale API shapes) land unnoticed. `pnpm run
+  // typecheck:tests` (wired into `check`) runs tsc over this config to close
+  // that gap.
+  //
+  // Tool choice — plain `tsc`, not `vue-tsc`: the starter's specs import only
+  // `.ts` (relative app utils, node, vitest, Playwright), so `tsc` covers them
+  // fully with the pinned TypeScript. Once your project's specs start importing
+  // `.vue` components or via the `~` alias (which pulls SFCs through
+  // `#components`), plain `tsc` can no longer resolve `.vue` — switch this
+  // script to `vue-tsc` then (and pin a `vue-tsc` version compatible with your
+  // `typescript`; vue-tsc 3.x does not run on TypeScript 6.x).
+  //
+  // Extends the generated Nuxt tsconfig so specs resolve the same way vitest
+  // does at runtime (`~` → app/, auto-imports via .nuxt ambient types). Emits
+  // nothing; it is a pure gate.
+  "extends": "./.nuxt/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"],
+    // Relaxed vs. the app config: specs index into known-shaped fixtures
+    // constantly; requiring `!` on every access is churn that catches no real
+    // bug. The gate still enforces full `strict`.
+    "noUncheckedIndexedAccess": false
+  },
+  "include": [".nuxt/nuxt.d.ts", "tests/**/*.ts"]
+}

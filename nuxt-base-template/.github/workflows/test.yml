@@ -67,6 +67,13 @@ jobs:
       - name: Check formatting
         run: pnpm run format:check
 
+      # Type-check the test suites (tests/unit + tests/e2e). `nuxt build` and
+      # `oxlint app/` never look at tests/, and vitest / Playwright transpile
+      # without type-checking — so spec type errors would land unnoticed. The
+      # script self-preps `.nuxt` (tsc needs the generated types).
+      - name: Type-check test suites
+        run: pnpm run typecheck:tests
+
   build:
     name: Build
     runs-on: ubuntu-latest
