@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.15.0...v2.15.1) (2026-07-22)
+
+
+### Bug Fixes
+
+* **security:** close 11 transitive advisories in the template and the release toolchain ([d282ffe](https://github.com/lenneTech/nuxt-base-starter/commit/d282ffec900c24b171ef5f410515e81ddc875596))
+
 ## [2.15.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.14.0...v2.15.0) (2026-07-20)
 
 
