@@ -15,3 +15,10 @@
 # FIXED version, never a range — an unbounded target like `>=X` lets pnpm jump a major.
 # Only override packages this project actually resolves; verify a candidate is live
 # with: grep "'\?<pkg>@[0-9]" pnpm-lock.yaml
+
+overrides:
+  # brace-expansion DoS via exponential-time expansion of consecutive non-expanding {} groups
+  # (GHSA-3jxr-9vmj-r5cp, high, patched >=1.1.16). Dev only, transitive via
+  # standard-version>dotgitignore>minimatch. Bounded key so it can only raise a vulnerable
+  # version, never cap a patched one. Drop once dotgitignore/minimatch request a patched range.
+  'brace-expansion@<1.1.16': 1.1.16

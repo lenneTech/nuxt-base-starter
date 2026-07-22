@@ -114,3 +114,27 @@ overrides:
   '@nuxt/ui@<4.7.2': 4.10.0
   # esbuild dev-server request smuggling (GHSA-67mh-4wv8-2f99, >=0.27.3 <0.28.1) - transitive via vite tooling.
   'esbuild@<0.28.1': 0.28.1
+  # sharp: use-after-free / heap buffer overflow when decoding a malformed image
+  # (GHSA-f88m-g3jw-g9cj, high, patched >=0.35.0). Transitive via @nuxt/image>ipx>sharp,
+  # which reaches user-supplied images on any /_ipx/ route — so this is a live path, not
+  # a build-time-only concern. Bounded key so it can only raise a vulnerable version and
+  # never cap a patched one. Drop once ipx requests >=0.35.0 itself.
+  'sharp@<0.35.0': 0.35.3
+  # tar: multiple advisories across the 7.x line (latest patched 7.5.19+). Transitive via
+  # @lenne.tech/nuxt-extensions>nuxt>@nuxt/nitro-*. Bounded key so it can only raise.
+  # Drop once nitro requests a patched tar itself.
+  'tar@<7.5.20': 7.5.20
+  # brace-expansion DoS via exponential-time expansion of consecutive non-expanding {} groups
+  # (GHSA-3jxr-9vmj-r5cp, high). Transitive via nitro>minimatch. One bounded key per affected
+  # major; the 5.x key is floored at >=5.0.0 so a future 3.x/4.x dep is not forced across majors.
+  'brace-expansion@>=2.0.0 <2.1.2': 2.1.2
+  'brace-expansion@>=5.0.0 <5.0.7': 5.0.7
+  # js-yaml quadratic CPU consumption via YAML merge-key chains (GHSA-52cp-r559-cp3m, high).
+  # Transitive via @hey-api/openapi-ts>@hey-api/json-schema-ref-parser.
+  'js-yaml@>=4.0.0 <4.3.0': 4.3.0
+  # shell-quote command injection (patched >=1.8.5). Transitive via nuxt tooling.
+  'shell-quote@<1.8.5': 1.10.0
+  # svgo (patched >=4.0.2). Transitive via @nuxt/vite-builder.
+  'svgo@>=4.0.0 <4.0.2': 4.0.2
+  # fast-xml-parser ReDoS (GHSA-8r6m-32jq-jx6q, high). Transitive via @nuxtjs/seo>@nuxtjs/sitemap.
+  'fast-xml-parser@>=5.9.3 <5.10.1': 5.10.1
