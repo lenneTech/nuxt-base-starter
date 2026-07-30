@@ -108,22 +108,24 @@ overrides:
   # Lifts every minimatch 5.x–9.x consumer onto 10.x so it inherits the PATCHED
   # brace-expansion 5.x — see the brace-expansion note further down for why minimatch is
   # the lever. Closes the nitro>archiver and readdir-glob chains; the lockfile now
-  # resolves a single `minimatch@10.2.5` and a single `brace-expansion@5.0.8`.
+  # resolves a single `minimatch@10.2.6` and a single `brace-expansion@5.0.8`.
   #
   # Export-shape check, which is what makes a cross-major lift safe or not. Measured by
   # installing each version and reading `typeof require('minimatch')` (2026-07-30):
   #   5.1.9 function · 6.2.0 function · 7.4.6 function · 8.0.4 function
-  #   9.0.9 object   · 10.2.5 object
+  #   9.0.9 object   · 10.2.6 object
   # So 5.x–8.x ARE callable, and a consumer doing `require('minimatch')(…)` would break
   # on 10.x. The key spans them anyway because only ONE such consumer resolves here —
   # `readdir-glob@1.1.3`, which does `const { Minimatch } = require('minimatch')` (a named
-  # destructure, not a call) and was exercised against 10.2.5 without error. Re-verify
+  # destructure, not a call) and was exercised against 10.2.6 without error. Re-verify
   # this if a new 5.x–8.x consumer enters the tree; a narrower key would drop
   # readdir-glob back to minimatch@5 and re-open the brace-expansion chain, which is why
   # the range is not simply tightened to >=9.
   #
   # minimatch@3 is deliberately not covered — its consumers DO call it as a callable.
-  'minimatch@>=5.0.0 <10.2.5': 10.2.5
+  # Target 10.2.6 (not the 9.0.7 floor) mirrors the @lenne.tech/nuxt-extensions override,
+  # so library and starter resolve the same patched minimatch line.
+  'minimatch@>=5.0.0 <10.2.6': 10.2.6
   # @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking credentials via
   # GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via @lenne.tech/bug.lt,
   # which hard-pins @nuxt/ui@4.2.1. Target 4.10.0 == the app's own @nuxt/ui version, so
@@ -141,11 +143,14 @@ overrides:
   # @lenne.tech/nuxt-extensions>nuxt>@nuxt/nitro-*. Bounded key so it can only raise.
   # Drop once nitro requests a patched tar itself.
   # NOTE: this used to read `<7.5.20: 7.5.20`, pinning to a version GHSA-r292-9mhp-454m
-  # itself covers (`<=7.5.20`) — 21 paths looked handled while staying vulnerable.
-  'tar@<7.5.21': 7.5.21
+  # itself covers (`<=7.5.20`) — 21 paths looked handled while staying vulnerable. Target
+  # 7.5.22 mirrors the @lenne.tech/nuxt-extensions override (7.5.21 is the advisory floor;
+  # 7.5.22 is the current release on the same major, so both repos pin one identical line).
+  'tar@<7.5.21': 7.5.22
   # postcss <=8.5.17 (GHSA-r28c-9q8g-f849, high), patched >=8.5.18. Build-time only, via
   # nuxt>@nuxt/vite-builder>autoprefixer/cssnano (100 paths). Bounded key so it can only raise.
-  'postcss@<8.5.18': 8.5.18
+  # Target 8.5.24 (not the 8.5.18 floor) mirrors the @lenne.tech/nuxt-extensions override.
+  'postcss@<8.5.18': 8.5.24
   # brace-expansion DoS via unbounded expansion (GHSA-mh99-v99m-4gvg, high). Patched ONLY
   # in 5.0.8 — there is no 2.x backport, so the 2.x key below merely keeps that major on its
   # newest release.
