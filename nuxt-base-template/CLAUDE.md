@@ -44,10 +44,34 @@ app/                  # Application code (srcDir)
 ├── lib/              # Utility libraries (auth-client setup)
 ├── pages/            # File-based routing
 └── utils/            # Auto-imported utilities
-server/               # Nitro server routes
-tests/                # Playwright E2E tests
+server/
+├── api/              # Nitro server routes
+├── plugins/          # Nitro runtime plugins (response headers, hooks)
+└── utils/            # Auto-imported server-side utilities
+tests/                # Playwright E2E + Vitest unit tests
 nuxt.config.ts        # Nuxt configuration
 ```
+
+Generated directories (all gitignored, all removed by `pnpm run clean`):
+
+```
+.nuxt/         # Build dir for `nuxt dev` and the IDE — refresh with `pnpm run prepare:ide`
+.nuxt-check/   # Isolated build dir for the check chain (NUXT_BUILD_DIR)
+.nuxt-test/    # Build dir for the `lt dev test` stack — written by the lt CLI, not by this repo
+.output/       # Nitro output of `pnpm run build`
+.output-test/  # Nitro output for `lt dev test` — written by the lt CLI (NITRO_OUTPUT_DIR)
+```
+
+Why `check` gets its own build dir: `nuxt dev`, `nuxt prepare` and `nuxt build` all
+write their generated `tsconfig.json` into the build dir. With one shared `.nuxt/`, a
+parked dev server rewrites that file while the check chain's type-check reads it, and
+the run fails with TS2307 on every `~`/`#` alias — on code that is fine. The split
+lets `check` and `dev` run in parallel. `tests/unit/nuxt-builddir-isolation.test.ts`
+keeps the wiring honest.
+
+`.nuxt-test/` and `.output-test/` are written by the **lt CLI** (a different repo),
+never by anything here — a grep inside this template finds only ignore/clean entries,
+which reads like dead configuration. It is not: deleting it breaks `lt dev test`.
 
 ## Development
 
@@ -57,7 +81,15 @@ pnpm run generate-types  # Generate API types (API must be running on port 3000 
 pnpm test             # Run Playwright E2E tests
 pnpm run build        # Build for production
 pnpm run check        # Full quality check (audit + format + lint + types + test + build)
+pnpm run prepare:ide  # Refresh the IDE's .nuxt/ types
+pnpm run clean        # Remove every generated build/output dir
 ```
+
+**After running `check`, your IDE may show false errors** — run `pnpm run prepare:ide`.
+The gates build into `.nuxt-check/` so they can run next to a live `nuxt dev`, which
+means they no longer refresh the `.nuxt/` the editor reads. Before the build-dir split
+that refresh happened as a side effect; `prepare:ide` is its named replacement.
+(`pnpm run init` / `reinit` also resupply it, via `postinstall`.)
 
 ## Local Development (Parallel Projects)
 
@@ -88,6 +120,15 @@ First run in a fresh project: just `lt dev init` then `lt dev up`. (`lt dev migr
 - `NUXT_PUBLIC_API_PROXY` — always `false` under `lt dev up` because Caddy + cookie-domain make the vite-proxy obsolete
 
 Without `lt dev up`, the template falls back to the defaults (port 3001, API on `localhost:3000`, `NUXT_PUBLIC_API_PROXY=true` for same-origin cookies in classic mode). All env vars are optional.
+
+**Two more env vars the template respects, set per command rather than by `lt dev up`:**
+
+- `NUXT_BUILD_DIR` — Nuxt build dir; default `.nuxt`. The check chain pins `.nuxt-check`, `lt dev test` pins `.nuxt-test`. Keeps a gate run from corrupting the `.nuxt/` a parked `nuxt dev` is reading.
+- `NITRO_OUTPUT_DIR` — Nitro output dir; default `.output`. `lt dev test` pins `.output-test`. **Not a Nitro feature** — despite the `NITRO_` prefix, nitropack ships no such lever; `nuxt.config.ts` opens it. A project that does not forward it silently falls back to the shared `.output`.
+
+Both are read in `nuxt.config.ts` with `||`, not `??`: an exported-but-empty value is falsy but not nullish, and an empty build dir resolves to the project root — which would write generated files over the checked-in sources.
+
+Scripts that set env vars use `cross-env` rather than a bare `VAR=value` prefix, which is POSIX-only and fails in `cmd.exe`. The check runner (`scripts/check.mjs`) instead passes an env object to `spawn`, because it runs commands directly and `node_modules/.bin` is not on the inherited PATH.
 
 **E2E tests run in all three environments** (classic ports / `lt dev up` / CI) from the same specs. Test code reads `NUXT_PUBLIC_API_URL` / `NUXT_PUBLIC_SITE_URL` / `API_URL` with `localhost:3000` / `:3001` fallbacks — never hardcode ports in `tests/e2e/*`. When injecting captured auth cookies into the browser, preserve the `Secure` flag (HTTPS under `lt dev`) and derive the cookie domain from the app host.
 
@@ -255,6 +296,28 @@ ltExtensions: {
 
 Each key is independent — set only the one you need. The starter's global middleware (`app/middleware/auth.global.ts`, `guest.global.ts`, `admin.global.ts`) reads the resolved cookie name from `useRuntimeConfig().public.ltExtensions.auth.cookieNames.state` and falls back to the default.
 
+### Redirect-aware auth flows — `safeRedirectTarget`
+
+`auth.global` sends an unauthenticated visitor to `/auth/login?redirect=<to.fullPath>`
+so a shared deep link survives the sign-in. Four places read that value back:
+`guest.global` (already signed in), `login.vue`, `2fa.vue`, and `verify-email.vue`
+(which carries it onward rather than consuming it).
+
+**Rule:** never read `route.query.redirect` directly. Always go through
+`safeRedirectTarget()` (`app/utils/safe-redirect-target.ts`, auto-imported), exactly
+as with `isAdminUser`. It rejects protocol-relative targets (`//evil.com`), the
+backslash variant, control characters — a tab or newline is stripped by the URL
+parser, turning `/<TAB>/evil.com` into `//evil.com` — and non-string query shapes
+(`?redirect=/a&redirect=/b` yields an array). Anything invalid falls back to `/app`.
+
+Relying on `navigateTo`'s own external-URL refusal is not enough: it throws, and on
+the login page that throw lands in a catch which tells a user who has just been
+signed in successfully that login failed. Validate where the value is read.
+
+**When adding an intermediate auth step**, carry the query through it, or the deep
+link dies there. `tests/unit/utils/safe-redirect-target.test.ts` pins the validator's
+behaviour.
+
 ## Security Overrides (pnpm)
 
 All workspace-scoped pnpm settings — `overrides` (CVE patches for vulnerable transitive deps), `minimumReleaseAgeExclude`, build-script approvals (`allowBuilds` / `onlyBuiltDependencies`), and `ignoredOptionalDependencies` — live in **`pnpm-workspace.yaml`**, each with an inline comment stating its reason (CVE/advisory). The detailed advisory list is therefore the file itself, not duplicated here.
@@ -263,6 +326,9 @@ Rules that matter when touching them:
 
 - **Location:** these keys MUST be in `pnpm-workspace.yaml`, never in `package.json`'s `pnpm` block — pnpm 11 silently ignores the latter, regressing `pnpm audit` to several vulnerabilities. The file has NO `packages:` field (single-package project). Override targets are fixed versions (no ranges) to avoid silent major-version jumps.
 - **Only override what this project resolves:** a dead override (package not in the lockfile) is useless and, inside an `lt fullstack` monorepo, a range selector can shadow the api's override and re-introduce a CVE. Backend-only packages (e.g. `hono`) are owned by nest-server. Check with `grep "'\?<pkg>@[0-9]" pnpm-lock.yaml`.
+- **Suppression is the last resort, and "unfixable" needs proof.** `auditConfig.ignoreGhsas` silences one advisory by GHSA id — the only tool here that makes `pnpm audit` green while the vulnerability is still present. Before reaching for it, work the ladder: (1) can an `overrides` entry raise it? (2) if the patched release changed its export shape, can a `patchedDependencies` entry adapt the ONE consumer that breaks? (3) only then suppress. Step 2 is the one that gets skipped: the root `pnpm-workspace.yaml` carried a suppressed high-severity brace-expansion advisory whose justification was mechanically correct — `minimatch@3` calls `require('brace-expansion')` as a function, and the only patched release exports a namespace object — but the conclusion was wrong. A one-line patch reading `.expand` off the namespace closed it. Every suppression MUST name the advisory, trace the path, state why steps 1 and 2 both fail, state why the residual risk is acceptable (who runs the code, over what input, whether it reaches a generated project's runtime), give the condition for deleting it, and carry a `Verified <date>`. One id per entry — never a range or a whole package.
+- **A patch is legitimate when the break is a shape change, not a behaviour change.** `patchedDependencies` is the right tool when a patched release is functionally identical but structurally incompatible with one consumer. Verify the equivalence before patching (run the old and new function against the same inputs and compare), keep the patch to the adapter line, and record the verification in the comment. Note that patch files must reach the Docker build context — the `Dockerfile` copies `patches/` for exactly this reason.
+- **A cross-major override needs its export shape checked.** Lifting a package across a major can change its CJS shape from a callable to a namespace object, which breaks `require('pkg')(…)` at runtime rather than at install time. Measure it (`typeof require('<pkg>')` on each version in the range), name the consumers, and record the result in the comment — see the `minimatch` entry for the worked example.
 - **`minimumReleaseAge`** (pnpm 11 default: 1 day) quarantines freshly published versions against supply-chain attacks. Our own packages are exempt via the `@lenne.tech/*` glob (installable the moment they publish); third-party exemptions are exact `pkg@version`, deliberate and temporary. Never disable the policy globally (`minimumReleaseAge: 0` / `trustLockfile: true`). After bumping `@lenne.tech/*`, run a full `pnpm install` (not just `pnpm run check`) so pnpm's state cache picks up the exclude.
 
 ## Notable Version Changes (v2.5.x)

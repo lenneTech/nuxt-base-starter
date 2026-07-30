@@ -13,6 +13,22 @@ import * as v from 'valibot';
 const toast = useToast();
 const { fetchWithAuth, setUser, switchToJwtMode, jwtToken } = useLtAuth();
 const authClient = useLtAuthClient();
+const route = useRoute();
+
+// ============================================================================
+// Computed
+// ============================================================================
+/**
+ * Where to go once the second factor is accepted.
+ *
+ * This page completes a sign-in that STARTED on `/auth/login`, so it owns the final
+ * navigation — and therefore the deep link. It used to navigate to `/app`
+ * unconditionally, which meant every 2FA-enabled account lost the target that
+ * `auth.global` had recorded, while accounts without 2FA kept it. `login.vue` now
+ * forwards `?redirect=` here; this reads it back through the same validator the
+ * other consumers use.
+ */
+const redirectTarget = computed(() => safeRedirectTarget(route.query.redirect));
 
 // ============================================================================
 // Page Meta
@@ -114,7 +130,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       }
     }
 
-    await navigateTo('/app');
+    await navigateTo(redirectTarget.value);
   } finally {
     loading.value = false;
   }

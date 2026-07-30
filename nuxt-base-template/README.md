@@ -82,7 +82,8 @@ docker build -f projects/app/Dockerfile --build-arg APP_VERSION_COMMIT=$CI_COMMI
   maps host `3001` → container `3000`. A `HEALTHCHECK` probes `GET /`.
 
 Local development does **not** use Docker — run `lt dev up` (see above). Migrating
-an existing fork? See [`migration-guides/2.11.0-docker-workflow.md`](../migration-guides/2.11.0-docker-workflow.md).
+an existing fork? See [`migration-guides/2.11.0-docker-workflow.md`](../migration-guides/2.11.0-docker-workflow.md)
+and [`migration-guides/2.16.0-build-dir-isolation.md`](../migration-guides/2.16.0-build-dir-isolation.md).
 
 ## Code Quality
 
@@ -91,9 +92,30 @@ Run linting and formatting checks before committing:
 ```bash
 npm run check           # Run lint + format check
 npm run fix             # Auto-fix lint + format issues
-npm run lint            # OxLint only
+npm run lint            # OxLint only (app/ + server/)
 npm run format          # OxFmt format only
+npm run prepare:ide     # Refresh the IDE's .nuxt/ types after a check
+npm run clean           # Remove every generated build/output dir
 ```
+
+**`check` and `nuxt dev` can run side by side.** The gates build into `.nuxt-check/`
+rather than the `.nuxt/` the dev server and your IDE use — sharing it made a parked
+dev server rewrite the generated `tsconfig.json` mid-type-check, which surfaced as
+TS2307 on every `~`/`#` alias, on code that was fine.
+
+The trade-off: the gates no longer refresh the editor's types as a side effect. If
+your IDE shows errors right after a `check`, run `npm run prepare:ide`.
+
+## SSR caching
+
+`server/plugins/html-no-cache.ts` sends `Cache-Control: private, no-cache` plus
+`Vary: Cookie` on SSR HTML, so a browser cannot serve a cached pre-deploy document
+that still references the old hashed `/_nuxt/*` bundles. Hashed assets keep their
+`immutable` header — they bypass the renderer entirely.
+
+The plugin backs off when `routeRules` already set a `cache-control`, so an
+`swr`/`isr` setup keeps working. To opt out entirely, delete the file; Nuxt's app
+manifest still self-heals a stale build, just one reload later.
 
 ## Testing
 

@@ -20,6 +20,22 @@ definePageMeta({
 const email = computed(() => (route.query.email as string) || '');
 const token = computed(() => (route.query.token as string) || '');
 
+/**
+ * Where the "back to sign-in" buttons point.
+ *
+ * This page is a detour inside a sign-in that started on `/auth/login`, and it ends
+ * by sending the visitor back there. Carrying `?redirect=` along is what keeps a
+ * shared deep link alive across the detour — without it the target is dropped here
+ * and the visitor lands on the dashboard after verifying.
+ *
+ * Note the limit: the verification LINK itself is built by the backend and travels
+ * through an e-mail, so a visitor who returns via that link arrives without the
+ * query. This only preserves the target for the in-tab path (verify, then sign in).
+ */
+const loginLink = computed(() =>
+  typeof route.query.redirect === 'string' ? { path: '/auth/login', query: { redirect: safeRedirectTarget(route.query.redirect) } } : '/auth/login',
+);
+
 const verifying = ref(false);
 const verified = ref(false);
 const verifyError = ref('');
@@ -151,7 +167,7 @@ onUnmounted(() => {
           <h2 class="text-xl font-semibold">E-Mail bestätigt</h2>
           <p class="mt-2 text-sm text-muted">Deine E-Mail-Adresse wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.</p>
         </div>
-        <UButton block to="/auth/login">Jetzt anmelden</UButton>
+        <UButton block :to="loginLink">Jetzt anmelden</UButton>
       </div>
     </template>
 
@@ -176,7 +192,7 @@ onUnmounted(() => {
           >
             {{ resendCooldown > 0 ? `Neue E-Mail senden (${resendCooldown}s)` : 'Neue E-Mail senden' }}
           </UButton>
-          <UButton block variant="outline" color="neutral" to="/auth/login">Zurück zur Anmeldung</UButton>
+          <UButton block variant="outline" color="neutral" :to="loginLink">Zurück zur Anmeldung</UButton>
         </div>
       </div>
     </template>
@@ -217,7 +233,7 @@ onUnmounted(() => {
           >
             {{ resendCooldown > 0 ? `Bestätigungs-E-Mail erneut senden (${resendCooldown}s)` : 'Bestätigungs-E-Mail erneut senden' }}
           </UButton>
-          <UButton block variant="outline" color="neutral" to="/auth/login">Zurück zur Anmeldung</UButton>
+          <UButton block variant="outline" color="neutral" :to="loginLink">Zurück zur Anmeldung</UButton>
         </div>
       </div>
     </template>

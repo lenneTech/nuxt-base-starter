@@ -1,3 +1,7 @@
 node_modules
 .idea
 nuxt-base-template/node_modules
+
+# Claude Code agent working notes + local settings — repo-local tooling, not part of the release
+.claude/agent-memory/
+.claude/settings.local.json

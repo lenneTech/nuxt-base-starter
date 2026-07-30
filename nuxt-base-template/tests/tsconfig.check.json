@@ -1,0 +1,24 @@
+{
+  // Gate twin of `tests/tsconfig.json` — same shared knobs, but its extends
+  // chain runs through the isolated build dir (`../tsconfig.check.json` →
+  // `./.nuxt-check/tsconfig.json`) instead of the shared `.nuxt/` that a parked
+  // `nuxt dev` rewrites. Only the CLI gate uses this file; the IDE keeps reading
+  // `tests/tsconfig.json`.
+  //
+  // Keep in lockstep with `tests/tsconfig.json`: identical except the extends
+  // target. Enforced by `tests/unit/nuxt-builddir-isolation.test.ts`.
+  "extends": "../tsconfig.check.json",
+  "compilerOptions": {
+    // node: built-ins (node:fs, process, import.meta.*). vitest/globals: the
+    // ambient describe/it/expect that unit specs may use (vitest.config sets
+    // `globals: true`). e2e specs import test/expect from
+    // @nuxt/test-utils/playwright explicitly, so the vitest globals never
+    // collide there.
+    "types": ["node", "vitest/globals"],
+    // Relaxed vs. the app config: specs index into known-shaped fixtures
+    // constantly; requiring `!` on every access is churn that catches no real
+    // bug. Full `strict` still applies.
+    "noUncheckedIndexedAccess": false
+  },
+  "include": ["./**/*"]
+}

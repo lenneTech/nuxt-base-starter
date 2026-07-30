@@ -1,0 +1,19 @@
+{
+  // Gate twin of `tsconfig.json`, pointed at the isolated build dir.
+  //
+  // `tsconfig.json` extends `./.nuxt/tsconfig.json`, which `nuxt dev` rewrites
+  // in place. A `pnpm run check` next to a parked dev server therefore read that
+  // file mid-write and failed with TS2307 on every `~`/`#` alias plus TS1378 —
+  // on code that was fine. The gates run `NUXT_BUILD_DIR=.nuxt-check nuxt prepare`
+  // and resolve through THIS file instead, so they own their inputs and the two
+  // can run in parallel.
+  //
+  // Keep in lockstep with `tsconfig.json`: identical except `.nuxt` →
+  // `.nuxt-check`. Enforced by `tests/unit/nuxt-builddir-isolation.test.ts`,
+  // which compares the two structurally — an option added to one but not the
+  // other turns the unit suite red instead of silently weakening the gate.
+  "extends": "./.nuxt-check/tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022"
+  }
+}

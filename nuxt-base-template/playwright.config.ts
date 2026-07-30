@@ -23,11 +23,35 @@ const devicesToTest = [
 
 // `lt dev test --shard N` runs N built stacks + N Chromium concurrently, which
 // saturates the CPU and slows SSR navigation 2-3x. The CLI exports
-// `LT_DEV_TEST_SHARDS` so we relax timeouts ONLY under that load — serial + CI
-// keep their tight defaults (fast-failure feedback unchanged). For per-call
-// `waitForURL` overrides, gate them on this too, e.g.:
-//   const NAV = Number(process.env.LT_DEV_TEST_SHARDS || '0') > 1 ? 60_000 : 15_000;
+// `LT_DEV_TEST_SHARDS` so we relax timeouts under that load; a warm local serial
+// run keeps the tight defaults (fast-failure feedback unchanged). For per-call
+// `waitForURL` overrides, gate them on `RELAXED` below rather than on this flag
+// alone, e.g.:
+//   const NAV = RELAXED ? 60_000 : 15_000;
 const SHARDED = Number(process.env.LT_DEV_TEST_SHARDS || '0') > 1;
+
+// CI needs the same relief, for a different reason. The webServer below starts
+// `nuxt dev` — a DEV server with no Vite cache on a fresh runner — so the first
+// navigation to each route pays an on-demand SSR compile INSIDE the budget of
+// whichever test happens to visit it first. Against Playwright's 30s default
+// that is a coin flip, and it shows: the failing spec moves between runs
+// (`page.waitForFunction`/`locator.click` timeouts on a different file each
+// time), while the same specs pass locally against a warm server. "Tight
+// defaults = fast failure" only holds when the clock measures the assertion;
+// here it measures the compiler, so it produces retries and false alarms
+// instead of feedback.
+//
+// The surgical alternative is to warm the routes before the suite (compile
+// once, then test); relaxing the ceilings reuses the mechanism this config
+// already has for the analogous sharded case and keeps `retries` + the
+// `globalTimeout` backstop as the guard against a genuinely wedged run.
+//
+// NOT relaxed when the BUILT server is used (`E2E_BUILT_SERVER=true`, which CI
+// now sets): that removes the on-demand SSR compile which is the entire reason
+// above. Keeping the relief anyway would only mean a genuinely hung test burns
+// 180s × (1 + 2 retries) = 9 minutes instead of failing in 90 seconds.
+const BUILT_SERVER = process.env.E2E_BUILT_SERVER === 'true';
+const RELAXED = SHARDED || (isCI && !BUILT_SERVER);
 
 /* See https://playwright.dev/docs/test-configuration. */
 export default defineConfig<ConfigOptions>({
@@ -35,8 +59,15 @@ export default defineConfig<ConfigOptions>({
   forbidOnly: !!isCI,
   /* Hard ceiling for the WHOLE run (per-test timeouts don't cover hangs outside
      tests: webServer reuse checks, reporters, teardown). Prevents a wedged run
-     from spinning forever — the Playwright equivalent of the check.mjs watchdog. */
-  globalTimeout: 60 * 60 * 1000,
+     from spinning forever — the Playwright equivalent of the check.mjs watchdog.
+
+     Deliberately BELOW the CI job timeout (1 hour in .gitlab-ci.yml). It used to
+     be exactly 60 minutes, which meant it could never fire: Playwright's clock
+     starts only after install, artifact download, Mongo, migrations and API boot,
+     so the runner always killed the job first — and a killed job writes no
+     report. That is precisely the "ran to the hour limit without ever printing a
+     summary" symptom. Keep this comfortably under whatever the job allows. */
+  globalTimeout: 40 * 60 * 1000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   projects: devicesToTest.map((p) => (typeof p === 'string' ? { name: p, use: devices[p] } : p)),
@@ -45,9 +76,10 @@ export default defineConfig<ConfigOptions>({
   /* Retry on CI only */
   retries: isCI ? 2 : 0,
   testDir: './tests/e2e',
-  timeout: isWindows ? 60000 : SHARDED ? 180_000 : undefined,
-  /* Assertion timeout: Playwright default in serial/CI; relaxed under sharded load. */
-  expect: { timeout: SHARDED ? 30_000 : undefined },
+  timeout: isWindows ? 60000 : RELAXED ? 180_000 : undefined,
+  /* Assertion timeout: Playwright default for a warm serial run; relaxed under
+     sharded load and on CI's cold dev server (see RELAXED). */
+  expect: { timeout: RELAXED ? 30_000 : undefined },
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     baseURL: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001',
@@ -57,9 +89,10 @@ export default defineConfig<ConfigOptions>({
     // its own trust store). No-op in CI (plain http://localhost).
     ignoreHTTPSErrors: true,
 
-    // Navigation/action ceilings ONLY under sharded load (serial/CI = defaults).
-    actionTimeout: SHARDED ? 30_000 : undefined,
-    navigationTimeout: SHARDED ? 60_000 : undefined,
+    // Navigation/action ceilings under sharded load AND on CI (cold dev server);
+    // a warm local serial run keeps Playwright's defaults.
+    actionTimeout: RELAXED ? 30_000 : undefined,
+    navigationTimeout: RELAXED ? 60_000 : undefined,
 
     launchOptions: {
       // No artificial slow-down — it only adds latency (×N under sharding).
@@ -88,7 +121,39 @@ export default defineConfig<ConfigOptions>({
     ? undefined
     : [
         {
-          command: 'npm run start',
+          /**
+           * The BUILT server when `E2E_BUILT_SERVER=true`, `nuxt dev` otherwise.
+           *
+           * `nuxt dev` recompiles every route on first visit — once per device
+           * project. On CI that Vite cold start dominates the runtime badly enough
+           * that the suite can hit the job time limit without ever printing a
+           * summary. The built server boots once and serves finished bundles;
+           * `lt-monorepo/.gitlab-ci.yml` (job `app:test`) passes it to every shard
+           * as the `build` job's artifact. This repo's own GitHub workflow has no
+           * e2e job, so the flag is unset here and `nuxt dev` is what runs.
+           *
+           * Locally `nuxt dev` stays the default so HMR is preserved.
+           *
+           * The output path follows `NITRO_OUTPUT_DIR` for the same reason
+           * `nuxt.config.ts` exposes it — hardcoding `.output` would break the
+           * moment someone builds into a different tree.
+           */
+          command: process.env.E2E_BUILT_SERVER === 'true' ? `node ${process.env.NITRO_OUTPUT_DIR || '.output'}/server/index.mjs` : 'npm run start',
+          /**
+           * Set the port explicitly — the built server does not guess it.
+           *
+           * `nuxt dev` knows the project port from the Nuxt config; the built Nitro
+           * server does not. It reads `PORT` or falls back to 3000 — on CI exactly
+           * the API's port. It would then die immediately with `EADDRINUSE` while
+           * Playwright keeps waiting on :3001. Deriving the port from the expected
+           * URL keeps it to one source with no second value that can drift.
+           *
+           * A URL with no explicit port (`https://app.localhost`, what `lt dev up`
+           * exports) yields `''` and falls back to 3001. That combination is
+           * unreachable here: `lt dev` also sets `LT_DEV_ACTIVE`, which skips this
+           * whole `webServer` block.
+           */
+          env: { PORT: new URL(process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3001').port || '3001' },
           // Fail fast instead of silently testing a FOREIGN server: on a
           // multi-project machine, `reuseExistingServer: true` makes a classic
           // (non-`lt dev`) run reuse whatever is already bound to :3001 — which

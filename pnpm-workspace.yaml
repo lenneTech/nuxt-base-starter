@@ -16,9 +16,58 @@
 # Only override packages this project actually resolves; verify a candidate is live
 # with: grep "'\?<pkg>@[0-9]" pnpm-lock.yaml
 
+# ----------------------------------------------------------------------------------
+# No accepted advisories.
+#
+# There is deliberately no `auditConfig.ignoreGhsas` block here. Suppression makes
+# `pnpm audit` green while the vulnerability is still present, so it is the last
+# resort — and this repo currently needs none.
+#
+# If one ever becomes unavoidable, the bar is: name the advisory, trace the resolution
+# path, say why it cannot be fixed, say why the residual risk is acceptable (who runs
+# the code, over what input, whether it reaches a generated project), give the
+# condition for deleting the entry, and date the verification. One GHSA id per entry —
+# never a range or a whole package — so anything new still turns the audit red.
+#
+# Worth knowing before reaching for it: the brace-expansion advisory below LOOKED
+# unfixable and was suppressed here for exactly that reason. It was not. See the
+# `patchedDependencies` note.
+# ----------------------------------------------------------------------------------
+
 overrides:
-  # brace-expansion DoS via exponential-time expansion of consecutive non-expanding {} groups
-  # (GHSA-3jxr-9vmj-r5cp, high, patched >=1.1.16). Dev only, transitive via
-  # standard-version>dotgitignore>minimatch. Bounded key so it can only raise a vulnerable
-  # version, never cap a patched one. Drop once dotgitignore/minimatch request a patched range.
-  'brace-expansion@<1.1.16': 1.1.16
+  # brace-expansion DoS: exponential-time expansion of consecutive non-expanding {}
+  # groups (GHSA-3jxr-9vmj-r5cp), and unbounded expansion causing an OOM crash
+  # (GHSA-mh99-v99m-4gvg, high). The second one is patched ONLY in 5.0.8 — its
+  # vulnerable range is `<= 5.0.7`, i.e. every 1.x/2.x/3.x/4.x release is affected and
+  # no in-major upgrade exists.
+  #
+  # Dev only, exactly one path: standard-version > dotgitignore > minimatch@3 >
+  # brace-expansion. Reaching 5.0.8 needs the patch below — see `patchedDependencies`.
+  # Verified 2026-07-30: `pnpm why brace-expansion` resolves a single 5.0.8.
+  'brace-expansion@<5.0.8': 5.0.8
+
+# ----------------------------------------------------------------------------------
+# Why a patch rather than an override or a suppression.
+#
+# GHSA-mh99-v99m-4gvg (high) is fixed only in brace-expansion@5.0.8, and 5.0.8 changed
+# the CJS export from a callable to a namespace object (`{ EXPANSION_MAX,
+# EXPANSION_MAX_LENGTH, expand }`). `minimatch@3.1.5` does
+# `var expand = require('brace-expansion')` and then calls `expand(pattern)`, so the
+# override ALONE throws "expand is not a function" at match time.
+#
+# That is why this advisory was suppressed here before. The suppression was honest
+# about the mechanism but wrong about the conclusion: the fix is one line. The patch
+# reads `.expand` off the namespace and keeps a fallback to the old callable shape, so
+# it works against either. Verified 2026-07-30 that the two are signature-identical:
+# `expand('a{b,c}d')` → `["abd","acd"]` and `expand('x{1..3}')` → `["x1","x2","x3"]` on
+# both 1.1.16 and 5.0.8.
+#
+# The chain is dev-only (release tooling, never shipped to a generated project), which
+# is what makes a patch proportionate here rather than replacing standard-version.
+# Note that `commit-and-tag-version` — the maintained fork — does NOT remove the need:
+# it depends on the same `dotgitignore@^2.1.0`, and through it the same minimatch@3.
+#
+# Drop this patch (and narrow the override) once dotgitignore moves off minimatch@3.
+# ----------------------------------------------------------------------------------
+patchedDependencies:
+  minimatch@3.1.5: patches/minimatch@3.1.5.patch

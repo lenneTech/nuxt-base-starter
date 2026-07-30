@@ -30,9 +30,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
     isAuthenticated = !!authStateCookie.value?.user;
   }
 
-  // Redirect to /app (or redirect query) if already authenticated
+  // Redirect to /app (or the recorded deep link) if already authenticated.
+  //
+  // `safeRedirectTarget` rather than a raw read: this runs in SSR middleware with no
+  // try/catch around it, so an unvalidated cross-origin value reaching `navigateTo`
+  // throws and surfaces as an error page instead of the app. It is also the same
+  // validator `login.vue` and `2fa.vue` use — one query parameter, one rule. The
+  // previous `as string` cast was a lie: `?redirect=/a&redirect=/b` yields an array.
   if (isAuthenticated) {
-    const redirect = to.query.redirect as string;
-    return navigateTo(redirect || '/app');
+    return navigateTo(safeRedirectTarget(to.query.redirect));
   }
 });

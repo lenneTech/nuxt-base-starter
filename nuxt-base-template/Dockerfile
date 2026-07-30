@@ -16,12 +16,28 @@ WORKDIR /app
 # monorepo (multiple project manifests) and standalone (a single root manifest)
 # mode. Copying everything then installing is the simplest cross-mode approach —
 # mirrors projects/api/Dockerfile.
+# `patches/` is copied ahead of need. This template currently ships NO patches —
+# there is no `patches/` directory and no `patchedDependencies` key in either
+# `pnpm-workspace.yaml`; its CVEs are closed through `overrides:` instead. The copy
+# exists so a project that LATER adds `patchedDependencies` does not first discover
+# the omission as `ENOENT: … patches/<pkg>.patch` inside the Docker build, long
+# after every test reported green.
+#
+# Note the failure mode being guarded: absent is fine, present-but-uncopyable is
+# not. A plain `|| true` would swallow a real copy failure and still run the `rm`
+# below, producing an image whose dependencies are silently unpatched. The
+# directory test keeps "no patches" quiet and lets anything else fail loudly.
+#
+# Path caveat for monorepos: pnpm resolves `patchedDependencies` relative to the
+# workspace root, so only a CONTEXT-ROOT `patches/` is copied here. A project that
+# puts patches in `projects/app/patches/` needs this line extended.
 COPY . /tmp/src
 RUN find /tmp/src -maxdepth 3 -name "package.json" -not -path "*/node_modules/*" \
       -exec sh -c 'dir=$(dirname "$1" | sed "s|^/tmp/src|.|"); mkdir -p "/app/$dir"; cp "$1" "/app/$dir/"' _ {} \; \
     && cp -f /tmp/src/pnpm-lock.yaml /app/ 2>/dev/null || true \
     && cp -f /tmp/src/pnpm-workspace.yaml /app/ 2>/dev/null || true \
     && cp -f /tmp/src/.npmrc /app/ 2>/dev/null || true \
+    && { [ ! -d /tmp/src/patches ] || cp -rf /tmp/src/patches /app/; } \
     && rm -rf /tmp/src
 
 # Provision the exact pnpm declared in package.json (single source of truth).
@@ -53,8 +69,11 @@ COPY ${APP_DIR}/ ./${APP_DIR}/
 RUN npm install -g "$(node -p "require('./package.json').packageManager.split('+')[0]")"
 
 # Primary filter for the COPY above is the build CONTEXT ROOT `.dockerignore`
-# (lt-monorepo ships one; it excludes `**/node_modules`, `**/.output`, `**/.env`,
+# (lt-monorepo ships one; it excludes `**/node_modules`, `**/.output`, `**/.env*`,
 # …) — Docker never reads `projects/app/.dockerignore` for a root-context build.
+# Note the `**/` on each of those: docker anchors a slash-free pattern at the
+# CONTEXT ROOT, so a bare `node_modules` there would cover the monorepo root and
+# nothing under `projects/*`.
 # The rm below is a cheap secondary guard for the three build-read artefacts that
 # must never influence the bundle even if that root file is missing or edited: a
 # stale `.output`/`.nuxt` and a developer's `.env` (which `nuxt build` reads).
@@ -67,7 +86,12 @@ RUN npm install -g "$(node -p "require('./package.json').packageManager.split('+
 # `pnpm --filter app` matches nothing — and pnpm exits 0 on a no-match, silently
 # skipping the build. `cd` is name-agnostic and fails loudly. This mirrors
 # projects/api/Dockerfile, which uses `cd ${API_DIR} && pnpm run build`.
-RUN rm -rf ${APP_DIR}/.output ${APP_DIR}/.nuxt ${APP_DIR}/.env \
+# The globs matter: `.dockerignore` now covers `.nuxt-check` / `.nuxt-test` /
+# `.output-test` and the whole `.env*` family, and this rm is the secondary guard
+# for when the CONTEXT-ROOT ignore file is missing or edited. Listing only the three
+# original names let a developer's `.env.production` — which `nuxt build` reads —
+# and a stale `.output-test` survive into the builder.
+RUN rm -rf ${APP_DIR}/.output ${APP_DIR}/.output-* ${APP_DIR}/.nuxt ${APP_DIR}/.nuxt-* ${APP_DIR}/.env ${APP_DIR}/.env.* \
     && cd ${APP_DIR} \
     && pnpm run build
 

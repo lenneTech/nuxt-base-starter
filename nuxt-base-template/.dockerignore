@@ -9,12 +9,28 @@
 
 # Dependencies
 **/node_modules
-.pnpm-store
-.npm
+**/.pnpm-store
+**/.npm
 
-# Build output
+# Build output. The globstar is load-bearing: docker anchors a slash-free
+# pattern at the CONTEXT ROOT, so a bare `.nuxt` would exclude nothing once this
+# template sits at `projects/app` in a monorepo.
 **/.nuxt
+**/.nuxt-check
+**/.nuxt-test
 **/.output
+# DEV-2724: the `lt dev test` stack's own output tree, written only on developer
+# machines — an axis of its own, independent of the build dirs above.
+**/.output-test
+# Catch-all beneath the named entries above. `NUXT_BUILD_DIR` / `NITRO_OUTPUT_DIR`
+# make `.nuxt-<x>` / `.output-<x>` trivial to spawn — a manual `.nuxt-perf`
+# profiling run is what prompted this, after `oxfmt` walked into `.output-perf` and
+# the check chain died on a file it had no business formatting. The named entries
+# stay: they carry the reason each specific dir exists, and
+# tests/unit/nuxt-builddir-isolation.test.ts asserts them individually. This pair
+# only catches what nobody wrote an entry for.
+**/.nuxt-*
+**/.output-*
 **/dist
 
 # IDE / tooling
@@ -27,21 +43,38 @@
 
 # Logs
 **/*.log
+# Rotated too: `**/*.log` only matches a segment ENDING in `.log`, so
+# `.lt-dev/app.log.1` would sail straight past it.
+**/*.log.*
 **/npm-debug.log*
 
-# Testing
+# `lt dev`'s runtime directory — detached server logs and scratch state. Written
+# whenever the stack runs locally, never read by a build.
+**/.lt-dev
+
+# Testing. All three are gitignored, so they never appear in `git status` to
+# remind anyone they are in the context — and a Playwright trace records the full
+# request log of the failing test, session cookie included.
 **/coverage
 **/test-results
 **/playwright-report
+**/blob-report
+**/.vitest
+# The specs reach the BUILDER stage otherwise. Not a leak (the runner copies only
+# `.output`), but it is context weight and one more thing that busts the
+# `COPY ${APP_DIR}/` layer on every test edit.
+**/tests
+**/.turbo
 
 # Environment — `nuxt build` reads .env, so a developer's local config would be
-# baked into the image. .env.example stays (it is documentation, never read).
-**/.env
-**/.env.local
-**/.env.*.local
+# baked into the image. `.env*` covers the whole family (`.env.production`, a
+# hand-made `.env.bak`) instead of the three shapes that were listed here; a
+# secret file is not worth enumerating shape by shape. `.env.example` goes with
+# it, since no build step reads it either.
+**/.env*
 
 # Git
-.git
+**/.git
 **/.gitignore
 
 # Docker

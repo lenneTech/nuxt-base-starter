@@ -65,6 +65,54 @@ export default defineNuxtConfig({
     linearTeamName: process.env.NUXT_LINEAR_TEAM_NAME,
   },
 
+  // ============================================================================
+  // Build Directory
+  // ============================================================================
+  // `nuxt dev`, `nuxt prepare` and `nuxt build` all write their generated types
+  // — including `tsconfig.json` — into this directory. With one shared `.nuxt/`
+  // a parked dev server rewrites that file in place while the `check` chain's
+  // type-check is reading it, and the run fails with a flood of TS2307 on every
+  // `~`/`#` alias plus TS1378 — on code that is perfectly fine. It looks exactly
+  // like a real type error, so it costs a debugging round every time.
+  //
+  // Making the directory overridable gives the gates their own copy:
+  // `build:check` / `typecheck:tests` run with `NUXT_BUILD_DIR=.nuxt-check` and
+  // type-check against `tsconfig.check.json` / `tsconfig.tests.check.json`,
+  // which resolve through `./.nuxt-check/tsconfig.json`. The dev server and the
+  // IDE keep the unchanged `.nuxt/` default, so `check` and `dev` can run in
+  // parallel. `tests/unit/nuxt-builddir-isolation.test.ts` keeps the wiring
+  // honest.
+  //
+  // `||`, not `??`: an exported-but-empty `NUXT_BUILD_DIR=` is falsy but not
+  // nullish, so `??` would forward `''`. Nuxt's schema happens to catch that
+  // (`val && typeof val === 'string' ? val : '.nuxt'`) — but relying on it puts
+  // the safety in the framework, and without it `resolve(rootDir, '')` is the
+  // rootDir itself, i.e. Nuxt would write `tsconfig.json` / `nuxt.d.ts` /
+  // `types/` straight over the checked-in sources in this directory.
+  buildDir: process.env.NUXT_BUILD_DIR || '.nuxt',
+
+  // The OUTPUT dir — the second half of the same problem (DEV-2724). `buildDir`
+  // above and Nitro's `output.dir` are unrelated knobs, so splitting the former
+  // left `.output/` shared between `build`, `build:check` and `lt dev test`. And
+  // `lt dev test` rewrites it on EVERY run: it serves the production bundle
+  // rather than `nuxt dev`, so each suite run overwrote whatever a local
+  // `pnpm run build` (or a server started from it) was using. Nitro ships no env
+  // lever of its own here — unlike `buildDir` there is no `NITRO_OUTPUT_DIR` that
+  // works out of the box — so this opens one.
+  //
+  // `||`, not `??`, for the same reason as `buildDir`: an exported-but-empty
+  // `NITRO_OUTPUT_DIR=` is falsy but not nullish, and Nitro resolves `output.dir`
+  // against `rootDir`, so `''` would resolve to the rootDir itself.
+  //
+  // `publicDir` / `serverDir` are deliberately NOT set: Nitro defaults them to
+  // `{{ output.dir }}/public` and `{{ output.dir }}/server` and resolves
+  // `output.dir` first, so they follow this on their own.
+  nitro: {
+    output: {
+      dir: process.env.NITRO_OUTPUT_DIR || '.output',
+    },
+  },
+
   compatibilityDate: '2025-01-15',
 
   // ============================================================================
@@ -112,6 +160,14 @@ export default defineNuxtConfig({
     clientBundle: {
       scan: true,
     },
+    // Move the icon fallback endpoint off `/api/**`.
+    //
+    // The Vite dev proxy below forwards every `/api/*` request to the backend,
+    // so the module's default `/api/_nuxt_icon/:collection` is answered by the
+    // NestJS API with a 404. Any icon that misses the client bundle — a runtime
+    // name like `i-lucide-${key}`, or one configured in `app.config.ts` — then
+    // silently fails to render, with nothing but a console warning to say why.
+    localApiEndpoint: '/_nuxt_icon',
   },
 
   // ============================================================================

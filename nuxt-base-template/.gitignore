@@ -3,9 +3,34 @@ node_modules
 node-compile-cache/
 *.log*
 .nuxt
+# Isolated build dir for the check chain (NUXT_BUILD_DIR=.nuxt-check) so it
+# never collides with a parked `nuxt dev`. The bare `.nuxt` above matches only
+# that exact name.
+.nuxt-check
+# Same idea for the `lt dev test` stack: the `cli` exports
+# NUXT_BUILD_DIR=.nuxt-test for its app process, because the Nuxt lock sits on
+# the build dir and a shared one made the test build abort against a parked
+# `nuxt dev`. Nothing in this repo writes the dir — the entry is still required.
+.nuxt-test
 .nitro
 .cache
 .output
+# DEV-2724: the Nitro OUTPUT dir of the `lt dev test` stack — an axis of its own,
+# independent of the build dirs above. `lt dev test` serves the production bundle
+# and so rebuilds on every run, which used to overwrite the `.output` a local
+# `pnpm run build` left behind. Set by the `cli` (NITRO_OUTPUT_DIR), not by a
+# script here; the guard in tests/unit/nuxt-builddir-isolation.test.ts is what
+# ties this entry to a reason.
+.output-test
+# Catch-all beneath the named entries above. `NUXT_BUILD_DIR` / `NITRO_OUTPUT_DIR`
+# make `.nuxt-<x>` / `.output-<x>` trivial to spawn, so enumerating names is
+# structurally incomplete — a manual `.nuxt-perf` / `.output-perf` profiling run was
+# the first one nobody had written an entry for, and it put 460 untracked files in
+# `git status` and walked `oxfmt` into generated bundles. The named entries stay:
+# they carry the reason each dir exists, and the unit guard asserts them one by one.
+# (`.nuxtrc` is checked in and has no dash — it is not matched.)
+.nuxt-*
+.output-*
 .env
 dist
 /test-results/

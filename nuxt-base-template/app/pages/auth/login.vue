@@ -32,6 +32,35 @@ interface SignInResponse {
 const toast = useToast();
 const { signIn, setUser, validateSession, authenticateWithPasskey, features } = useLtAuth();
 const { translateError } = useLtErrorTranslation();
+const route = useRoute();
+
+// ============================================================================
+// Computed
+// ============================================================================
+/**
+ * Where to go once the whole sign-in flow completes.
+ *
+ * `auth.global` sends an unauthenticated visitor to
+ * `/auth/login?redirect=<the page they wanted>`. Signing in through this form used to
+ * navigate to `/app` unconditionally, so the target was dropped and every deep link
+ * died at the login step: a link shared in a chat or an e-mail dumped the recipient
+ * on the dashboard, and they had to find the record by hand.
+ *
+ * Validation lives in `safeRedirectTarget` (auto-imported from `app/utils/`) so that
+ * this page, `2fa.vue` and `guest.global` all apply the SAME rule — they previously
+ * did not.
+ */
+const redirectTarget = computed(() => safeRedirectTarget(route.query.redirect));
+
+/**
+ * The redirect carried into an INTERMEDIATE auth step (2FA, e-mail verification).
+ *
+ * Those pages finish the sign-in and do the final navigation themselves, so the
+ * target has to survive the detour — otherwise the deep link dies one step later
+ * than it used to, which is harder to notice, not easier. Empty when the visitor
+ * came to the login page directly, so no pointless `?redirect=/app` is appended.
+ */
+const redirectQuery = computed(() => (typeof route.query.redirect === 'string' ? { redirect: redirectTarget.value } : {}));
 
 // ============================================================================
 // Page Meta
@@ -99,7 +128,7 @@ async function onPasskeyLogin(): Promise<void> {
       await validateSession();
     }
 
-    await navigateTo('/app');
+    await navigateTo(redirectTarget.value);
   } catch (err: unknown) {
     // Handle WebAuthn-specific errors
     if (err instanceof Error && err.name === 'NotAllowedError') {
@@ -161,7 +190,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
           description: 'Bitte bestätige zuerst deine E-Mail-Adresse.',
           title: 'E-Mail nicht verifiziert',
         });
-        await navigateTo({ path: '/auth/verify-email', query: { email: payload.data.email } });
+        // `redirectQuery` keeps the deep link alive across the verification detour.
+        await navigateTo({ path: '/auth/verify-email', query: { email: payload.data.email, ...redirectQuery.value } });
         return;
       }
 
@@ -178,8 +208,10 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     const resultData = result.data as Record<string, unknown> | null | undefined;
     const requires2FA = resultData && (resultData.twoFactorRedirect || resultData.requiresTwoFactor || resultData.redirect);
     if (requires2FA) {
-      // Redirect to 2FA page
-      await navigateTo('/auth/2fa');
+      // Redirect to 2FA page, carrying the deep-link target: `2fa.vue` performs the
+      // final navigation, so dropping the query here would strand every 2FA user on
+      // the dashboard — the exact bug this flow's redirect handling exists to fix.
+      await navigateTo({ path: '/auth/2fa', query: redirectQuery.value });
       return;
     }
 
@@ -188,7 +220,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     if (userData) {
       // Auth state is already stored by useLtAuth
       // Navigate to app
-      await navigateTo('/app');
+      await navigateTo(redirectTarget.value);
     } else {
       toast.add({
         color: 'error',

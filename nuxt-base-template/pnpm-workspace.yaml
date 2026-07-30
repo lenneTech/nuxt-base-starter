@@ -105,8 +105,25 @@ overrides:
   # exactly one version must remain).
   'nuxt-seo-utils': 8.1.8
   'unhead': 2.1.15
-  # ReDoS via brace-expansion (GHSA-f886-m6hf-6m8v); minimatch 9.x is still pulled below 9.0.7.
-  'minimatch@>=9.0.0 <9.0.7': 9.0.9
+  # Lifts every minimatch 5.x–9.x consumer onto 10.x so it inherits the PATCHED
+  # brace-expansion 5.x — see the brace-expansion note further down for why minimatch is
+  # the lever. Closes the nitro>archiver and readdir-glob chains; the lockfile now
+  # resolves a single `minimatch@10.2.5` and a single `brace-expansion@5.0.8`.
+  #
+  # Export-shape check, which is what makes a cross-major lift safe or not. Measured by
+  # installing each version and reading `typeof require('minimatch')` (2026-07-30):
+  #   5.1.9 function · 6.2.0 function · 7.4.6 function · 8.0.4 function
+  #   9.0.9 object   · 10.2.5 object
+  # So 5.x–8.x ARE callable, and a consumer doing `require('minimatch')(…)` would break
+  # on 10.x. The key spans them anyway because only ONE such consumer resolves here —
+  # `readdir-glob@1.1.3`, which does `const { Minimatch } = require('minimatch')` (a named
+  # destructure, not a call) and was exercised against 10.2.5 without error. Re-verify
+  # this if a new 5.x–8.x consumer enters the tree; a narrower key would drop
+  # readdir-glob back to minimatch@5 and re-open the brace-expansion chain, which is why
+  # the range is not simply tightened to >=9.
+  #
+  # minimatch@3 is deliberately not covered — its consumers DO call it as a callable.
+  'minimatch@>=5.0.0 <10.2.5': 10.2.5
   # @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking credentials via
   # GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via @lenne.tech/bug.lt,
   # which hard-pins @nuxt/ui@4.2.1. Target 4.10.0 == the app's own @nuxt/ui version, so
@@ -120,21 +137,52 @@ overrides:
   # a build-time-only concern. Bounded key so it can only raise a vulnerable version and
   # never cap a patched one. Drop once ipx requests >=0.35.0 itself.
   'sharp@<0.35.0': 0.35.3
-  # tar: multiple advisories across the 7.x line (latest patched 7.5.19+). Transitive via
+  # tar: multiple advisories across the 7.x line. Transitive via
   # @lenne.tech/nuxt-extensions>nuxt>@nuxt/nitro-*. Bounded key so it can only raise.
   # Drop once nitro requests a patched tar itself.
-  'tar@<7.5.20': 7.5.20
-  # brace-expansion DoS via exponential-time expansion of consecutive non-expanding {} groups
-  # (GHSA-3jxr-9vmj-r5cp, high). Transitive via nitro>minimatch. One bounded key per affected
-  # major; the 5.x key is floored at >=5.0.0 so a future 3.x/4.x dep is not forced across majors.
-  'brace-expansion@>=2.0.0 <2.1.2': 2.1.2
-  'brace-expansion@>=5.0.0 <5.0.7': 5.0.7
+  # NOTE: this used to read `<7.5.20: 7.5.20`, pinning to a version GHSA-r292-9mhp-454m
+  # itself covers (`<=7.5.20`) — 21 paths looked handled while staying vulnerable.
+  'tar@<7.5.21': 7.5.21
+  # postcss <=8.5.17 (GHSA-r28c-9q8g-f849, high), patched >=8.5.18. Build-time only, via
+  # nuxt>@nuxt/vite-builder>autoprefixer/cssnano (100 paths). Bounded key so it can only raise.
+  'postcss@<8.5.18': 8.5.18
+  # brace-expansion DoS via unbounded expansion (GHSA-mh99-v99m-4gvg, high). Patched ONLY
+  # in 5.0.8 — there is no 2.x backport, so the 2.x key below merely keeps that major on its
+  # newest release.
+  #
+  # Which line a path gets is decided by its `minimatch`, so that is the real lever:
+  #   minimatch@10 -> brace-expansion@5  (patched)   minimatch@9 -> brace-expansion@2
+  # The `minimatch` key above lifts every 9.x consumer onto 10.x, which moves the whole
+  # nitro>archiver / readdir-glob chain onto the patched line.
+  #
+  # NOTE the 5.x key: it used to read `>=5.0.0 <5.0.7: 5.0.7`, pinning to a version the
+  # advisory itself covers (`<=5.0.7`) — 22 paths under @vercel/nft looked handled while
+  # staying vulnerable. Now on 5.0.8.
+  #
+  # The 2.x key that used to sit here was REMOVED: the minimatch lift above eliminated
+  # the 2.x line entirely, so it matched nothing (`grep "brace-expansion@[0-9]"
+  # pnpm-lock.yaml` → only 5.0.8, verified 2026-07-30). This file's own rule is to
+  # override only what the project actually resolves — a dead key is noise here, and
+  # inside an `lt fullstack` monorepo it can shadow the api's override.
+  #
+  # The floor is >=3.0.0 rather than >=5.0.0 so a 3.x/4.x dependency entering the tree
+  # is lifted onto the patched line too. Safe across those majors: 4.0.1 and 5.0.8 both
+  # export a namespace object, and only 1.x/2.x are callable — both below the floor.
+  'brace-expansion@>=3.0.0 <5.0.8': 5.0.8
   # js-yaml quadratic CPU consumption via YAML merge-key chains (GHSA-52cp-r559-cp3m, high).
   # Transitive via @hey-api/openapi-ts>@hey-api/json-schema-ref-parser.
   'js-yaml@>=4.0.0 <4.3.0': 4.3.0
-  # shell-quote command injection (patched >=1.8.5). Transitive via nuxt tooling.
+  # shell-quote command injection via improperly escaped shell metacharacters
+  # (GHSA-g4rg-993r-mgx7, patched >=1.8.5). Transitive, build-time only, via
+  # @nuxt/devtools>execa tooling. Target 1.10.0 rather than the 1.8.5 floor: it is the
+  # current release on the same major, so the tree resolves one copy instead of two.
+  # Bounded key — it can only raise a vulnerable version. Drop once the consumers
+  # request >=1.8.5 themselves. Verified 2026-07-30.
   'shell-quote@<1.8.5': 1.10.0
-  # svgo (patched >=4.0.2). Transitive via @nuxt/vite-builder.
+  # svgo ReDoS in the SVG path parser (GHSA-8w4h-3c9p-7c9r, patched >=4.0.2).
+  # Build-time only, transitive via @nuxt/vite-builder>@nuxt/image image optimisation.
+  # Bounded key so it can only raise a vulnerable 4.0.x and never cap a later one.
+  # Drop once @nuxt/image requests >=4.0.2. Verified 2026-07-30.
   'svgo@>=4.0.0 <4.0.2': 4.0.2
   # fast-xml-parser ReDoS (GHSA-8r6m-32jq-jx6q, high). Transitive via @nuxtjs/seo>@nuxtjs/sitemap.
   'fast-xml-parser@>=5.9.3 <5.10.1': 5.10.1

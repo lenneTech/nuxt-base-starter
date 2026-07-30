@@ -1,0 +1,23 @@
+{
+  // Gate twin of `tsconfig.tests.json` — what `pnpm run typecheck:tests`
+  // actually runs. Identical to it except that the whole extends chain and the
+  // ambient-types include resolve through the isolated `.nuxt-check/` build dir
+  // (see `tsconfig.check.json` for why), so a parked `nuxt dev` rewriting
+  // `.nuxt/tsconfig.json` can no longer corrupt a gate run.
+  //
+  // `tsconfig.tests.json` stays as the editor-facing config. Keep the two in
+  // lockstep — enforced by `tests/unit/nuxt-builddir-isolation.test.ts`.
+  //
+  // Tool choice — plain `tsc`, not `vue-tsc`: the starter's specs import only
+  // `.ts` (relative app utils, node, vitest, Playwright), so `tsc` covers them
+  // fully with the pinned TypeScript. Once your project's specs start importing
+  // `.vue` components or via the `~` alias (which pulls SFCs through
+  // `#components`), plain `tsc` can no longer resolve `.vue` — switch the
+  // `typecheck:tests` script to `vue-tsc` then (and pin a `vue-tsc` version
+  // compatible with your `typescript`; vue-tsc 3.x does not run on TypeScript 6.x).
+  "extends": "./tests/tsconfig.check.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [".nuxt-check/nuxt.d.ts", "tests/**/*.ts"]
+}
