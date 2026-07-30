@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.16.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.15.1...v2.16.0) (2026-07-30)
+
+
+### Features
+
+* isolate check/dev build dirs, harden auth redirect, close last advisory ([d75d34d](https://github.com/lenneTech/nuxt-base-starter/commit/d75d34d7ce637f2af7f23150ae86d68cf7d1bdbb))
+
 ### [2.15.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.15.0...v2.15.1) (2026-07-22)
 
 
