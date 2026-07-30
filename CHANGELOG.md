@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.16.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.16.0...v2.16.1) (2026-07-30)
+
+
+### Bug Fixes
+
+* **security:** align override targets with nuxt-extensions 1.11.1 mirror ([f4a2d25](https://github.com/lenneTech/nuxt-base-starter/commit/f4a2d2527020ae3a0225ae3a08e046b4e8c3a247))
+
 ## [2.16.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.15.1...v2.16.0) (2026-07-30)
 
 
