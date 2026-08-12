@@ -11,6 +11,39 @@
 # The LEFT side may carry a range to scope which vulnerable versions are
 # replaced. The advisory table for every override lives in CLAUDE.md.
 
+# ----------------------------------------------------------------------------------
+# Advisories that cannot be fixed by an override, and why the residual is acceptable.
+#
+# Rules for adding one: name the advisory, say why it cannot be fixed, say why the
+# residual risk is acceptable, and date the verification. If you cannot write those
+# three sentences honestly, fix the dependency instead. An entry here is a debt, not
+# a decision — every one carries the condition under which it gets deleted again.
+# ----------------------------------------------------------------------------------
+auditConfig:
+  ignoreGhsas:
+    # image-size: infinite loop on crafted ICNS / JXL / HEIF headers
+    # (GHSA-w3rx-r6r6-pgpr, GHSA-5p2g-fcmc-qvqq — both HIGH, CWE-835, <=2.0.2).
+    #
+    # Not fixable: both advisories name 2.0.3 as the fix, and that version is NOT
+    # published — 2.0.2 is `latest` on npm, so there is no override target. Nor does
+    # downgrading help: the vulnerable range is `<=2.0.2`, which covers the whole 1.x
+    # line as well. The single path is @nuxtjs/seo > nuxt-seo-utils > image-size, and
+    # the newest nuxt-seo-utils (8.4.1) still requests ^2.0.2, so lifting the parent
+    # changes nothing.
+    #
+    # Residual accepted: image-size is referenced ONLY from `dist/module.mjs` — the
+    # BUILD-TIME Nuxt module — and not from `dist/runtime/**`, so it never reaches
+    # the shipped bundle or a server route (verified by grep across the installed
+    # package). It reads the images the repo itself ships, to compute OG meta
+    # dimensions; the parser never sees attacker-supplied input, and there is no
+    # upload path into it. The impact of a hit would be a hanging local build.
+    #
+    # Delete this entry as soon as image-size 2.0.3 is published, and pin it under
+    # `overrides` instead.
+    # Verified 2026-08-12.
+    - GHSA-w3rx-r6r6-pgpr
+    - GHSA-5p2g-fcmc-qvqq
+
 # pnpm 11 renamed `onlyBuiltDependencies` to `allowBuilds` (map of pkg -> bool).
 # We keep BOTH keys so the file works across pnpm 10 (reads onlyBuiltDependencies)
 # and pnpm 11 (reads allowBuilds); each version ignores the key it doesn't know.
@@ -91,20 +124,36 @@ onlyBuiltDependencies:
 # and pins the OLD version, silently re-introducing the patched CVEs. hono is owned
 # by nest-server's overrides. Do not add it back.
 overrides:
-  # Build integrity, not a CVE: nuxt 4.4.x is built against unhead v2
-  # (@unhead/vue ^2.1.15), but nuxt-seo-utils >=8.1.10 hard-depends on
-  # @unhead/bundler v3 and nuxt-schema-org resolves its `unhead ^2 || ^3`
-  # peer to v3 — TWO unhead majors in the tree. Nitro's externals tracer
-  # then copies a partial unhead v3 into `.output/server/node_modules/unhead`
-  # (missing dist/server.mjs), so EVERY SSR request of the built app dies
-  # with 500 ERR_MODULE_NOT_FOUND (dev mode is unaffected; Playwright E2E
-  # against the built output catches it). Pin the SEO chain to the last
-  # pure-v2 nuxt-seo-utils and force the unhead peer to nuxt's own version
-  # so exactly ONE unhead resolves. Remove both once nuxt itself moves to
-  # unhead v3 (then drop the pins and re-verify with `pnpm why unhead`:
-  # exactly one version must remain).
-  'nuxt-seo-utils': 8.1.8
-  'unhead': 2.1.15
+  # Build integrity, not a CVE: the SEO chain and nuxt must resolve exactly ONE
+  # unhead major, or Nitro's externals tracer copies a partial second copy into
+  # `.output/server/node_modules/unhead` and every SSR request of the BUILT app
+  # dies with 500 ERR_MODULE_NOT_FOUND (dev mode is unaffected — Playwright E2E
+  # against the built output is what catches it).
+  #
+  # Until nuxt 4.4.x this meant pinning DOWN: nuxt was built against unhead v2,
+  # nuxt-seo-utils >=8.1.10 hard-depended on @unhead/bundler v3, so both were
+  # held at the last pure-v2 combination. That pin has now flipped direction —
+  # nuxt 4.5.2 depends on `unhead ^3.3.1` itself, so pinning to 2.1.15 held the
+  # tree BELOW what nuxt needs and broke `nuxt prepare` outright ("Package
+  # subpath './stream/iife' is not defined by exports").
+  #
+  # The documented exit condition ("remove both once nuxt itself moves to unhead
+  # v3") is met, so the `nuxt-seo-utils` pin is gone — the SEO chain resolves v3
+  # on its own now (nuxt-seo-utils 8.3.3).
+  #
+  # The unhead pin stays, but it has FLIPPED DIRECTION: it no longer holds the
+  # tree down at v2, it lifts the last v2 consumer up to the version nuxt itself
+  # depends on. `@nuxt/ui` still drags in `@unhead/vue@2` through a peer
+  # variation, which reintroduced exactly the two-major state that
+  # `tests/unit/unhead-single-major.test.ts` guards against. Pinning UP is safe
+  # in a way pinning down was not: v3 is what nuxt builds against, so nothing
+  # resolves below its own requirement.
+  #
+  # Keep this in lock-step with nuxt's `unhead` dependency on every nuxt bump —
+  # a pin below it breaks `nuxt prepare` outright ("Package subpath
+  # './stream/iife' is not defined by exports"). Drop it once @nuxt/ui carries
+  # a v3 peer itself; verify with `pnpm why unhead` (exactly one major).
+  'unhead': 3.3.1
   # Lifts every minimatch 5.x–9.x consumer onto 10.x so it inherits the PATCHED
   # brace-expansion 5.x — see the brace-expansion note further down for why minimatch is
   # the lever. Closes the nitro>archiver and readdir-glob chains; the lockfile now
@@ -173,10 +222,15 @@ overrides:
   # The floor is >=3.0.0 rather than >=5.0.0 so a 3.x/4.x dependency entering the tree
   # is lifted onto the patched line too. Safe across those majors: 4.0.1 and 5.0.8 both
   # export a namespace object, and only 1.x/2.x are callable — both below the floor.
-  'brace-expansion@>=3.0.0 <5.0.8': 5.0.8
-  # js-yaml quadratic CPU consumption via YAML merge-key chains (GHSA-52cp-r559-cp3m, high).
+  'brace-expansion@>=3.0.0 <5.0.9': 5.0.9
+  # js-yaml quadratic CPU consumption via YAML merge-key chains (GHSA-52cp-r559-cp3m, high),
+  # incompletely fixed in 4.3.0 — the follow-up advisory is patched only in 4.3.1.
   # Transitive via @hey-api/openapi-ts>@hey-api/json-schema-ref-parser.
-  'js-yaml@>=4.0.0 <4.3.0': 4.3.0
+  'js-yaml@>=4.0.0 <4.3.1': 4.3.1
+  # nanoid — custom generators loop indefinitely when size is 0 (GHSA-qmxm-cq3q-gh8v, high,
+  # patched >=3.3.17). Only the 3.x line is in this tree (via postcss); 3.3.18 is the
+  # current `legacy` dist-tag, so this stays inside the major its consumers ask for.
+  'nanoid@<3.3.17': 3.3.18
   # shell-quote command injection via improperly escaped shell metacharacters
   # (GHSA-g4rg-993r-mgx7, patched >=1.8.5). Transitive, build-time only, via
   # @nuxt/devtools>execa tooling. Target 1.10.0 rather than the 1.8.5 floor: it is the

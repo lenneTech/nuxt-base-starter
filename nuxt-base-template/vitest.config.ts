@@ -12,7 +12,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['app/**/*.{ts,vue}'],
+      // `scripts/**` is build tooling, but `generate-types.mjs` carries the
+      // DEV-2802 fail-closed contract, so it belongs in the coverage picture.
+      include: ['app/**/*.{ts,vue}', 'scripts/**/*.mjs'],
       exclude: ['app/**/*.d.ts', 'app/**/*.spec.ts', 'app/**/*.test.ts'],
     },
   },

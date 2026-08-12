@@ -21,11 +21,13 @@
   //
   // Tool choice — plain `tsc`, not `vue-tsc`: the starter's specs import only
   // `.ts` (relative app utils, node, vitest, Playwright), so `tsc` covers them
-  // fully with the pinned TypeScript. Once your project's specs start importing
-  // `.vue` components or via the `~` alias (which pulls SFCs through
-  // `#components`), plain `tsc` can no longer resolve `.vue` — switch this
-  // script to `vue-tsc` then (and pin a `vue-tsc` version compatible with your
-  // `typescript`; vue-tsc 3.x does not run on TypeScript 6.x).
+  // fully and starts faster. Once your project's specs start importing `.vue`
+  // components or via the `~` alias (which pulls SFCs through `#components`),
+  // plain `tsc` can no longer resolve `.vue` — switch this script to `vue-tsc`
+  // then. It is already a devDependency (`pnpm run typecheck`, the APP-source
+  // half of the gate, runs on it), so that switch costs nothing but the word.
+  // The pinned pair is vue-tsc 3.3.8 on TypeScript 6.0.3 — verified working;
+  // keep them in step when bumping either.
   "extends": "./tests/tsconfig.json",
   "compilerOptions": {
     "noEmit": true

@@ -37,14 +37,16 @@
 overrides:
   # brace-expansion DoS: exponential-time expansion of consecutive non-expanding {}
   # groups (GHSA-3jxr-9vmj-r5cp), and unbounded expansion causing an OOM crash
-  # (GHSA-mh99-v99m-4gvg, high). The second one is patched ONLY in 5.0.8 — its
-  # vulnerable range is `<= 5.0.7`, i.e. every 1.x/2.x/3.x/4.x release is affected and
-  # no in-major upgrade exists.
+  # (GHSA-mh99-v99m-4gvg, high), plus unbounded intermediate arrays bypassing the
+  # CVE-2026-14257 mitigation (GHSA-rgw5-rvv9-x895, high, patched only in 5.0.9). Its
+  # vulnerable range runs up to and including 5.0.8, i.e. every 1.x/2.x/3.x/4.x
+  # release is affected and no in-major upgrade exists.
   #
   # Dev only, exactly one path: standard-version > dotgitignore > minimatch@3 >
-  # brace-expansion. Reaching 5.0.8 needs the patch below — see `patchedDependencies`.
-  # Verified 2026-07-30: `pnpm why brace-expansion` resolves a single 5.0.8.
-  'brace-expansion@<5.0.8': 5.0.8
+  # brace-expansion. Reaching 5.x needs the patch below — see `patchedDependencies`;
+  # the patch pins minimatch@3.1.5, not a brace-expansion version, so the 5.0.9 bump
+  # rides along (5.0.9 keeps 5.0.8's namespace export shape).
+  'brace-expansion@<5.0.9': 5.0.9
 
 # ----------------------------------------------------------------------------------
 # Why a patch rather than an override or a suppression.

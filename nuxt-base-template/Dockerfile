@@ -124,6 +124,16 @@ COPY --from=builder --chown=nodejs:nodejs /app/${APP_DIR}/.output ./.output
 # docker-compose.yml already passes.
 ARG APP_VERSION_COMMIT=unknown
 ENV NUXT_PUBLIC_APP_COMMIT=$APP_VERSION_COMMIT
+# Second, platform-proof copy under the API's variable name.
+#
+# `NUXT_PUBLIC_*` is not ours alone: a deployment platform that manages Nuxt env
+# vars may export EVERY key it knows from the runtime config, exporting the ones
+# it has no value for as an EMPTY string — which Nitro then applies over the
+# commit above, leaving /app/admin/system showing "unknown". Observed on
+# TurboOps. This name carries no `NUXT_` prefix, so it stays untouched (the API
+# has always reported correctly for exactly that reason), and
+# `server/api/build-identity.get.ts` reads it when the public one arrives blank.
+ENV APP_VERSION_COMMIT=$APP_VERSION_COMMIT
 
 USER nodejs
 EXPOSE 3000

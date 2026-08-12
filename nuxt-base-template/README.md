@@ -133,6 +133,11 @@ Generate TypeScript types from OpenAPI schema:
 npm run generate-types
 ```
 
+The API URL is resolved, never guessed: `NUXT_API_URL` if set, otherwise
+`<repo-root>/.lt-dev/.env` (written by `lt dev up`), otherwise the run fails with
+an explanation. A URL belonging to a _different_ `lt dev` project is rejected —
+generating from a foreign contract used to succeed silently (DEV-2802).
+
 ## Tech Stack
 
 | Technology          | Version | Description                      |

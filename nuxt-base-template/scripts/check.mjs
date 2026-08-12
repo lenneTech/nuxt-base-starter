@@ -70,6 +70,7 @@ const C = {
   red: (s) => `\x1b[31m${s}\x1b[0m`,
   yellow: (s) => `\x1b[33m${s}\x1b[0m`,
 };
+// oxlint-disable-next-line no-control-regex -- matching ESC is the whole point of stripping ANSI codes
 const stripAnsi = (s) => s.replace(/\x1b\[[0-9;]*m/g, '');
 const shortRel = (rel) => rel.replace(/^projects\//, '');
 
@@ -93,79 +94,6 @@ function classify(cmd) {
   if (c.includes('build') || c.includes('nuxt build') || c.includes('tsc')) return { fatal: true, kind: 'build', label: 'build' };
   if (c.includes('check-server-start') || c.includes('server-start')) return { fatal: true, kind: 'server', label: 'server-start' };
   return { fatal: true, kind: 'other', label: cmd.length > 32 ? `${cmd.slice(0, 29)}…` : cmd };
-}
-
-// ── Nuxt build-dir isolation for the check's OWN package-manager calls ───────
-// `build:check` / `typecheck:tests` pin `NUXT_BUILD_DIR=.nuxt-check` themselves,
-// so a check never writes the `.nuxt/` a parked `nuxt dev` reads. One writer has
-// no script to pin it in: `postinstall: nuxt prepare`. It inherits the env of
-// whatever triggered the install — and `check:raw` / `check:fix` / `check:naf`
-// all start with one. Unpinned, that install rewrites `.nuxt/tsconfig.json`
-// under a running dev server, which then resolves without the `~`/`#` aliases
-// and dies on code that is fine.
-//
-// Note there is no install hoist in this runner: `classify()` has no `install`
-// branch, so `pnpm install` lands in the generic `other` bucket and runs as an
-// ordinary step. The pin therefore goes on the step list.
-const CHECK_BUILD_DIR = '.nuxt-check';
-// Deliberately narrow: a blanket pin would override the dirs the package.json
-// scripts pin themselves. These are the commands that run lifecycle hooks (or,
-// for `audit`, may resolve after fixing) and so have no pin of their own.
-// `i` and `add` are in here because they fire the same `postinstall` hook that
-// `install` does — leaving them out pinned the spelling rather than the behaviour,
-// and `pnpm i` is the spelling people actually type.
-const PM_INVOCATION = /\b(?:pnpm|npm|yarn|bun)\s+(?:audit|ci|install|i|add)\b/;
-// A command that already carries its own pin, in either spelling the package.json
-// scripts use (`cross-env NUXT_BUILD_DIR=…` there, a bare prefix from an older
-// checkout). Such a command owns its build dir and must not be overridden.
-const SELF_PINNED = /(?:^|\s)(?:cross-env\s+)?NUXT_BUILD_DIR=/;
-
-/**
- * The environment overrides a step needs, as an OBJECT rather than a string prefix.
- *
- * A `VAR=value cmd` prefix is POSIX shell syntax: `cmd.exe` reads it as the program
- * name and fails. It also cannot use `cross-env` as the package.json scripts do,
- * because this runner spawns commands directly and `node_modules/.bin` is not on the
- * inherited PATH. Handing `spawn` an env object sidesteps both — it is what a Node
- * process should have been doing anyway.
- *
- * Returns `{}` for anything that needs no override, so callers can spread it
- * unconditionally.
- */
-export function checkBuildDirEnv(cmd) {
-  if (!PM_INVOCATION.test(cmd) || SELF_PINNED.test(cmd)) return {};
-  return { NUXT_BUILD_DIR: CHECK_BUILD_DIR };
-}
-
-/**
- * Split a leading environment assignment off a command, in either spelling the
- * package.json scripts use.
- *
- * The scripts write `cross-env VAR=value cmd` because a bare `VAR=value` prefix is
- * POSIX-only and they are also started directly (on Windows too). This runner must
- * NOT inherit that shim: it spawns commands itself, and `node_modules/.bin` is only
- * on PATH when the runner was started through the package manager. Verified — under
- * a bare `node scripts/check.mjs` the spawned shell answers
- * `cross-env: command not found` (exit 127). Lifting the assignment into the spawn
- * env makes the runner work either way, and drops a process from every step.
- *
- * Returns the bare command plus the assignments found, so callers can merge them
- * with any override of their own.
- */
-export function splitEnvPrefix(raw) {
-  const original = String(raw).trim();
-  let cmd = original.replace(/^cross-env\s+/, '');
-  const env = {};
-  let match;
-  while ((match = /^([A-Za-z_][A-Za-z0-9_]*)=(\S*)\s+/.exec(cmd))) {
-    env[match[1]] = match[2];
-    cmd = cmd.slice(match[0].length);
-  }
-  // `cross-env` with nothing assignable after it is not ours to rewrite — hand the
-  // command back untouched rather than silently dropping a wrapper we do not
-  // understand.
-  if (!Object.keys(env).length) return { cmd: original, env: {} };
-  return { cmd, env };
 }
 
 // Rewrite a check-only format/lint command into its auto-fixing variant, so a
@@ -232,12 +160,8 @@ const SEVERITIES = ['critical', 'high', 'moderate', 'low', 'info'];
 // `<auditCmd>` would — never with a narrower scope than the chain. (The old
 // hardcoded `--prod` hid devDependency vulns for library packages.)
 async function runAudit(auditCmd) {
-  // The hoisted audit needs the same treatment as the step list: lift its
-  // `cross-env` prefix into the env, then add the runner's isolation — `pnpm audit
-  // --fix` can resolve dependencies and fire `postinstall: nuxt prepare`.
-  const { cmd: bare, env: declared } = splitEnvPrefix(auditCmd);
-  const cmd = /(^|\s)--json(\s|$)/.test(bare) ? bare : `${bare} --json`;
-  const { code, out } = await capture(cmd, ROOT, 0, { ...declared, ...checkBuildDirEnv(cmd) });
+  const cmd = /(^|\s)--json(\s|$)/.test(auditCmd) ? auditCmd : `${auditCmd} --json`;
+  const { code, out } = await capture(cmd, ROOT);
   let counts = null;
   try {
     counts = JSON.parse(out.slice(out.indexOf('{')))?.metadata?.vulnerabilities ?? null;
@@ -282,12 +206,9 @@ function killTree(child, signal = 'SIGTERM') {
 // idleTimeoutMs > 0 arms the no-output watchdog for this child; 0 (the default)
 // runs it unwatched. Only callers that KNOW the child streams progress (test
 // steps) should pass a timeout — see runGroup.
-function capture(cmd, cwd, idleTimeoutMs = 0, env = {}) {
+function capture(cmd, cwd, idleTimeoutMs = 0) {
   return new Promise((resolve) => {
-    // `env` carries per-step overrides (see checkBuildDirEnv). Spread over the
-    // inherited environment rather than replacing it — a child that loses PATH or
-    // HOME fails in ways that look nothing like the missing variable.
-    const child = spawn(cmd, { cwd, env: { ...process.env, ...env }, shell: true });
+    const child = spawn(cmd, { cwd, shell: true });
     RUNNING.add(child);
     let out = '';
     let idleTimer = null;
@@ -489,10 +410,7 @@ export function buildGroups(projects) {
         if (!auditCmd) auditCmd = raw;
         continue;
       }
-      // Lift any `cross-env VAR=…` prefix into the spawn env, then add the runner's
-      // own isolation for the package-manager calls that carry no pin of their own.
-      const { cmd, env: declared } = splitEnvPrefix(toFixCommand(meta.kind, raw));
-      steps.push({ ...meta, cmd, cwd: project.dir, env: { ...declared, ...checkBuildDirEnv(cmd) } });
+      steps.push({ ...meta, cmd: toFixCommand(meta.kind, raw), cwd: project.dir });
     }
     return { project, steps };
   });
@@ -539,7 +457,7 @@ async function runGroup(group, states, results, abort) {
     // Watchdog only on test steps (see IDLE_TIMEOUT_MS): a test runner streams
     // output continuously, so prolonged silence == deadlocked workers. Other
     // steps buffer their output and must run unwatched.
-    const { code, out } = await capture(step.cmd, step.cwd, step.kind === 'test' ? IDLE_TIMEOUT_MS : 0, step.env);
+    const { code, out } = await capture(step.cmd, step.cwd, step.kind === 'test' ? IDLE_TIMEOUT_MS : 0);
     const dur = Date.now() - st.stepStart;
     const r = { dur, kind: step.kind, label: step.label, project: rel };
     if (step.kind === 'test') r.tests = parseVitest(out);

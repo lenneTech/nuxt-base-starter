@@ -74,7 +74,7 @@ jobs:
         run: pnpm run format:check
 
   typecheck:
-    name: Type-Check Tests
+    name: Type-Check
     runs-on: ubuntu-latest
     # Bounds a wedged job. Without it GitHub applies its 360-minute default, which is
     # long enough that a hung run is noticed by a human, not by CI.
@@ -96,12 +96,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Type-check the APP SOURCES (app/ + server/). `nuxt build` only
+      # transpiles — it never resolves a type identifier, so an import pointing
+      # at a type that does not exist survives lint, build, tests and CI alike.
+      # Observed in a consumer project: 48 such errors had accumulated unseen
+      # (lt-crm DEV-2726). `nuxt typecheck` wraps vue-tsc, which — unlike plain
+      # `tsc` — can resolve the `.vue` SFCs this half is made of.
+      - name: Type-check app sources
+        run: pnpm run typecheck
+
       # Type-check the test suites (tests/unit + tests/e2e). `nuxt build` and
-      # `oxlint app/` never look at tests/, and vitest / Playwright transpile
-      # without type-checking — so spec type errors would land unnoticed. The
-      # script self-preps `.nuxt` (tsc needs the generated types). Kept in its
-      # own job so it stays off the lint → build critical path (build needs
-      # [unit-tests, lint]); branch protection still gates the merge on it.
+      # `oxlint app/ server/` never look at tests/, and vitest / Playwright
+      # transpile without type-checking — so spec type errors would land
+      # unnoticed. The script self-preps the build dir (tsc needs the generated
+      # types). Both halves share this job so it stays off the lint → build
+      # critical path (build needs [unit-tests, lint]); branch protection still
+      # gates the merge on it.
       - name: Type-check test suites
         run: pnpm run typecheck:tests
 

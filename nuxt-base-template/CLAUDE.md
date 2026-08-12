@@ -77,13 +77,80 @@ which reads like dead configuration. It is not: deleting it breaks `lt dev test`
 
 ```bash
 pnpm dev              # Start dev server (port 3001)
-pnpm run generate-types  # Generate API types (API must be running on port 3000 — or NUXT_API_URL)
+pnpm run generate-types  # Generate API types (API must be running — see below)
 pnpm test             # Run Playwright E2E tests
 pnpm run build        # Build for production
 pnpm run check        # Full quality check (audit + format + lint + types + test + build)
+pnpm run typecheck    # Types of the APP sources (app/ + server/) — nuxt typecheck / vue-tsc
+pnpm run typecheck:tests  # Types of the TEST suites (tests/) — tsc
 pnpm run prepare:ide  # Refresh the IDE's .nuxt/ types
 pnpm run clean        # Remove every generated build/output dir
 ```
+
+### `generate-types` never guesses an API URL (DEV-2802)
+
+`pnpm run generate-types` runs through [`scripts/generate-types.mjs`](scripts/generate-types.mjs),
+which resolves the API URL before `openapi-ts` is started:
+
+1. an explicit `NUXT_API_URL` wins (CI, Docker, an active `lt dev up` shell),
+2. otherwise `<repo-root>/.lt-dev/.env` is loaded — the same bridge `lt dev init`
+   injects into `playwright.config.ts` — so the documented call works under
+   `lt dev up` **without** extra env,
+3. otherwise the run **fails** with an actionable message. There is deliberately
+   no default.
+
+It additionally **refuses** a URL that belongs to a _different_ `lt dev` project
+(`api.<other-slug>.localhost`) and warns when a registered project is generated
+from some other host.
+
+**Why the wrapper is a wrapper.** Under `lt dev up` the API is served over HTTPS
+by Caddy's local CA, which Node only trusts via `NODE_EXTRA_CA_CERTS` — read at
+process **startup**. Setting it from inside `openapi-ts.config.ts` is too late
+(`UNABLE_TO_GET_ISSUER_CERT_LOCALLY`), so the values from `.lt-dev/.env` are
+handed to a child process. `openapi-ts.config.ts` keeps a hard guard for direct
+`openapi-ts` calls.
+
+The old config fell back to a fixed `127.0.0.1:3000`. On a machine running
+several lt projects in parallel that port belongs to _whichever_ project holds
+it — the generator wrote `types.gen.ts` / `sdk.gen.ts` from a foreign contract,
+printed a green checkmark and exited 0 (observed in lt-crm: `vuk-tools` answered
+on :3000). Pinned by
+[`tests/unit/generate-types-api-url.test.ts`](tests/unit/generate-types-api-url.test.ts).
+
+### Two traps when raising Nuxt past 4.4.8 (measured in lt-crm, DEV-2802)
+
+The August 2026 advisory wave forces `nuxt >= 4.5.1`. Two things cost real
+debugging time there; both are reproducible, so do not re-derive them:
+
+- **Take 4.5.1, not 4.5.2.** Under 4.5.2 `nuxt prepare` dies with a Node
+  ESM/CJS interop assert (`loadCJSModuleWithModuleLoad`) while loading
+  `@nuxtjs/i18n`'s `dist/module.mjs` — with 10.4.1 **and** with 10.6.0.
+  Isolated by keeping the dependency overrides and rolling only Nuxt back,
+  which goes green, so the trigger is Nuxt itself.
+- **The bump breaks the type gate, and the cause is not in your code.**
+  `@nuxt/test-utils/module` is registered in `modules`, so its types are part
+  of the APP typecheck program — and from 4.5.1 on, happy-dom's DOM types
+  shadow the real ones. A `ref<HTMLElement | null>` then stops satisfying
+  `ResizeObserver.observe(target: Element)`. Do not cast at the call site; lift
+  `@nuxt/test-utils` to 4.1.0 and `happy-dom` to 20.11.2, which restores it.
+
+### Why the type gate has two halves
+
+`nuxt build` only **transpiles** — it never resolves a type identifier. An import
+pointing at a type that does not exist therefore survives lint, build, tests and
+CI alike. That is not hypothetical: a consumer project accumulated 48 such errors
+unseen before anything looked (lt-crm DEV-2726).
+
+- **`typecheck`** covers `app/` + `server/` and runs on `vue-tsc` — plain `tsc`
+  cannot resolve the `.vue` SFCs this half is made of.
+- **`typecheck:tests`** covers `tests/` and runs on plain `tsc`, because the specs
+  here import only `.ts`.
+
+Both are wired into `check:raw` / `check:fix` / `check:naf` **and** into the CI
+`typecheck` job. That second half is the one that matters: a gate reachable only
+through `pnpm run check` never runs in a merge request, because no CI job calls
+`check`. Both pin `NUXT_BUILD_DIR=.nuxt-check` so they cannot collide with a
+parked `nuxt dev`; `tests/unit/nuxt-builddir-isolation.test.ts` enforces that.
 
 **After running `check`, your IDE may show false errors** — run `pnpm run prepare:ide`.
 The gates build into `.nuxt-check/` so they can run next to a live `nuxt dev`, which
@@ -113,13 +180,13 @@ First run in a fresh project: just `lt dev init` then `lt dev up`. (`lt dev migr
 `lt dev up` exports the env vars the template respects:
 
 - `PORT` — internal Nuxt dev server port (auto-allocated 4000+, never 3001)
-- `NUXT_API_URL` — used by `generate-types` and the Vite dev proxy (when active) — `https://api.<slug>.localhost`
+- `NUXT_API_URL` — SSR API URL and the Vite dev proxy target (when active) — `https://api.<slug>.localhost`. Also the variable `generate-types` reads, but only from the **shell environment** — see the DEV-2802 section above.
 - `NUXT_PUBLIC_API_URL` — client-side API URL — `https://api.<slug>.localhost`
 - `NUXT_PUBLIC_SITE_URL` — used by Playwright (`baseURL`, `webServer.url`) — `https://<slug>.localhost`
 - `NUXT_PUBLIC_STORAGE_PREFIX` — LocalStorage namespace (prevents key collisions across parallel projects) — `<slug>`
 - `NUXT_PUBLIC_API_PROXY` — always `false` under `lt dev up` because Caddy + cookie-domain make the vite-proxy obsolete
 
-Without `lt dev up`, the template falls back to the defaults (port 3001, API on `localhost:3000`, `NUXT_PUBLIC_API_PROXY=true` for same-origin cookies in classic mode). All env vars are optional.
+Without `lt dev up`, the template falls back to the defaults (port 3001, API on `localhost:3000`, `NUXT_PUBLIC_API_PROXY=true` for same-origin cookies in classic mode). All env vars are optional — **except for `generate-types`**, which has no default at all and fails rather than guess a port (DEV-2802, section above).
 
 **Two more env vars the template respects, set per command rather than by `lt dev up`:**
 

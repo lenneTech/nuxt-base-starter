@@ -8,13 +8,9 @@
   // `tsconfig.tests.json` stays as the editor-facing config. Keep the two in
   // lockstep — enforced by `tests/unit/nuxt-builddir-isolation.test.ts`.
   //
-  // Tool choice — plain `tsc`, not `vue-tsc`: the starter's specs import only
-  // `.ts` (relative app utils, node, vitest, Playwright), so `tsc` covers them
-  // fully with the pinned TypeScript. Once your project's specs start importing
-  // `.vue` components or via the `~` alias (which pulls SFCs through
-  // `#components`), plain `tsc` can no longer resolve `.vue` — switch the
-  // `typecheck:tests` script to `vue-tsc` then (and pin a `vue-tsc` version
-  // compatible with your `typescript`; vue-tsc 3.x does not run on TypeScript 6.x).
+  // Tool choice — plain `tsc`, not `vue-tsc`: see `tsconfig.tests.json` for the
+  // reasoning and for when to switch. `vue-tsc` is already available (the
+  // APP-source half, `pnpm run typecheck`, runs on it).
   "extends": "./tests/tsconfig.check.json",
   "compilerOptions": {
     "noEmit": true

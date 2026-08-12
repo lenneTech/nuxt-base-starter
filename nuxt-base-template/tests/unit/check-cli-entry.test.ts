@@ -26,7 +26,7 @@ describe('check.mjs CLI entry gate', () => {
     expect(result.status, result.stderr).toBe(0);
     // Also pins the public surface `scripts/check.d.mts` declares. A helper added to
     // check.mjs but not to the .d.mts (or vice versa) shows up here.
-    expect(result.stdout).toBe('buildGroups,checkBuildDirEnv,splitEnvPrefix');
+    expect(result.stdout).toBe('buildGroups');
   });
 
   it('a missing argv[1] means "not the entry", not a hard exit', () => {

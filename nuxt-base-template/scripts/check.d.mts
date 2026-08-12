@@ -54,28 +54,19 @@ export interface CheckGroups {
  */
 export function buildGroups(projects: CheckProject[]): CheckGroups;
 
-/**
- * The environment overrides a package-manager invocation (`install` / `i` / `add` /
- * `ci` / `audit`) needs so its lifecycle hooks — notably `postinstall: nuxt prepare`
- * — write the isolated `.nuxt-check` build dir instead of the `.nuxt/` a parked
- * `nuxt dev` reads.
+/*
+ * Removed: `checkBuildDirEnv()` and `splitEnvPrefix()`.
  *
- * Returns an env OBJECT rather than a `VAR=value` command prefix: that prefix is
- * POSIX-only, and this runner spawns commands directly, so it cannot reach the
- * `cross-env` the package.json scripts use either. Returns `{}` for commands that
- * need no override, including ones that already carry their own pin.
+ * The runner used to inject `NUXT_BUILD_DIR=.nuxt-check` into package-manager
+ * steps itself, matching them by regex, so their lifecycle hooks (notably
+ * `postinstall: nuxt prepare`) would not rewrite the `.nuxt/` a parked
+ * `nuxt dev` reads. That responsibility now sits where it belongs: every
+ * `check:*` script in package.json carries its own `cross-env NUXT_BUILD_DIR=`
+ * prefix on the `install` and `audit` it starts with.
+ *
+ * Declaring the pin at the call site beats inferring it from a command string —
+ * the regex had to keep pace with every spelling (`pnpm i`, `pnpm add`,
+ * `npm ci`, `bun install`, …) and silently missed the ones it did not know.
+ * `tests/unit/nuxt-builddir-isolation.test.ts` asserts the new arrangement:
+ * that the scripts themselves declare it, for every entry point.
  */
-export function checkBuildDirEnv(cmd: string): Record<string, string>;
-
-/**
- * Split a leading environment assignment off a command, in either spelling the
- * package.json scripts use (`cross-env VAR=value cmd` or a bare `VAR=value cmd`).
- *
- * The runner spawns commands directly, so `node_modules/.bin` — and with it
- * `cross-env` — is only on PATH when the runner itself was started through the
- * package manager. Lifting the assignment into the spawn env makes a bare
- * `node scripts/check.mjs` work too, and saves a process per step.
- *
- * Returns the command unchanged with an empty env when there is nothing to lift.
- */
-export function splitEnvPrefix(raw: string): { cmd: string; env: Record<string, string> };

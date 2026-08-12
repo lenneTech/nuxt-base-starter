@@ -12,7 +12,7 @@
 useHead({ title: 'System' });
 definePageMeta({ ssr: false });
 
-const { apiMeta, appVersion, appCommit, buildsMatch, fetchApiMeta, isLoadingMeta } = useSystem();
+const { apiMeta, appVersion, appCommit, buildsMatch, fetchApiMeta, fetchBuildIdentity, isLoadingMeta } = useSystem();
 
 // API build identity, fetched from GET /meta. Falls back to placeholders while
 // loading / when unreachable so the view never renders `undefined`.
@@ -21,7 +21,9 @@ const apiCommit = computed(() => apiMeta.value?.commit || 'unknown');
 const apiEnvironment = computed(() => apiMeta.value?.environment || '–');
 
 onMounted(async () => {
-  await fetchApiMeta();
+  // Both sides in parallel — they are independent, and the comparison below
+  // only makes sense once each has reported for itself.
+  await Promise.all([fetchApiMeta(), fetchBuildIdentity()]);
 });
 
 /** Show the first 7 chars of a commit SHA, or a readable placeholder. */

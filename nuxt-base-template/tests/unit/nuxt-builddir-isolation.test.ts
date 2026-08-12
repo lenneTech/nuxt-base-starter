@@ -30,7 +30,7 @@ import { describe, expect, it } from 'vitest';
 // helpers WITHOUT starting a check run. If check.mjs's `isCliEntry()` gate ever
 // regresses, this import kicks off the full pipeline and the suite never
 // returns — loud enough that it cannot be missed.
-import { buildGroups, checkBuildDirEnv, splitEnvPrefix } from '../../scripts/check.mjs';
+import { buildGroups } from '../../scripts/check.mjs';
 
 const templateRoot = join(import.meta.dirname, '..', '..');
 
@@ -82,7 +82,12 @@ const rx = (literal: string): string => literal.replace(/[.*+?^${}()|[\]\\]/g, '
 
 // Commands that WRITE a Nuxt build directory — only these read NUXT_BUILD_DIR.
 // `generate` is in here for the same reason `build` is: it runs a full build.
-const WRITES_BUILD_DIR = /\bnuxt\s+(?:build|prepare|generate)\b/;
+// `typecheck` is in here because `nuxt typecheck` PREPARES the build dir before
+// handing off to vue-tsc — it appears in READS_BUILD_DIR below as well, and it is
+// the only command in both lists. Leaving it out here would exempt the app-source
+// gate from the pinning rule, which is exactly the collision this file exists to
+// prevent.
+const WRITES_BUILD_DIR = /\bnuxt\s+(?:build|prepare|generate|typecheck)\b/;
 // Commands that READ the generated tsconfig. `tsc` / `vue-tsc` / `tsgo` ignore
 // NUXT_BUILD_DIR entirely — they follow the `-p` config, so their half of the
 // contract is "point at a .check tsconfig", asserted separately. `nuxt typecheck`
@@ -311,6 +316,18 @@ describe(`the gates build into ${CHECK_DIR}, never into ${DEV_DIR}`, () => {
     expect(scripts['lint:fix'], '`lint:fix` no longer covers server/').toMatch(/\bserver\/?(?:\s|$)/);
   });
 
+  it('the standalone app-source typecheck isolates too (CI calls it directly)', () => {
+    // `.github/workflows/test.yml` runs `pnpm run typecheck` in its own job, so
+    // isolating only inside `check:raw` would leave that path on the shared dir.
+    // `nuxt typecheck` both prepares AND reads the build dir, so one pinned
+    // invocation has to cover both halves.
+    expect(scripts.typecheck, '`typecheck` must exist — it is the app-source half of the gate').toBeTruthy();
+    const steps = resolveSteps('pnpm run typecheck', scripts);
+    const writers = steps.filter((s) => WRITES_BUILD_DIR.test(s));
+    expect(writers.length, '`typecheck` must run through a Nuxt command that prepares the build dir').toBeGreaterThan(0);
+    for (const cmd of writers) expect(cmd).toMatch(new RegExp(`NUXT_BUILD_DIR=${rx(CHECK_DIR)}(?=\\s|$)`));
+  });
+
   it('the standalone typecheck script isolates too (CI calls it directly)', () => {
     // .github/workflows/test.yml runs `pnpm run typecheck:tests` outside any
     // check chain. Isolating only inside `check:raw` would leave that path on
@@ -388,36 +405,33 @@ describe(`the check runner's own package-manager steps write ${CHECK_DIR} too`, 
     expect(scripts['check:raw'], 'check:raw no longer contains an install/audit — the pin below asserts nothing').toMatch(PM_INVOCATION);
   });
 
-  it('no step reaches the runner without the build-dir env', () => {
-    // Asserts the EFFECT (the child is spawned with NUXT_BUILD_DIR set), not a
-    // spelling. The runner hands `spawn` an env object rather than building a
-    // `VAR=value cmd` string: that syntax is POSIX-only, and the runner cannot use
-    // `cross-env` either, because it spawns directly and `node_modules/.bin` is not
-    // on the inherited PATH.
+  it('the runner carries the chain’s own pin through to the step it will spawn', () => {
+    // The runner used to ADD the pin itself, matching package-manager commands by
+    // regex. It no longer does: the package.json chains declare it (asserted
+    // below), and the runner only has to not lose it on the way through
+    // `buildGroups`. That is what this checks — the pin survives the split into
+    // steps, verbatim, so the spawned child really sees it.
     //
-    // This runner has no install hoist: classify() has no `install` branch, so
-    // `pnpm install` lands in the generic `other` bucket and runs as an ordinary
-    // step. The env therefore has to sit on the step list, not on a hoist.
+    // Why the chain is the better place for it: the old regex had to keep pace
+    // with every spelling a lifecycle hook can hide behind (`pnpm i`, `pnpm add`,
+    // `npm ci`, `bun install`, …) and silently missed the ones it did not know.
+    // A declaration at the call site cannot miss anything.
     let seen = 0;
     const { groups } = buildGroups([asProject(scripts['check:raw'] as string)]);
     for (const step of groups.flatMap((g) => g.steps)) {
       if (!PM_INVOCATION.test(step.cmd)) continue;
       seen++;
-      expect(step.env?.NUXT_BUILD_DIR, `step \`${step.cmd}\` invokes the package manager but is spawned without NUXT_BUILD_DIR=${CHECK_DIR}`).toBe(CHECK_DIR);
+      expect(step.cmd, `step \`${step.cmd}\` reaches the runner without its NUXT_BUILD_DIR=${CHECK_DIR} pin — the chain declared one, the split dropped it`).toMatch(PINNED);
     }
     expect(seen, 'no package-manager step surfaced — the loop body never ran and this test proved nothing').toBeGreaterThan(0);
   });
 
-  it('the hoisted audit runs against the check build dir', () => {
+  it('the hoisted audit keeps its pin too', () => {
+    // The audit is lifted out of the step list and spawned separately, so it takes
+    // a different code path through the runner and needs its own assertion.
     const { auditCmd } = buildGroups([asProject(scripts['check:raw'] as string)]);
     expect(auditCmd, 'the chain no longer yields a hoisted audit').toBeTruthy();
-    // The audit is spawned separately from the step list, so runAudit() derives its
-    // env the same way: lift the script's own `cross-env` prefix, then add the
-    // runner's isolation. Assert the RESULT of that composition — either route is
-    // acceptable, only the effective build dir matters.
-    const { cmd, env: declared } = splitEnvPrefix(auditCmd as string);
-    const effective = { ...declared, ...checkBuildDirEnv(cmd) };
-    expect(effective.NUXT_BUILD_DIR, `the hoisted audit \`${auditCmd}\` is spawned without NUXT_BUILD_DIR=${CHECK_DIR}`).toBe(CHECK_DIR);
+    expect(auditCmd as string, `the hoisted audit \`${auditCmd}\` lost its NUXT_BUILD_DIR=${CHECK_DIR} pin during the hoist`).toMatch(PINNED);
   });
 
   it('the raw chains pin their package-manager steps themselves', () => {
@@ -453,46 +467,31 @@ describe(`the check runner's own package-manager steps write ${CHECK_DIR} too`, 
   });
 
   it.each([
-    // Every spelling that runs a lifecycle hook. `pnpm i` and `pnpm add` are here
-    // because they fire the same `postinstall: nuxt prepare` that `install` does —
-    // matching only the long form pinned the spelling, not the behaviour.
     'pnpm install --frozen-lockfile',
     'pnpm i',
     'pnpm i --frozen-lockfile',
     'pnpm add some-package',
     'pnpm audit --fix',
-    'pnpm audit --prod --audit-level=high',
     'npm install',
     'npm ci',
     'npm audit fix',
     'yarn install',
     'bun install',
     'bun audit',
-  ])('checkBuildDirEnv isolates `%s`', (cmd) => {
-    expect(checkBuildDirEnv(cmd)).toEqual({ NUXT_BUILD_DIR: CHECK_DIR });
+  ])('PM_INVOCATION still recognises `%s` as a lifecycle-hook carrier', (cmd) => {
+    // The pin now lives in package.json, but this pattern is what decides which
+    // steps the assertions above demand a pin FOR. If it stopped matching a
+    // spelling, those tests would skip that step and pass while it ran unpinned —
+    // the vacuous pass this file's header warns about. `pnpm i` and `pnpm add`
+    // matter as much as `install`: they fire the same `postinstall: nuxt prepare`.
+    expect(PM_INVOCATION.test(cmd), `\`${cmd}\` runs a lifecycle hook but no longer matches PM_INVOCATION`).toBe(true);
   });
 
-  it.each([
-    // Untouched: these either pin themselves in package.json or write no build dir
-    // at all. A blanket override would silently redirect a step that deliberately
-    // targets a different dir.
-    'pnpm run test:unit',
-    'bash scripts/check-server-start.sh',
-    'oxlint app/',
-    'pnpm important-custom-script',
-    // Already self-pinned, in either spelling.
-    `cross-env NUXT_BUILD_DIR=${CHECK_DIR} nuxt build`,
-    `NUXT_BUILD_DIR=${CHECK_DIR} nuxt build`,
-    'cross-env NUXT_BUILD_DIR=.nuxt-other pnpm install',
-    'NUXT_BUILD_DIR=.nuxt-other pnpm install',
-  ])('checkBuildDirEnv leaves `%s` alone', (cmd) => {
-    expect(checkBuildDirEnv(cmd)).toEqual({});
-  });
-
-  it('returns a fresh object so one step cannot mutate another step’s env', () => {
-    const a = checkBuildDirEnv('pnpm install');
-    a.NUXT_BUILD_DIR = '.nuxt-tampered';
-    expect(checkBuildDirEnv('pnpm install')).toEqual({ NUXT_BUILD_DIR: CHECK_DIR });
+  it.each(['pnpm run test:unit', 'bash scripts/check-server-start.sh', 'oxlint app/', 'pnpm important-custom-script'])('PM_INVOCATION leaves `%s` alone', (cmd) => {
+    // Over-matching is the other failure direction: it would demand a build-dir pin
+    // on steps that write no build dir, so the chains would grow pins that mean
+    // nothing and the real ones would be harder to spot.
+    expect(PM_INVOCATION.test(cmd), `\`${cmd}\` writes no build dir but is treated as a package-manager step`).toBe(false);
   });
 });
 
