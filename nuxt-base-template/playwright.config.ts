@@ -68,6 +68,24 @@ export default defineConfig<ConfigOptions>({
      report. That is precisely the "ran to the hour limit without ever printing a
      summary" symptom. Keep this comfortably under whatever the job allows. */
   globalTimeout: 40 * 60 * 1000,
+  /* Stop the run after this many failures on CI. `globalTimeout` above is the
+     ceiling for a WEDGED run; this is the ceiling for a BROKEN environment, and
+     they fail differently. When the database or the API is gone, every test still
+     "runs": each one burns its 30s timeout, times that by `retries: 2` below —
+     ~95s apiece — and the shard spends its whole budget proving the same fault
+     over and over. Five is enough evidence.
+
+     Note this covers what the mongo watchdog in CI cannot see: the watchdog polls
+     one socket, so a dead API, a wedged mongod that still accepts TCP, or a
+     service flapping below its miss threshold all slip past it and land here
+     instead.
+
+     The trade-off, deliberately taken: on a genuinely broken merge request you no
+     longer see every failure in one report. With ~12 tests per shard, a run past
+     five failures is not a list of bugs to work through — it is one cause, and
+     the first five instances point at it just as well. Off locally (0), where
+     seeing the full picture costs nothing. */
+  maxFailures: isCI ? 5 : 0,
   /* Run tests in files in parallel */
   fullyParallel: true,
   projects: devicesToTest.map((p) => (typeof p === 'string' ? { name: p, use: devices[p] } : p)),
