@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.17.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.17.0...v2.17.1) (2026-08-18)
+
+
+### Bug Fixes
+
+* **ci:** stop a broken environment from consuming the whole E2E budget ([58f7ccd](https://github.com/lenneTech/nuxt-base-starter/commit/58f7ccd80ecbefc340c90f532aa3f44482f33898))
+
 ## [2.17.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.16.1...v2.17.0) (2026-08-12)
 
 
