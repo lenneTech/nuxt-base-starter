@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.19.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.18.5...v2.19.0) (2026-08-22)
+
+
+### Bug Fixes
+
+* **docs:** correct the vendor-mode `config.public.*` explanation and give existing projects a repair path ([7dc974d](https://github.com/lenneTech/nuxt-base-starter/commit/7dc974dafcf8261fa2f6335daf42a76ba17e8187))
+
 ### [2.18.5](https://github.com/lenneTech/nuxt-base-starter/compare/v2.18.4...v2.18.5) (2026-08-22)
 
 
