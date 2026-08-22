@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.18.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.17.1...v2.18.0) (2026-08-22)
+
+
+### Features
+
+* **auth:** build absolute redirect URLs and harden the auth pages ([cb3687c](https://github.com/lenneTech/nuxt-base-starter/commit/cb3687c206f5f6e07b7184fbf352abead8eeada1))
+
 ### [2.17.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.17.0...v2.17.1) (2026-08-18)
 
 
