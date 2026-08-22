@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.5](https://github.com/lenneTech/nuxt-base-starter/compare/v2.18.4...v2.18.5) (2026-08-22)
+
+
+### Bug Fixes
+
+* **e2e:** match the masked email the server actually logs ([2783a91](https://github.com/lenneTech/nuxt-base-starter/commit/2783a9136e93b92f7486951bc8683ed3e9a03aac))
+
 ### [2.18.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.18.3...v2.18.4) (2026-08-22)
 
 ### [2.18.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.18.2...v2.18.3) (2026-08-22)
