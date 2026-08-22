@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.18.2...v2.18.3) (2026-08-22)
+
+
+### Bug Fixes
+
+* **auth:** accept a non-string siteUrl, which is what actually arrives ([867e207](https://github.com/lenneTech/nuxt-base-starter/commit/867e207b4ed53bc0e95e535d4e6fd73df9f2171a))
+
 ### [2.18.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.18.1...v2.18.2) (2026-08-22)
 
 ### [2.18.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.18.0...v2.18.1) (2026-08-22)
