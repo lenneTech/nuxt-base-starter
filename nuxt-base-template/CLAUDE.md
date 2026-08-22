@@ -421,6 +421,19 @@ Current call sites: `pages/auth/forgot-password.vue` and `pages/auth/verify-emai
 `NUXT_PUBLIC_*` variable actually has a `runtimeConfig.public` key to land in — the
 guard that was missing when the lockout happened.
 
+**The backend has to cooperate, twice.** Before debugging a reset that still does not
+work, check both:
+
+- **`@lenne.tech/nest-server` >= 11.36.1.** Older versions wire no
+  `emailAndPassword.sendResetPassword` hook, so `POST /iam/request-password-reset`
+  answers `RESET_PASSWORD_DISABLED` and sends nothing — no matter what this side supplies.
+  The origin check runs first, so before the 2.18.0 fix that failure was invisible behind
+  the 403. Symptom afterwards: no error in the browser, no mail either.
+- **The app origin is in the backend's `trustedOrigins`, exactly, without a wildcard.**
+  `redirectTo` is validated against that list, and the reset redirect carries a live
+  one-time token — a wildcard hands it to any origin it admits. nest-server warns at boot
+  from 11.36.1.
+
 ## Security Overrides (pnpm)
 
 All workspace-scoped pnpm settings — `overrides` (CVE patches for vulnerable transitive deps), `minimumReleaseAgeExclude`, build-script approvals (`allowBuilds` / `onlyBuiltDependencies`), and `ignoredOptionalDependencies` — live in **`pnpm-workspace.yaml`**, each with an inline comment stating its reason (CVE/advisory). The detailed advisory list is therefore the file itself, not duplicated here.

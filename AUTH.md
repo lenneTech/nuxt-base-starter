@@ -148,6 +148,37 @@ NUXT_PUBLIC_API_URL=http://localhost:3000
 NUXT_PUBLIC_SITE_URL=https://app.example.com
 ```
 
+### Password reset requires nest-server 11.36.1 or newer
+
+The frontend half of this flow is only half of it. **Before `@lenne.tech/nest-server`
+11.36.1, no `sendResetPassword` hook was wired at all**, so `POST /iam/request-password-reset`
+answered `RESET_PASSWORD_DISABLED` and no mail was ever sent — regardless of what the
+frontend sent. From 11.36.1 the hook is injected by `CoreBetterAuthModule` and the route
+is live from the first boot, with no configuration needed.
+
+That matters when upgrading a project: pairing this starter's 2.18.0 redirect fix with an
+older backend swaps one silent failure for another. The frontend sends a correct absolute
+`redirectTo`, and the server still refuses to send anything. Check the backend version
+before concluding the reset flow is broken:
+
+```bash
+npm view @lenne.tech/nest-server version   # what's current
+node -e "console.log(require('./projects/api/package.json').dependencies['@lenne.tech/nest-server'])"
+```
+
+Two consequences of that upgrade worth knowing, both from the module's
+`INTEGRATION-CHECKLIST.md`:
+
+- **Reset mail starts going out to real users** the moment the backend reaches 11.36.1.
+  It is a behaviour change, not just a fix. To keep the flow off (support-mediated or
+  SSO-primary reset policies), set `betterAuth.emailAndPassword.passwordReset: false`.
+- **Rate limiting is not on unless you configure it.** `betterAuth.rateLimit` is absent by
+  default; providing the object at all — even `{}` — enables it. Before 11.36.1 the
+  mail-sending endpoint additionally slipped through the strict-endpoint list, so it ran on
+  the full limit. What does hold per address either way is the mailer's
+  `emailVerification.resendCooldownSeconds` (60 s by default), which this starter's
+  forgot-password page reads for its resend cooldown.
+
 ### Redirect origins and `trustedOrigins`
 
 Two auth flows send the user out to an e-mail and back: password reset and e-mail
@@ -180,8 +211,11 @@ the request. Whatever origin the frontend sends must be in that list, or the sam
 appears. So a new stage needs its origin registered on **both** sides: the frontend's
 `NUXT_PUBLIC_SITE_URL` and the backend's trusted origins.
 
-Avoid wildcard entries (`https://*.example.com`) in `trustedOrigins`. They widen the
-set of origins a reset link may point at, and reset links carry a one-time token.
+**Never use wildcard entries** (`https://*.example.com`) in `trustedOrigins`. `redirectTo`
+is validated against that list and the reset redirect carries a live one-time token, so any
+origin the wildcard admits can receive it — an account-takeover path, not a theoretical one.
+From nest-server 11.36.1 the framework logs a warning at boot when it finds a wildcard
+there. List exact origins.
 
 ### Custom Configuration
 
