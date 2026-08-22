@@ -241,6 +241,30 @@ function readServerLog(): string {
 }
 
 /**
+ * Reproduce the server-side email masking so the log line can be matched.
+ *
+ * `nest-server` does NOT log the address it sends to — it logs
+ * `maskEmail(user.email)`, i.e. the first two characters of the local part plus
+ * `***` and the domain (`logging.helper.ts`). Matching on the full address finds
+ * nothing, which surfaces as "Verification token not found in server logs" while the
+ * line is sitting right there in the log.
+ *
+ * Two masked addresses collide whenever their local parts share the first two
+ * characters. That is safe here because every suite uses a distinct
+ * `generateTestUser()` prefix (`2f***`, `co***`, `pa***`), and within one suite the
+ * "last match wins" scan below returns the newest token — which is the one the
+ * current registration just produced.
+ */
+function maskEmailLikeServer(email: string): string {
+  const atIndex = email.indexOf('@');
+  if (atIndex <= 0) {
+    return '***';
+  }
+  const localPart = email.substring(0, atIndex);
+  return `${localPart.substring(0, Math.min(2, localPart.length))}***${email.substring(atIndex)}`;
+}
+
+/**
  * Extract email verification token from backend server logs.
  *
  * The nest-server logs verification URLs in this format:
@@ -251,7 +275,7 @@ function readServerLog(): string {
  * earlier one.
  */
 async function getVerificationToken(email: string, maxRetries = 10): Promise<string | null> {
-  const escaped = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escaped = maskEmailLikeServer(email).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   for (let i = 0; i < maxRetries; i++) {
     const log = readServerLog();
