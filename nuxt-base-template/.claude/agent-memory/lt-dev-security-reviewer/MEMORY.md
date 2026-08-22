@@ -1,3 +1,3 @@
 # Security Reviewer Memory Index
 
-- [Dependency Maintenance Pattern](project_dep_maintenance.md) — pnpm overrides use open upper bounds (>=) by convention; h3-next is intentionally aliased to RC pre-release
+- [Override conventions](project-override-conventions.md) — targets are FIXED versions in `pnpm-workspace.yaml`; flag range targets and any `pnpm` block in `package.json`. Replaces an inverted 2026-04 note

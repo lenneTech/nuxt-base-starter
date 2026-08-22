@@ -18,31 +18,20 @@
 # residual risk is acceptable, and date the verification. If you cannot write those
 # three sentences honestly, fix the dependency instead. An entry here is a debt, not
 # a decision — every one carries the condition under which it gets deleted again.
+#
+# There is deliberately no `auditConfig.ignoreGhsas` block right now — `pnpm audit`
+# is clean on its own merits, with nothing suppressed.
+#
+# Worth knowing before adding one: this file used to suppress the two HIGH image-size
+# advisories (GHSA-w3rx-r6r6-pgpr, GHSA-5p2g-fcmc-qvqq). The justification was sound
+# and the stated delete-condition — "as soon as image-size 2.0.3 is published" —
+# would never have fired, because 2.0.3 was never released. The dependency left the
+# tree instead: @nuxtjs/seo 5.3.14 pulls nuxt-seo-utils 8.4.2, which swapped
+# image-size for buffer-image-size. So the entry outlived its cause by a full release
+# cycle. Prefer a delete-condition you can actually observe ("this package no longer
+# resolves"), and re-check suppressions on every dependency bump, not only when the
+# named fix version appears.
 # ----------------------------------------------------------------------------------
-auditConfig:
-  ignoreGhsas:
-    # image-size: infinite loop on crafted ICNS / JXL / HEIF headers
-    # (GHSA-w3rx-r6r6-pgpr, GHSA-5p2g-fcmc-qvqq — both HIGH, CWE-835, <=2.0.2).
-    #
-    # Not fixable: both advisories name 2.0.3 as the fix, and that version is NOT
-    # published — 2.0.2 is `latest` on npm, so there is no override target. Nor does
-    # downgrading help: the vulnerable range is `<=2.0.2`, which covers the whole 1.x
-    # line as well. The single path is @nuxtjs/seo > nuxt-seo-utils > image-size, and
-    # the newest nuxt-seo-utils (8.4.1) still requests ^2.0.2, so lifting the parent
-    # changes nothing.
-    #
-    # Residual accepted: image-size is referenced ONLY from `dist/module.mjs` — the
-    # BUILD-TIME Nuxt module — and not from `dist/runtime/**`, so it never reaches
-    # the shipped bundle or a server route (verified by grep across the installed
-    # package). It reads the images the repo itself ships, to compute OG meta
-    # dimensions; the parser never sees attacker-supplied input, and there is no
-    # upload path into it. The impact of a hit would be a hanging local build.
-    #
-    # Delete this entry as soon as image-size 2.0.3 is published, and pin it under
-    # `overrides` instead.
-    # Verified 2026-08-12.
-    - GHSA-w3rx-r6r6-pgpr
-    - GHSA-5p2g-fcmc-qvqq
 
 # pnpm 11 renamed `onlyBuiltDependencies` to `allowBuilds` (map of pkg -> bool).
 # We keep BOTH keys so the file works across pnpm 10 (reads onlyBuiltDependencies)
