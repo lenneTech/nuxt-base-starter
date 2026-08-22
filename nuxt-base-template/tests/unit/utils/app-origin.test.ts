@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 
 import { appUrl, resolveAppOrigin } from '../../../app/utils/app-origin';
 
@@ -67,6 +67,25 @@ describe('resolveAppOrigin', () => {
   it('rejects the stringified "undefined" / "null" a template literal produces', () => {
     expect(resolveAppOrigin('undefined')).toBe(WINDOW_ORIGIN);
     expect(resolveAppOrigin('null')).toBe(WINDOW_ORIGIN);
+  });
+
+  it('falls back for any non-string value', () => {
+    // Not type-system theatre: Nitro applies NUXT_PUBLIC_* through destr(), so each
+    // of these really can reach `config.public.siteUrl` in production — see the
+    // `unknown` note on resolveAppOrigin. The type promises nothing, so the runtime
+    // guard has to hold on its own.
+    expect(resolveAppOrigin(null)).toBe(WINDOW_ORIGIN);
+    expect(resolveAppOrigin(42)).toBe(WINDOW_ORIGIN);
+    expect(resolveAppOrigin({ url: 'https://crm.lenne.tech' })).toBe(WINDOW_ORIGIN);
+    expect(resolveAppOrigin(['https://crm.lenne.tech'])).toBe(WINDOW_ORIGIN);
+    expect(resolveAppOrigin(true)).toBe(WINDOW_ORIGIN);
+  });
+
+  it('keeps the parameter typed `unknown`', () => {
+    // Pins the widening itself — the thing a well-meaning "tighten this back to
+    // string" refactor would break, and which no runtime assertion can catch.
+    expectTypeOf(resolveAppOrigin).parameter(0).toBeUnknown();
+    expectTypeOf(appUrl).parameter(1).toBeUnknown();
   });
 
   it('rejects a value that is not an absolute http(s) URL', () => {

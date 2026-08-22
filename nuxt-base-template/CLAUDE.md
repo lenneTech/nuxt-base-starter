@@ -22,6 +22,16 @@ In vendor mode, `app/core/` mirrors upstream — edit it **only** for changes us
 every consumer. Project-specific code stays outside `app/core/`. Full details in the
 "Framework: @lenne.tech/nuxt-extensions" section below and in `app/core/VENDOR.md`.
 
+**Typing trap in vendor mode:** `config.public.*` infers as `unknown`, not as the
+declared type. Vendor mode does not emit the `declare module 'nuxt/schema'` block that
+resolves `PublicRuntimeConfig`'s keys, so reads fall through `@nuxt/schema`'s
+`Record<string, unknown>` index signature. A helper typed `string` therefore fails
+`nuxt typecheck` in every vendor-mode project on a call that is perfectly valid in npm
+mode. Prefer an `unknown` parameter at that boundary over `as string` at the call site
+— and note it is not merely a typing artefact: Nitro applies `NUXT_PUBLIC_*` through
+`destr()`, so `NUXT_PUBLIC_X=42` really does arrive as a number, in both modes.
+`app/utils/app-origin.ts` and `server/utils/build-commit.ts` model the pattern.
+
 ## Tech Stack
 
 - **Framework:** Nuxt 4.x with TypeScript 6.0.x

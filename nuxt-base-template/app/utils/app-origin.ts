@@ -38,10 +38,28 @@ const ABSOLUTE_PATH_RE = /^\/(?![/\\])/;
  * them), where it silently reads as `undefined` and would send every caller down the
  * server branch.
  *
+ * `configured` is typed `unknown` because it crosses a CONFIG boundary — unlike
+ * `path`, which has an identical runtime guard but is a literal from app code and
+ * therefore stays `string`. Two independent reasons, and do NOT tighten it back:
+ *
+ * 1. A non-string genuinely arrives here. Nitro applies `NUXT_PUBLIC_*` through
+ *    `destr()`, so `NUXT_PUBLIC_SITE_URL=42` reaches the app as the NUMBER 42,
+ *    `=null` as `null`, and `=true` as a boolean — in npm mode too, where
+ *    TypeScript confidently says `string`. The old annotation was never true.
+ * 2. In vendor mode it does not even claim to be a string. Without the generated
+ *    `declare module 'nuxt/schema'` block, reads fall through the index signature
+ *    on `@nuxt/schema`'s `PublicRuntimeConfig extends Record<string, unknown>` and
+ *    land on `unknown` — so a `string` parameter fails `nuxt typecheck` in every
+ *    vendor-mode project on a call that is perfectly valid.
+ *
+ * Reason 2 is a symptom of a wider gap (every `config.public.*` read is `unknown`
+ * in vendor mode) and belongs in the vendoring step, not here. Reason 1 stands on
+ * its own and outlives that fix.
+ *
  * @param configured Usually `useRuntimeConfig().public.siteUrl`, fed by `NUXT_PUBLIC_SITE_URL`.
  * @see https://github.com/lenneTech/nuxt-base-starter — `NUXT_PUBLIC_SITE_URL` in `.env.example`
  */
-export function resolveAppOrigin(configured?: string): string {
+export function resolveAppOrigin(configured?: unknown): string {
   const candidate = typeof configured === 'string' ? configured.trim() : '';
 
   // `undefined`/`null` as TEXT is the exact failure this function exists for: it
@@ -101,7 +119,7 @@ export function resolveAppOrigin(configured?: string): string {
  * });
  * ```
  */
-export function appUrl(path: string, configured?: string): string {
+export function appUrl(path: string, configured?: unknown): string {
   if (typeof path !== 'string' || !ABSOLUTE_PATH_RE.test(path) || hasControlCharacter(path)) {
     throw new Error(`appUrl() expects a single-slash absolute path, got: ${JSON.stringify(path)}`);
   }
