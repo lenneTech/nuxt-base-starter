@@ -164,6 +164,26 @@ generating from a foreign contract used to succeed silently (DEV-2802).
 - Pre-built pages: login, register, forgot-password, reset-password, 2fa
 - Route middleware: `auth.global.ts`, `admin.global.ts`, `guest.global.ts`
 
+**Requirements:** the backend must run `@lenne.tech/nest-server` **11.36.1+** for the
+password reset. Older versions wire no `emailAndPassword.sendResetPassword` hook, so
+`POST /iam/request-password-reset` answers `RESET_PASSWORD_DISABLED` and sends nothing —
+no matter what this app supplies. Everything else on the list works on older backends.
+
+The app's public origin must also be in the backend's `trustedOrigins`, **exactly and
+without a wildcard**: `redirectTo` is validated against that list and the reset redirect
+carries a live one-time token, so a wildcard hands that token to any origin it admits.
+nest-server warns at boot from 11.36.1 if it finds one.
+
+Set `NUXT_PUBLIC_SITE_URL` on every deployed stage — it is the origin the reset and
+verification links are built from (see [Environment Variables](#environment-variables)).
+Unset, the app falls back to the browser's origin and logs a console warning; that is
+right for a single-origin deployment and wrong behind a proxy or vanity domain.
+
+Symptom guide when a reset does not arrive: a `403 INVALID_REDIRECT_URL` means the origin
+is missing from `trustedOrigins` or `NUXT_PUBLIC_SITE_URL` is wrong; a
+`RESET_PASSWORD_DISABLED` means the backend is older than 11.36.1; no error at all plus no
+mail usually means the mail service is not configured on the backend.
+
 ### UI & Styling
 
 - NuxtUI v4 component library
