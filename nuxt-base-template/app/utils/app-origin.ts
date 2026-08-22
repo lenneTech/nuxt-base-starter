@@ -46,15 +46,20 @@ const ABSOLUTE_PATH_RE = /^\/(?![/\\])/;
  *    `destr()`, so `NUXT_PUBLIC_SITE_URL=42` reaches the app as the NUMBER 42,
  *    `=null` as `null`, and `=true` as a boolean — in npm mode too, where
  *    TypeScript confidently says `string`. The old annotation was never true.
- * 2. In vendor mode it does not even claim to be a string. Without the generated
- *    `declare module 'nuxt/schema'` block, reads fall through the index signature
- *    on `@nuxt/schema`'s `PublicRuntimeConfig extends Record<string, unknown>` and
- *    land on `unknown` — so a `string` parameter fails `nuxt typecheck` in every
- *    vendor-mode project on a call that is perfectly valid.
+ * 2. In a vendor-mode project built before lt CLI 1.43.0 it does not even claim to
+ *    be a string: `config.public.*` reads as `unknown` there, so a `string`
+ *    parameter fails `nuxt typecheck` on a call that is perfectly valid.
  *
- * Reason 2 is a symptom of a wider gap (every `config.public.*` read is `unknown`
- * in vendor mode) and belongs in the vendoring step, not here. Reason 1 stands on
- * its own and outlives that fix.
+ * Reason 2 was a symptom of a wider gap — every `config.public.*` read, not just
+ * this one — and it is fixed in the vendoring step, not here. (For the record, an
+ * earlier version of this comment blamed a missing `declare module 'nuxt/schema'`
+ * block. That was wrong: the block is generated identically in both modes. The
+ * vendored core augmented `PublicRuntimeConfig` under both `nuxt/schema` and
+ * `@nuxt/schema` — one interface, twice — which closed a cycle with Nuxt's own
+ * generated types: TS2310, hidden by `skipLibCheck`. See the template's CLAUDE.md.)
+ *
+ * Reason 1 stands on its own and outlives that fix, which is why the parameter
+ * stays `unknown` now that vendor mode is repaired.
  *
  * @param configured Usually `useRuntimeConfig().public.siteUrl`, fed by `NUXT_PUBLIC_SITE_URL`.
  * @see https://github.com/lenneTech/nuxt-base-starter — `NUXT_PUBLIC_SITE_URL` in `.env.example`
