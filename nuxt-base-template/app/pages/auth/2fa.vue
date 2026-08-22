@@ -11,6 +11,7 @@ import * as v from 'valibot';
 // Composables
 // ============================================================================
 const toast = useToast();
+const { translateError } = useLtErrorTranslation();
 const { fetchWithAuth, setUser, switchToJwtMode, jwtToken } = useLtAuth();
 const authClient = useLtAuthClient();
 const route = useRoute();
@@ -35,6 +36,10 @@ const redirectTarget = computed(() => safeRedirectTarget(route.query.redirect));
 // ============================================================================
 definePageMeta({
   layout: 'slim',
+});
+
+useHead({
+  title: 'Zwei-Faktor-Bestätigung',
 });
 
 // ============================================================================
@@ -69,8 +74,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       if (result.error) {
         toast.add({
           color: 'error',
-          description: result.error.message || 'Backup-Code ungültig',
-          title: 'Fehler',
+          description: translateError(result.error.message || '') || 'Backup-Code ungültig',
+          title: 'Bestätigung fehlgeschlagen',
         });
         return;
       }
@@ -82,8 +87,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       if (result.error) {
         toast.add({
           color: 'error',
-          description: result.error.message || 'Code ungültig',
-          title: 'Fehler',
+          description: translateError(result.error.message || '') || 'Code ungültig',
+          title: 'Bestätigung fehlgeschlagen',
         });
         return;
       }

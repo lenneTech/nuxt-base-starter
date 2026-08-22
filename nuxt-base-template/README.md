@@ -235,7 +235,8 @@ client base path in `nuxt.config.ts` (`ltExtensions.ai.basePath`, default `/ai`)
 Create a `.env` file with the following variables:
 
 ```env
-# Required
+# Required — NUXT_PUBLIC_SITE_URL is the public origin of THIS app and must be set
+# on every non-local stage; see the note below the block.
 NUXT_PUBLIC_SITE_URL=http://localhost:3001
 NUXT_API_URL=http://localhost:3000
 NUXT_PUBLIC_API_URL=http://localhost:3000
@@ -245,6 +246,23 @@ NUXT_PUBLIC_API_URL=http://localhost:3000
 NUXT_PUBLIC_APP_ENV=local
 NODE_ENV=development
 ```
+
+**`NUXT_PUBLIC_SITE_URL` in production.** It has a dual role and two different
+failure modes:
+
+| Consumer                                              | Resolved                       | Unset behaviour                                                   |
+| ----------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------- |
+| SEO site config (canonical, OG, sitemap)              | build time **and** per request | falls back to the request's `X-Forwarded-Host`                    |
+| `runtimeConfig.public.siteUrl` → auth redirect origin | container start                | client falls back to `window.location.origin`, and logs a warning |
+
+The auth half is the one that bites: the value becomes the origin of the link in a
+password-reset mail. Behind a proxy or vanity domain the browser origin is not the
+public one, so users receive a link to the wrong host — a failure that surfaces in
+their inbox, where nothing is watching.
+
+Use `NUXT_PUBLIC_SITE_URL`, never `NUXT_SITE_URL`: both feed the SEO config, but only
+the public form also populates `runtimeConfig.public.siteUrl`. Setting only the latter
+yields correct canonicals and a silently empty auth origin.
 
 Optional variables:
 
@@ -284,7 +302,9 @@ app/
 │       ├── ai/      # AI chat
 │       └── settings/# User settings (security, ai, ai-prompts, ...)
 ├── utils/           # Utility functions (auto-imported)
-│   └── is-admin-user.ts  # Dual-shape admin check (role vs roles[])
+│   ├── app-origin.ts     # Absolute app origin for auth redirect URLs
+│   ├── is-admin-user.ts  # Dual-shape admin check (role vs roles[])
+│   └── safe-redirect-target.ts  # Validates ?redirect= into a safe same-origin path
 └── app.config.ts    # NuxtUI configuration
 
 docs/                # Dev-only documentation layer

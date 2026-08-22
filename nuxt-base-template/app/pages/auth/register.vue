@@ -36,6 +36,10 @@ definePageMeta({
   layout: 'slim',
 });
 
+useHead({
+  title: 'Registrierung',
+});
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -63,6 +67,7 @@ const requireTerms = computed(() => features.value.signUpChecks === true);
 
 const baseFields: AuthFormField[] = [
   {
+    autocomplete: 'name',
     label: 'Name',
     name: 'name',
     placeholder: 'Name eingeben',
@@ -70,6 +75,7 @@ const baseFields: AuthFormField[] = [
     type: 'text',
   },
   {
+    autocomplete: 'email',
     label: 'E-Mail',
     name: 'email',
     placeholder: 'E-Mail eingeben',
@@ -77,6 +83,7 @@ const baseFields: AuthFormField[] = [
     type: 'email',
   },
   {
+    autocomplete: 'new-password',
     label: 'Passwort',
     name: 'password',
     placeholder: 'Passwort eingeben',
@@ -84,6 +91,7 @@ const baseFields: AuthFormField[] = [
     type: 'password',
   },
   {
+    autocomplete: 'new-password',
     label: 'Passwort bestätigen',
     name: 'confirmPassword',
     placeholder: 'Passwort wiederholen',
@@ -276,6 +284,10 @@ async function skipPasskey(): Promise<void> {
           }"
           @submit="onSubmit"
         >
+          <template #title>
+            <h1 class="text-2xl font-bold">Registrieren</h1>
+          </template>
+
           <template v-if="requireTerms" #termsAccepted-field="slotProps">
             <UCheckbox v-model="(slotProps as any).state.termsAccepted">
               <template #label>
@@ -303,7 +315,7 @@ async function skipPasskey(): Promise<void> {
       <div class="flex flex-col items-center gap-6">
         <UIcon name="i-lucide-key" class="size-16 text-primary" />
         <div class="text-center">
-          <h2 class="text-xl font-semibold">Passkey hinzufügen?</h2>
+          <h1 class="text-xl font-semibold">Passkey hinzufügen?</h1>
           <p class="mt-2 text-sm text-muted">Mit einem Passkey kannst du dich schnell und sicher ohne Passwort anmelden.</p>
         </div>
 

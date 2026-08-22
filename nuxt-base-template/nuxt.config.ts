@@ -32,6 +32,11 @@ export default defineNuxtConfig({
   // ============================================================================
   app: {
     head: {
+      // The UI is German throughout. Without this, screen readers pronounce every
+      // label with English phonetics (WCAG 3.1.1). Set once here for the whole app.
+      htmlAttrs: {
+        lang: 'de',
+      },
       title: 'Nuxt Base Starter',
       viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
     },
@@ -247,6 +252,19 @@ export default defineNuxtConfig({
   },
 
   // ============================================================================
+  // Route Rules
+  // ============================================================================
+  routeRules: {
+    // robots.txt already disallows these prefixes, but robots.txt only asks. A
+    // per-route `noindex` header travels with the page itself, so a URL that leaks
+    // (a shared reset link, a referrer) stays out of an index even when the crawler
+    // never read robots.txt.
+    '/admin/**': { robots: false },
+    '/app/**': { robots: false },
+    '/auth/**': { robots: false },
+  },
+
+  // ============================================================================
   // Runtime Configuration (Environment Variables)
   // ============================================================================
   runtimeConfig: {
@@ -268,6 +286,25 @@ export default defineNuxtConfig({
       // Client-side — NUXT_PUBLIC_API_URL overrides at runtime
       // Local dev: .env provides http://localhost:3000
       apiUrl: '',
+      // Public origin of THIS app. Builds the absolute auth redirect URLs that end
+      // up in password-reset and e-mail-verification links (see utils/app-origin.ts).
+      //
+      // MUST be declared here: Nitro applies NUXT_PUBLIC_* only over keys that
+      // already exist in runtimeConfig.public. An undeclared key stays `undefined`
+      // no matter how the variable is set — which is exactly how a template literal
+      // once produced the text "undefined/auth/reset-password" and locked users out.
+      // `tests/unit/runtime-config-contract.test.ts` now guards that for every
+      // documented NUXT_PUBLIC_* variable.
+      //
+      // Use NUXT_PUBLIC_SITE_URL, never NUXT_SITE_URL. Both feed the SEO site config
+      // (canonicals, OG tags, sitemap), but only the NUXT_PUBLIC_ form also reaches
+      // this key — Nitro derives the variable name from the `public.siteUrl` path.
+      // Setting only NUXT_SITE_URL yields correct canonicals and an empty auth origin.
+      //
+      // Empty is safe but not intended for production: the client then falls back to
+      // the browser's own origin, which is right for a single-origin deployment and
+      // wrong behind a proxy or vanity domain. The fallback warns on the console.
+      siteUrl: '',
       // NUXT_PUBLIC_WEB_PUSH_KEY overrides this
       webPushKey: '',
       // API Proxy: Routes client-side /api/* requests through the Vite dev proxy
@@ -284,7 +321,17 @@ export default defineNuxtConfig({
   // ============================================================================
   site: {
     name: 'Nuxt Base Starter',
-    url: process.env.NUXT_PUBLIC_SITE_URL,
+    // No `url` here on purpose. nuxt-site-config's own `initSiteConfig()` already
+    // reads NUXT_SITE_URL / NUXT_PUBLIC_SITE_URL — at build time with priority
+    // `build` (-1) and again per request with priority `runtime` (0). A `url` set
+    // in this block lands at priority `config` (-3), so it could never win; writing
+    // it here only suggests an authoritative source that isn't one.
+    //
+    // The per-request read works because the module passes `import.meta.env`, which
+    // nitro rewrites to `process.env` for the node preset this template deploys on
+    // (`CMD ["node", ".output/server/index.mjs"]`). On an edge/worker preset that
+    // object is empty, and the runtime override would silently stop working —
+    // relevant only if this template is ever retargeted.
   },
 
   // ============================================================================

@@ -7,13 +7,19 @@
 
 import { vi } from 'vitest';
 
-// Mock window.location for tests
+// Mock window.location for tests.
+//
+// `href` deliberately carries a path while `origin` does not. When both held the same
+// bare origin, code that should read `origin` could read `href` instead and no test
+// could tell the difference — a real defect (a redirect target built from `href`
+// becomes `…/auth/forgot-password/auth/reset-password`) would have looked green.
+// Keep them distinguishable.
 Object.defineProperty(window, 'location', {
   value: {
     hostname: 'localhost',
-    href: 'http://localhost:3001',
+    href: 'http://localhost:3001/auth/forgot-password',
     origin: 'http://localhost:3001',
-    pathname: '/',
+    pathname: '/auth/forgot-password',
     search: '',
     hash: '',
   },

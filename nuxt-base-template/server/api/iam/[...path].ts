@@ -12,8 +12,18 @@
  * - Set-Cookie headers from the API are forwarded to the browser
  */
 export default defineEventHandler(async (event) => {
-  const path = getRouterParam(event, 'path') || '';
   const config = useRuntimeConfig(event);
+
+  // Gate: this handler rewrites Set-Cookie headers (dropping `Domain` and, below,
+  // `Secure`) to make cross-port cookies work on localhost. That rewriting is only
+  // ever correct for local development, but nothing used to stop the route from
+  // being served by a production build — it ships in `.output` like any other route.
+  // Refuse outside dev unless the proxy is explicitly switched on.
+  if (!import.meta.dev && !config.public.apiProxy) {
+    throw createError({ statusCode: 404, statusMessage: 'Not Found' });
+  }
+
+  const path = getRouterParam(event, 'path') || '';
   const apiUrl = config.apiUrl || 'http://localhost:3000';
   const targetUrl = `${apiUrl}/iam/${path}`;
 
@@ -51,15 +61,23 @@ export default defineEventHandler(async (event) => {
   });
 
   // Forward Set-Cookie headers from the API response
+  //
+  // `Secure` is dropped ONLY when the browser reached us over plain HTTP, which is
+  // the case this rewriting exists for (classic `localhost:3001` dev). Under `lt dev
+  // up` the app is served over HTTPS by Caddy, and stripping the flag there would
+  // needlessly downgrade a session cookie that the browser is perfectly able to keep.
+  const isSecureRequest = getRequestProtocol(event) === 'https';
   const setCookieHeaders = response.headers.getSetCookie?.() || [];
   for (const cookie of setCookieHeaders) {
     // Rewrite cookie to work on localhost:
     // 1. Remove domain (cookie will be set for current origin)
-    // 2. Remove secure flag (not needed for localhost)
+    // 2. Remove secure flag (only over plain HTTP — see above)
     // 3. Rewrite path from /iam to /api/iam (or set to / for broader access)
-    const rewrittenCookie = cookie
-      .replace(/domain=[^;]+;?\s*/gi, '')
-      .replace(/secure;?\s*/gi, '')
+    let rewrittenCookie = cookie.replace(/domain=[^;]+;?\s*/gi, '');
+    if (!isSecureRequest) {
+      rewrittenCookie = rewrittenCookie.replace(/secure;?\s*/gi, '');
+    }
+    rewrittenCookie = rewrittenCookie
       // Ensure path is set to / so cookies work for all routes
       .replace(/path=\/iam[^;]*;?\s*/gi, 'path=/; ')
       .replace(/path=[^;]+;?\s*/gi, 'path=/; ');

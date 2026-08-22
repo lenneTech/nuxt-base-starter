@@ -14,6 +14,10 @@ definePageMeta({
   layout: 'slim',
 });
 
+useHead({
+  title: 'E-Mail bestätigen',
+});
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -83,7 +87,11 @@ async function resendVerificationEmail(): Promise<void> {
   try {
     await $fetch(`${apiBase}/send-verification-email`, {
       body: {
-        callbackURL: '/auth/verify-email',
+        // Absolute, for the same reason as the reset link in `forgot-password.vue`:
+        // Better Auth redirects to this value from its OWN origin, so a relative path
+        // resolves against the API host and lands on `api.<host>/auth/verify-email`,
+        // where the route does not exist. See `utils/app-origin.ts`.
+        callbackURL: appUrl('/auth/verify-email', runtimeConfig.public.siteUrl),
         email: email.value,
       },
       method: 'POST',
@@ -153,7 +161,7 @@ onUnmounted(() => {
       <div class="flex flex-col items-center gap-6 py-4">
         <UIcon name="i-lucide-loader-circle" class="size-16 animate-spin text-primary" />
         <div class="text-center">
-          <h2 class="text-xl font-semibold">E-Mail wird verifiziert...</h2>
+          <h1 class="text-xl font-semibold">E-Mail wird verifiziert...</h1>
           <p class="mt-2 text-sm text-muted">Bitte warte einen Moment.</p>
         </div>
       </div>
@@ -164,7 +172,7 @@ onUnmounted(() => {
       <div class="flex flex-col items-center gap-6 py-4">
         <UIcon name="i-lucide-check-circle" class="size-16 text-success" />
         <div class="text-center">
-          <h2 class="text-xl font-semibold">E-Mail bestätigt</h2>
+          <h1 class="text-xl font-semibold">E-Mail bestätigt</h1>
           <p class="mt-2 text-sm text-muted">Deine E-Mail-Adresse wurde erfolgreich verifiziert. Du kannst dich jetzt anmelden.</p>
         </div>
         <UButton block :to="loginLink">Jetzt anmelden</UButton>
@@ -176,7 +184,7 @@ onUnmounted(() => {
       <div class="flex flex-col items-center gap-6 py-4">
         <UIcon name="i-lucide-x-circle" class="size-16 text-error" />
         <div class="text-center">
-          <h2 class="text-xl font-semibold">Verifizierung fehlgeschlagen</h2>
+          <h1 class="text-xl font-semibold">Verifizierung fehlgeschlagen</h1>
           <p class="mt-2 text-sm text-muted">{{ verifyError }}</p>
         </div>
 
@@ -202,7 +210,7 @@ onUnmounted(() => {
       <div class="flex flex-col items-center gap-6 py-4">
         <UIcon name="i-lucide-mail-check" class="size-16 text-primary" />
         <div class="text-center">
-          <h2 class="text-xl font-semibold">E-Mail bestätigen</h2>
+          <h1 class="text-xl font-semibold">E-Mail bestätigen</h1>
           <p class="mt-2 text-sm text-muted">
             Wir haben eine Bestätigungs-E-Mail an
             <strong v-if="email">{{ email }}</strong>

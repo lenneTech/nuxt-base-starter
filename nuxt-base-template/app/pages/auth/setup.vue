@@ -21,6 +21,10 @@ definePageMeta({
   layout: 'slim',
 });
 
+useHead({
+  title: 'Ersteinrichtung',
+});
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -28,6 +32,7 @@ const loading = ref<boolean>(false);
 
 const fields: AuthFormField[] = [
   {
+    autocomplete: 'name',
     label: 'Name',
     name: 'name',
     placeholder: 'Name eingeben',
@@ -35,6 +40,7 @@ const fields: AuthFormField[] = [
     type: 'text',
   },
   {
+    autocomplete: 'email',
     label: 'E-Mail',
     name: 'email',
     placeholder: 'E-Mail eingeben',
@@ -42,6 +48,7 @@ const fields: AuthFormField[] = [
     type: 'email',
   },
   {
+    autocomplete: 'new-password',
     label: 'Passwort',
     name: 'password',
     placeholder: 'Passwort eingeben',
@@ -49,6 +56,7 @@ const fields: AuthFormField[] = [
     type: 'password',
   },
   {
+    autocomplete: 'new-password',
     label: 'Passwort bestätigen',
     name: 'confirmPassword',
     placeholder: 'Passwort wiederholen',
@@ -118,6 +126,10 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       }"
       @submit="onSubmit"
     >
+      <template #title>
+        <h1 class="text-2xl font-bold">System einrichten</h1>
+      </template>
+
       <template #description>
         <p class="text-sm text-muted">Erstelle den ersten Administrator-Account, um das System zu starten.</p>
       </template>

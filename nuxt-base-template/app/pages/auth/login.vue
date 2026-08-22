@@ -69,6 +69,10 @@ definePageMeta({
   layout: 'slim',
 });
 
+useHead({
+  title: 'Anmeldung',
+});
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -77,6 +81,7 @@ const passkeyLoading = ref<boolean>(false);
 
 const fields: AuthFormField[] = [
   {
+    autocomplete: 'email',
     label: 'E-Mail',
     name: 'email',
     placeholder: 'E-Mail eingeben',
@@ -84,6 +89,7 @@ const fields: AuthFormField[] = [
     type: 'email',
   },
   {
+    autocomplete: 'current-password',
     label: 'Passwort',
     name: 'password',
     placeholder: 'Passwort eingeben',
@@ -255,6 +261,10 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
         }"
         @submit="onSubmit"
       >
+        <template #title>
+          <h1 class="text-2xl font-bold">Anmelden</h1>
+        </template>
+
         <template #password-hint>
           <ULink to="/auth/forgot-password" class="text-primary font-medium" tabindex="-1">Passwort vergessen?</ULink>
         </template>

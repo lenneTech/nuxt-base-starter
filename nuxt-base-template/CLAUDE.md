@@ -182,7 +182,7 @@ First run in a fresh project: just `lt dev init` then `lt dev up`. (`lt dev migr
 - `PORT` — internal Nuxt dev server port (auto-allocated 4000+, never 3001)
 - `NUXT_API_URL` — SSR API URL and the Vite dev proxy target (when active) — `https://api.<slug>.localhost`. Also the variable `generate-types` reads, but only from the **shell environment** — see the DEV-2802 section above.
 - `NUXT_PUBLIC_API_URL` — client-side API URL — `https://api.<slug>.localhost`
-- `NUXT_PUBLIC_SITE_URL` — used by Playwright (`baseURL`, `webServer.url`) — `https://<slug>.localhost`
+- `NUXT_PUBLIC_SITE_URL` — the public origin of the app. Used by Playwright (`baseURL`, `webServer.url`) — `https://<slug>.localhost` — **and, in production, by two runtime consumers**: the SEO site config (canonical/OG/sitemap) and `runtimeConfig.public.siteUrl`, which builds the absolute auth redirect URLs that go into password-reset and verification mails. Never `NUXT_SITE_URL`: that reaches the SEO config but not `runtimeConfig.public.siteUrl`. See the `appUrl` section below.
 - `NUXT_PUBLIC_STORAGE_PREFIX` — LocalStorage namespace (prevents key collisions across parallel projects) — `<slug>`
 - `NUXT_PUBLIC_API_PROXY` — always `false` under `lt dev up` because Caddy + cookie-domain make the vite-proxy obsolete
 
@@ -384,6 +384,42 @@ signed in successfully that login failed. Validate where the value is read.
 **When adding an intermediate auth step**, carry the query through it, or the deep
 link dies there. `tests/unit/utils/safe-redirect-target.test.ts` pins the validator's
 behaviour.
+
+### Absolute auth redirect URLs — `appUrl`
+
+Better Auth resolves a `redirectTo` / `callbackURL` **against its own base URL**, which
+is the API origin (`password.mjs`: `new URL(callbackURL, ctx.baseURL)`). In this stack
+app and API are separate hosts, so a relative path lands on `api.<host>` where the route
+does not exist. Every auth redirect therefore has to be an absolute **app** URL.
+
+**Rule:** never interpolate the config value (`` `${config.public.siteUrl}/auth/x` ``).
+When `siteUrl` is unset that produces the literal text `"undefined/auth/x"`, Better Auth
+answers 403 INVALID_REDIRECT_URL, and no mail is ever sent — that is exactly how a
+production password reset broke. Always go through `appUrl()`
+(`app/utils/app-origin.ts`, auto-imported), as with `isAdminUser` and
+`safeRedirectTarget`:
+
+```ts
+redirectTo: appUrl('/auth/reset-password', config.public.siteUrl),
+```
+
+Two contracts worth knowing before reusing it:
+
+- **Client-side only unless configured.** `resolveAppOrigin` returns `''` on the server
+  (there is no window to fall back to), and `appUrl` **throws** rather than returning a
+  relative URL — a relative value would be accepted by Better Auth and then resolved
+  against the API origin, reproducing the same silent wrongness. Call it from a client
+  handler, or make sure `NUXT_PUBLIC_SITE_URL` is set.
+- **Only the origin of `configured` survives.** A path, query or credentials in the env
+  value are discarded (`new URL(...).origin`), and plain `http:` is accepted only for
+  loopback hosts. `path` must be a single-slash absolute path, same contract as
+  `safeRedirectTarget`.
+
+Current call sites: `pages/auth/forgot-password.vue` and `pages/auth/verify-email.vue`.
+`tests/unit/utils/app-origin.test.ts` pins the resolver;
+`tests/unit/runtime-config-contract.test.ts` pins that every documented
+`NUXT_PUBLIC_*` variable actually has a `runtimeConfig.public` key to land in — the
+guard that was missing when the lockout happened.
 
 ## Security Overrides (pnpm)
 

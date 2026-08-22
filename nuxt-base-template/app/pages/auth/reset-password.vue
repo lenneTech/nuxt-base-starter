@@ -15,12 +15,17 @@ const authClient = useLtAuthClient();
 // ============================================================================
 const route = useRoute();
 const toast = useToast();
+const { translateError } = useLtErrorTranslation();
 
 // ============================================================================
 // Page Meta
 // ============================================================================
 definePageMeta({
   layout: 'slim',
+});
+
+useHead({
+  title: 'Passwort zurücksetzen',
 });
 
 // ============================================================================
@@ -37,6 +42,7 @@ const resetSuccess = ref<boolean>(false);
 
 const fields: AuthFormField[] = [
   {
+    autocomplete: 'new-password',
     label: 'Neues Passwort',
     name: 'password',
     placeholder: 'Neues Passwort eingeben',
@@ -44,6 +50,7 @@ const fields: AuthFormField[] = [
     type: 'password',
   },
   {
+    autocomplete: 'new-password',
     label: 'Passwort bestätigen',
     name: 'confirmPassword',
     placeholder: 'Passwort wiederholen',
@@ -94,8 +101,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     if (error) {
       toast.add({
         color: 'error',
-        description: error.message || 'Passwort konnte nicht zurückgesetzt werden',
-        title: 'Fehler',
+        description: translateError(error.message || '') || 'Passwort konnte nicht zurückgesetzt werden',
+        title: 'Zurücksetzen fehlgeschlagen',
       });
       return;
     }
@@ -113,7 +120,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       <div class="flex flex-col items-center gap-6">
         <UIcon name="i-lucide-check-circle" class="size-16 text-success" />
         <div class="text-center">
-          <h2 class="text-xl font-semibold">Passwort zurückgesetzt</h2>
+          <h1 class="text-xl font-semibold">Passwort zurückgesetzt</h1>
           <p class="mt-2 text-sm text-muted">Dein Passwort wurde erfolgreich geändert. Du kannst dich jetzt mit deinem neuen Passwort anmelden.</p>
         </div>
 
@@ -144,6 +151,10 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
         }"
         @submit="onSubmit"
       >
+        <template #title>
+          <h1 class="text-2xl font-bold">Neues Passwort</h1>
+        </template>
+
         <template #footer>
           <p class="text-center text-sm text-muted">
             <ULink to="/auth/forgot-password" class="text-primary font-medium"> Neuen Link anfordern </ULink>

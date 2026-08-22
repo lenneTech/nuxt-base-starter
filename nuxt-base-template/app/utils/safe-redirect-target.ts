@@ -43,8 +43,12 @@
  * characters are invisible in an editor, so a class written with them cannot be
  * reviewed or safely edited, and the escaped form trips `no-control-regex`. Comparing
  * code points states the intent in plain arithmetic and needs no lint exemption.
+ *
+ * Exported because `app-origin.ts` builds paths under the same contract. The two
+ * redirect utilities in this directory MUST agree on what a path may contain —
+ * when they did not, the weaker one is the one a reader copies.
  */
-function hasControlCharacter(value: string): boolean {
+export function hasControlCharacter(value: string): boolean {
   for (let i = 0; i < value.length; i++) {
     const code = value.charCodeAt(i);
     if (code <= 0x1f || code === 0x7f) {

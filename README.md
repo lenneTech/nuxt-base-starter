@@ -123,20 +123,35 @@ my-project/
 
 Create a `.env` file based on `.env.example`:
 
+Note the `NUXT_` / `NUXT_PUBLIC_` prefixes — Nitro maps only prefixed variables onto
+`runtimeConfig`, so an unprefixed `SITE_URL` reaches nothing.
+
 ```env
 # Required
-SITE_URL=http://localhost:3001
-API_URL=http://localhost:3000
-APP_ENV=development
+NUXT_PUBLIC_SITE_URL=http://localhost:3001
+NUXT_API_URL=http://localhost:3000
+NUXT_PUBLIC_API_URL=http://localhost:3000
+NUXT_PUBLIC_APP_ENV=local
 NODE_ENV=development
 
 # Optional
-WEB_PUSH_KEY=                # Web push notifications
-LINEAR_API_KEY=              # Bug reporting
-LINEAR_TEAM_NAME=            # Bug reporting
-LINEAR_PROJECT_NAME=         # Bug reporting
-STORAGE_PREFIX=base-dev      # Local storage prefix
+NUXT_PUBLIC_WEB_PUSH_KEY=          # Web push notifications
+NUXT_PUBLIC_STORAGE_PREFIX=base-dev # Local storage prefix
+LINEAR_API_KEY=                    # Bug reporting
+LINEAR_TEAM_NAME=                  # Bug reporting
+LINEAR_PROJECT_NAME=               # Bug reporting
 ```
+
+**`NUXT_PUBLIC_SITE_URL` must be set on every non-local stage.** It is the public
+origin of the app itself, and it feeds two things: the SEO site config (canonical
+URLs, OG tags, sitemap) and the absolute redirect URLs that go into password-reset
+and e-mail-verification mails. Left unset in production, the SEO half falls back to
+the request's `X-Forwarded-Host` and the auth half falls back to whichever origin the
+browser happens to be on — correct for a single-origin deployment, wrong behind a
+proxy or vanity domain, where users receive links pointing at the internal host.
+
+Use the `NUXT_PUBLIC_` form, not `NUXT_SITE_URL`: both reach the SEO config, but only
+the public form also populates `runtimeConfig.public.siteUrl` for the auth redirects.
 
 ## Requirements
 

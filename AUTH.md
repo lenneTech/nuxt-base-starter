@@ -137,12 +137,51 @@ if (isValid) {
 ### Environment Variables
 
 ```env
-# API URL (required)
-API_URL=http://localhost:3000
+# API URL — SSR / server-side, and the Vite dev proxy target (required)
+NUXT_API_URL=http://localhost:3000
 
-# Or via Vite
-VITE_API_URL=http://localhost:3000
+# API URL — client-side (required)
+NUXT_PUBLIC_API_URL=http://localhost:3000
+
+# Public origin of THIS app — required on every non-local stage.
+# Builds the absolute redirect URLs that go into auth mails (see below).
+NUXT_PUBLIC_SITE_URL=https://app.example.com
 ```
+
+### Redirect origins and `trustedOrigins`
+
+Two auth flows send the user out to an e-mail and back: password reset and e-mail
+verification. Both hand Better Auth a URL to return to, and both fail in the same
+quiet way when that URL is wrong.
+
+**Why the URL must be absolute.** Better Auth resolves the value against **its own**
+base URL (`new URL(callbackURL, ctx.baseURL)`), which is the API origin. Since app and
+API are separate hosts here, a relative path like `/auth/reset-password` resolves to
+`api.<host>/auth/reset-password` — a route that does not exist. Build it with
+`appUrl()` from `app/utils/app-origin.ts` (auto-imported):
+
+```typescript
+await authClient.requestPasswordReset({
+  email,
+  redirectTo: appUrl('/auth/reset-password', config.public.siteUrl),
+});
+```
+
+Never interpolate the config value directly. When `runtimeConfig.public.siteUrl` is
+undeclared or unset, a template literal renders the literal text
+`"undefined/auth/reset-password"`; Better Auth answers **403 INVALID_REDIRECT_URL**,
+no mail is sent, and the user is locked out of their account with only a generic error
+to go on. That is a real incident this starter has already had.
+
+**The backend has to agree.** Better Auth validates every `redirectTo` / `callbackURL`
+server-side against its `trustedOrigins` list — built from the configured origins, the
+CORS `allowedOrigins`, the passkey origins and `appUrl` in `nest-server`, never from
+the request. Whatever origin the frontend sends must be in that list, or the same 403
+appears. So a new stage needs its origin registered on **both** sides: the frontend's
+`NUXT_PUBLIC_SITE_URL` and the backend's trusted origins.
+
+Avoid wildcard entries (`https://*.example.com`) in `trustedOrigins`. They widen the
+set of origins a reset link may point at, and reset links carry a one-time token.
 
 ### Custom Configuration
 
