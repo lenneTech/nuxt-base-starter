@@ -51,6 +51,26 @@ All optional — each falls back to the classic local default.
 Under `lt dev up` / `lt dev test` these are set for you via the `.lt-dev/.env` bridge, so the
 same suite runs unchanged against classic ports, a `lt dev` session, and CI.
 
+### An empty database is its own state
+
+The suite assumes an installation that is **past first-run setup**. With zero users the app
+routes every visitor to `/auth/setup` instead of `/auth/login`, and specs asserting on the
+login redirect fail against a redirect that is entirely correct. `resetTestData()` does not
+help here — it deletes, it never seeds.
+
+Migrations do not cover it either: they build the schema, while the first admin is an
+application-level decision. Create one before the run:
+
+```bash
+curl -X POST http://localhost:3000/system-setup/init \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@test.com","password":"<min 8 chars>","name":"Admin"}'
+```
+
+The endpoint refuses once any user exists, so it is safe to leave in a setup script. Locally
+this rarely bites, because a development database has users in it from the first day — which
+is exactly why it stayed unnoticed until the suite first ran against a fresh CI database.
+
 ## Backend options
 
 Any of these can serve the API on port 3000. Each needs its `betterAuth` section configured

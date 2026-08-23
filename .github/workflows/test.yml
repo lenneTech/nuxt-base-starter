@@ -169,6 +169,28 @@ jobs:
             done'
           echo "API is up"
 
+      # A CI database is EMPTY, and an empty database is its own application
+      # state: with zero users the app routes every visitor to /auth/setup to
+      # create the first admin. The suite is written against an installation that
+      # is past that point — it expects /auth/login — so without this step five
+      # specs fail on a redirect that is entirely correct.
+      #
+      # Migrations do not cover it. They build the schema; the first admin is an
+      # application-level decision, made through this endpoint on purpose (it
+      # refuses once any user exists, so this cannot run twice).
+      #
+      # These credentials are throwaway and live only in this job's Mongo service
+      # container, which is discarded with the run.
+      - name: Create the initial admin (an empty DB routes to /auth/setup)
+        run: |
+          code=$(curl -s -o /tmp/setup.json -w '%{http_code}' -X POST http://localhost:3000/system-setup/init \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"admin@test.com","password":"CiSetupPassw0rd!","name":"CI Admin"}')
+          if [ "$code" != "201" ] && [ "$code" != "200" ]; then
+            echo "::error::system-setup/init answered $code"; cat /tmp/setup.json; exit 1
+          fi
+          echo "initial admin created"
+
       - name: Install app dependencies
         working-directory: nuxt-base-template
         run: pnpm install --frozen-lockfile
