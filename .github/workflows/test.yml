@@ -50,7 +50,18 @@ jobs:
           node-version: '24'
           cache: 'pnpm'
 
-      - name: Install dependencies
+      - name: Install root dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The template has its OWN lockfile and its own node_modules, and it must be
+      # installed separately — `pnpm run check` at the root only `cd`s into it.
+      #
+      # It cannot bootstrap itself either: the template's check chain STARTS with
+      # `cross-env …`, which is one of its own devDependencies. Without this step
+      # the run dies on `cross-env: not found` before a single check executes —
+      # which is exactly how this job failed on its first run.
+      - name: Install template dependencies
+        working-directory: nuxt-base-template
         run: pnpm install --frozen-lockfile
 
       # Guards this file's own premise: no workflow may sit where it cannot run,
