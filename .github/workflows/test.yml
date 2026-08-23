@@ -1,0 +1,186 @@
+name: Tests
+
+# WHY THIS FILE EXISTS AT THE REPO ROOT.
+#
+# The template carries its own `.github/workflows/test.yml`, and that one is
+# TEMPLATE CONTENT: it ships to generated projects. GitHub only reads workflows
+# from the ROOT of a repository, so inside THIS repo that file has never run —
+# and after `lt fullstack init` it lands in `projects/app/.github/`, where it
+# does not run either (the monorepo's own CI covers that case).
+#
+# The consequence was a repo that released without ever testing itself. Only
+# `release.yml` existed, and it just turns a tag into a GitHub release. That is
+# how a better-auth version bump shipped here (commit 33979ce) and split client
+# from server across every fullstack project: nothing in this repository ran a
+# single test on it.
+#
+# So this file is the half that guards the repo, and the template's copy is the
+# half that ships. `scripts/check-ci-placement.mjs` keeps both halves honest —
+# it fails when a workflow lives somewhere it can never run, or when the two
+# drift apart.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # The full quality gate. `pnpm run check` at the root already chains into
+  # `nuxt-base-template` (audit, format, lint, unit tests, both typecheck halves,
+  # build, server-start), so this job stays a single call rather than a
+  # re-implementation that can drift from what developers run locally.
+  check:
+    name: Check (root + template)
+    runs-on: ubuntu-latest
+    # Bounds a wedged job. Without it GitHub applies its 360-minute default,
+    # which is long enough that a hung run is noticed by a human, not by CI.
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Guards this file's own premise: no workflow may sit where it cannot run,
+      # and the template's CI may not gain a job this one lacks. Runs before the
+      # expensive gate so a misplaced workflow fails in seconds.
+      - name: Verify CI placement
+        run: node scripts/check-ci-placement.mjs
+
+      - name: Run check
+        run: pnpm run check
+
+  # -------------------------------------------------------------------------
+  # The only job here that exercises BEHAVIOUR across the client/server
+  # boundary. `check` above proves this repo is internally consistent — which is
+  # exactly the property that stayed green while better-auth 1.6.26 on the API
+  # and 1.7.1 in the app broke every 2FA activation in every fullstack project.
+  #
+  # BLOCKING on purpose. A non-blocking gate without a visibility path is worse
+  # than no gate: it keeps looking like a net while catching nothing. If it ever
+  # becomes too slow to block on, shard it (see lt-monorepo's app:test,
+  # `parallel: 2`) rather than demoting it to advisory.
+  # -------------------------------------------------------------------------
+  e2e-auth:
+    name: E2E Auth (against a real API)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # The cheap gate first: a red check must not let this burn a full E2E budget.
+    needs: [check]
+
+    services:
+      # Matches the rest of the stack's CI (lt-monorepo api:test / app:test).
+      # Runs without authentication, which is what a throwaway CI service wants.
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    env:
+      # The suite reads verification tokens out of the API log, because Better
+      # Auth signs them as stateless JWTs that are never written to the database.
+      # No log, no email-verification coverage.
+      NEST_SERVER_LOG: ${{ github.workspace }}/api-e2e.log
+      MONGO_URI: mongodb://127.0.0.1:27017/app-ci
+      NSC__MONGOOSE__URI: mongodb://127.0.0.1:27017/app-ci
+      API_URL: http://localhost:3000
+      NUXT_PUBLIC_API_URL: http://localhost:3000
+      NUXT_PUBLIC_SITE_URL: http://localhost:3001
+      # Relaxes rate limiting and disables the Better-Auth user cache, so a
+      # freshly promoted admin is recognised immediately.
+      PLAYWRIGHT: 'true'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # The API half of the contract. This repo has no backend of its own, and
+      # that is precisely why the split could go unnoticed here — the other side
+      # was never present. `main` on purpose: the released starter is what
+      # consumers actually pair this template with.
+      - name: Checkout nest-server-starter (the API side of the contract)
+        uses: actions/checkout@v4
+        with:
+          repository: lenneTech/nest-server-starter
+          ref: main
+          path: api
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install API dependencies
+        working-directory: api
+        run: pnpm install --frozen-lockfile
+
+      - name: Build API
+        working-directory: api
+        run: pnpm run build
+
+      # Migrations BEFORE the start: `start:e2e:dist` is bare node and does not
+      # run them. Without them the demo data is missing and every test built on
+      # it skips itself — a suite that quietly skips away reports green and
+      # verifies nothing.
+      - name: Run API migrations
+        working-directory: api
+        run: pnpm run migrate:up
+
+      # `$!` is captured so the readiness loop can tell "still booting" from
+      # "already dead". Without it a crashed API is only noticed when the timeout
+      # expires, and it reports as a timeout rather than as the crash it was.
+      - name: Start API and wait for readiness
+        run: |
+          (cd api && pnpm run start:e2e:dist > "$NEST_SERVER_LOG" 2>&1) &
+          API_PID=$!
+          timeout 180 bash -c '
+            until curl -sf http://localhost:3000/meta > /dev/null; do
+              kill -0 '"$API_PID"' 2>/dev/null || {
+                echo "::error::API process died during boot"; tail -n 60 "$NEST_SERVER_LOG"; exit 1;
+              }
+              sleep 2
+            done'
+          echo "API is up"
+
+      - name: Install app dependencies
+        working-directory: nuxt-base-template
+        run: pnpm install --frozen-lockfile
+
+      # Only Chromium: the suite's WebAuthn coverage drives a CDP virtual
+      # authenticator, which is Chromium-only anyway.
+      - name: Install Playwright browser
+        working-directory: nuxt-base-template
+        run: npx playwright install --with-deps chromium
+
+      # playwright.config.ts starts the app itself via its `webServer` block, so
+      # only the API is booted above.
+      - name: Run auth E2E suite
+        working-directory: nuxt-base-template
+        run: pnpm run test:e2e
+
+      # NEVER upload the API log: it carries live bearer credentials — a
+      # verification token grants email verification for that account to whoever
+      # holds it. The Playwright report is safe and is what a failure needs.
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: nuxt-base-template/playwright-report/
+          retention-days: 7

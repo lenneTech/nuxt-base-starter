@@ -14,16 +14,18 @@
   "main": "index.js",
   "scripts": {
     "c": "pnpm run check",
-    "check": "pnpm install --frozen-lockfile && pnpm audit && pnpm run format:check && cd nuxt-base-template && pnpm run check",
-    "check:fix": "pnpm install && pnpm audit --fix && pnpm run format && cd nuxt-base-template && pnpm run check:fix",
-    "check:naf": "pnpm install && pnpm run format && cd nuxt-base-template && pnpm run check:naf",
+    "check": "pnpm install --frozen-lockfile && pnpm audit && pnpm run check:ci-placement && pnpm run test:scripts && pnpm run format:check && cd nuxt-base-template && pnpm run check",
+    "check:fix": "pnpm install && pnpm audit --fix && pnpm run check:ci-placement && pnpm run test:scripts && pnpm run format && cd nuxt-base-template && pnpm run check:fix",
+    "check:naf": "pnpm install && pnpm run check:ci-placement && pnpm run test:scripts && pnpm run format && cd nuxt-base-template && pnpm run check:naf",
     "cf": "pnpm run check:fix",
     "cnaf": "pnpm run check:naf",
     "format": "oxfmt --disable-nested-config",
     "format:check": "oxfmt --check --disable-nested-config",
     "release": "standard-version && git push --follow-tags origin main",
     "release:minor": "standard-version --release-as minor && git push --follow-tags origin main",
-    "release:major": "standard-version --release-as major && git push --follow-tags origin main"
+    "release:major": "standard-version --release-as major && git push --follow-tags origin main",
+    "check:ci-placement": "node scripts/check-ci-placement.mjs",
+    "test:scripts": "node --test scripts/check-ci-placement.test.mjs"
   },
   "dependencies": {
     "cross-spawn": "7.0.6",
