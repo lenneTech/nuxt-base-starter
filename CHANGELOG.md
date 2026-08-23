@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.20.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.19.0...v2.20.0) (2026-08-23)
+
+
+### Features
+
+* preserve pre-hydration input and raise better-auth to 1.7.1 ([33979ce](https://github.com/lenneTech/nuxt-base-starter/commit/33979ce3894eaf281a22c0751cafc7c085442b92))
+
 ## [2.19.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.18.5...v2.19.0) (2026-08-22)
 
 
