@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.22.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.21.0...v2.22.0) (2026-08-23)
+
+
+### Features
+
+* run the auth E2E suite in CI against a real API ([f854108](https://github.com/lenneTech/nuxt-base-starter/commit/f8541081c996b8256236ba74a6b7b1aa5d65e1c3))
+
 ## [2.21.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.20.0...v2.21.0) (2026-08-23)
 
 
