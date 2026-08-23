@@ -96,11 +96,11 @@ export function createMockAuthClient() {
 
     // Two-factor authentication
     twoFactor: {
-      enable: vi.fn(async (params: { password: string }) => ({
+      enable: vi.fn(async (_params: { password: string }) => ({
         data: mockTotpData,
         error: null,
       })),
-      disable: vi.fn(async (params: { password: string }) => {
+      disable: vi.fn(async (_params: { password: string }) => {
         if (sessionData.value) {
           sessionData.value.user.twoFactorEnabled = false;
         }
@@ -115,11 +115,11 @@ export function createMockAuthClient() {
         }
         return { data: { user: mockUser, session: mockSession }, error: null };
       }),
-      verifyBackupCode: vi.fn(async (params: { code: string }) => ({
+      verifyBackupCode: vi.fn(async (_params: { code: string }) => ({
         data: { user: mockUser, session: mockSession },
         error: null,
       })),
-      generateBackupCodes: vi.fn(async (params: { password: string }) => ({
+      generateBackupCodes: vi.fn(async (_params: { password: string }) => ({
         data: { backupCodes: mockTotpData.backupCodes },
         error: null,
       })),
@@ -131,7 +131,7 @@ export function createMockAuthClient() {
         data: { ...mockPasskey, name: params.name },
         error: null,
       })),
-      deletePasskey: vi.fn(async (params: { id: string }) => ({ data: true, error: null })),
+      deletePasskey: vi.fn(async (_params: { id: string }) => ({ data: true, error: null })),
       listUserPasskeys: vi.fn(async () => ({
         data: [mockPasskey],
         error: null,

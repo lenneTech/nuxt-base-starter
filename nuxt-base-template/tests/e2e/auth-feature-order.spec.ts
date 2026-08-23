@@ -1,185 +1,14 @@
+/**
+ * Auth E2E — prerequisites, the four backend configuration scenarios and how to run them all:
+ * see `docs/e2e-auth.md`. The suite detects the live configuration via GET /iam/features and
+ * skips whatever does not apply.
+ */
+
 import { expect, test } from '@nuxt/test-utils/playwright';
 import type { Page } from '@playwright/test';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { MongoClient } from 'mongodb';
 import { extractTOTPSecret, fillInput, generateTestUser, generateTOTP, gotoAndWaitForHydration, waitForURLAndHydration } from '@lenne.tech/nuxt-extensions/testing';
 
-/**
- * Authentication E2E Tests - Feature Ordering & Error Translations
- *
- * Tests:
- * - Test 1: Register → 2FA → Passkey (without logout) - order independence
- * - Test 2: Register → Passkey → 2FA (without logout) - order independence
- * - Test 3: Error Translations (German error messages, i18n endpoint)
- *
- * Automatically detects backend configuration via /iam/features.
- *
- * Requirements:
- * - API: nest-server-starter OR nest-server running on port 3000
- *        (stdout redirected to /tmp/nest-server.log or NEST_SERVER_LOG)
- * - Frontend: nuxt-base-starter running on port 3001
- *
- * See auth-lifecycle.spec.ts for full documentation on backend options,
- * configuration scenarios, and how to run against all 4 configurations.
- *
- * Run: npx playwright test tests/e2e/auth-feature-order.spec.ts
- */
-
-// =============================================================================
-// Types
-// =============================================================================
-
-interface Features {
-  emailVerification: boolean;
-  enabled: boolean;
-  jwt: boolean;
-  passkey: boolean;
-  signUpChecks: boolean;
-  twoFactor: boolean;
-}
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-// Env-driven so the same suite runs against classic ports (3000/3001), a
-// `lt dev up` session (https://<slug>.localhost via the .lt-dev/.env bridge)
-// and CI. Falls back to the classic localhost defaults when nothing is set.
-const API_BASE = process.env.NUXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3000';
-const FRONTEND_BASE = process.env.NUXT_PUBLIC_SITE_URL || process.env.APP_URL || 'http://localhost:3001';
-const MONGO_URI = process.env.NSC__MONGOOSE__URI || process.env.MONGO_URI || 'mongodb://127.0.0.1/nest-server-local';
-
-// Better-Auth collection names (default without prefix)
-const COLLECTIONS = ['session', 'account', 'verification', 'passkey', 'twoFactor', 'backupCode'];
-
-// =============================================================================
-// Helpers
-// =============================================================================
-
-/**
- * Delete a test user and its Better-Auth satellite documents so repeated runs
- * do not accumulate orphan `@test.com` accounts. Mirrors `auth-lifecycle.spec.ts`
- * `resetTestData` — kept as a local copy because the two E2E specs share no
- * helper module (the clean fix would be to hoist both this and `readServerLog`
- * into `@lenne.tech/nuxt-extensions/testing`, out of scope for this change).
- */
-async function resetTestData(email: string): Promise<void> {
-  const client = new MongoClient(MONGO_URI);
-  try {
-    await client.connect();
-    const db = client.db();
-
-    const user = await db.collection('users').findOne({ email });
-    if (user) {
-      const userId = user._id.toString();
-      for (const coll of COLLECTIONS) {
-        try {
-          await db.collection(coll).deleteMany({ userId });
-        } catch {
-          // Collection may not exist yet
-        }
-      }
-      try {
-        await db.collection('webauthn_challenge_mappings').deleteMany({ userId });
-      } catch {
-        // Collection may not exist
-      }
-      try {
-        await db.collection('verification').deleteMany({ identifier: email });
-      } catch {
-        // Collection may not exist
-      }
-      await db.collection('users').deleteOne({ _id: user._id });
-    }
-  } finally {
-    await client.close();
-  }
-}
-
-/**
- * Read the backend server log(s) that contain the email verification lines.
- * Robust across environments: honours NEST_SERVER_LOG, then searches upward
- * from cwd for the `lt dev` log files (`.lt-dev/api.test.log` under
- * `lt dev test`, `.lt-dev/api.log` under `lt dev up`), then the classic
- * `/tmp/nest-server.log`. All existing candidates are concatenated so the
- * token is found regardless of which file the active stack writes to.
- */
-function readServerLog(): string {
-  const candidates: string[] = [];
-  if (process.env.NEST_SERVER_LOG) {
-    candidates.push(process.env.NEST_SERVER_LOG);
-  }
-  let dir = process.cwd();
-  for (let i = 0; i < 6; i++) {
-    candidates.push(path.resolve(dir, '.lt-dev/api.test.log'));
-    candidates.push(path.resolve(dir, '.lt-dev/api.log'));
-    const parent = path.dirname(dir);
-    if (parent === dir) {
-      break;
-    }
-    dir = parent;
-  }
-  candidates.push('/tmp/nest-server.log');
-
-  let content = '';
-  const seen = new Set<string>();
-  for (const candidate of candidates) {
-    const resolved = path.resolve(candidate);
-    if (seen.has(resolved)) {
-      continue;
-    }
-    seen.add(resolved);
-    try {
-      content += fs.readFileSync(resolved, 'utf-8') + '\n';
-    } catch {
-      // Candidate log file does not exist — skip.
-    }
-  }
-  return content;
-}
-
-/**
- * Reproduce the server-side email masking so the log line can be matched.
- *
- * `nest-server` does NOT log the address it sends to — it logs
- * `maskEmail(user.email)`, i.e. the first two characters of the local part plus
- * `***` and the domain (`logging.helper.ts`). Matching on the full address finds
- * nothing, which surfaces as "Verification token not found in server logs" while the
- * line is sitting right there in the log.
- *
- * Two masked addresses collide whenever their local parts share the first two
- * characters. That is safe here because every suite uses a distinct
- * `generateTestUser()` prefix (`2f***`, `co***`, `pa***`), and within one suite the
- * "last match wins" scan below returns the newest token — which is the one the
- * current registration just produced.
- */
-function maskEmailLikeServer(email: string): string {
-  const atIndex = email.indexOf('@');
-  if (atIndex <= 0) {
-    return '***';
-  }
-  const localPart = email.substring(0, atIndex);
-  return `${localPart.substring(0, Math.min(2, localPart.length))}***${email.substring(atIndex)}`;
-}
-
-/**
- * Extract the freshest email verification token for `email` from the backend
- * server log. The nest-server logs (non-production):
- *   [EMAIL VERIFICATION] User: <email>, URL: <appUrl>/auth/verify-email?token=<jwt>
- * The last match wins so retries pick up the newest token, never a stale one.
- */
-function getVerificationTokenFromLog(email: string): string | null {
-  const log = readServerLog();
-  const escaped = maskEmailLikeServer(email).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`\\[EMAIL VERIFICATION\\] User: ${escaped}, URL: \\S*?[?&]token=([^&\\s]+)`, 'g');
-  let match: null | RegExpExecArray;
-  let token: null | string = null;
-  while ((match = regex.exec(log)) !== null) {
-    token = match[1] ?? null;
-  }
-  return token;
-}
+import { API_BASE, DEFAULT_FEATURES, FRONTEND_BASE, parseFeatures, resetTestData, waitForVerificationToken, type Features } from './helpers/auth-backend';
 
 /**
  * Register a new user via UI.
@@ -208,12 +37,7 @@ async function registerUser(page: Page, user: { email: string; password: string;
     await waitForURLAndHydration(page, /\/auth\/verify-email/, { timeout: 15000 });
 
     // Extract token from backend logs and verify email
-    let token: string | null = null;
-    for (let i = 0; i < 10; i++) {
-      token = getVerificationTokenFromLog(user.email);
-      if (token) break;
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
+    const token = await waitForVerificationToken(user.email);
     expect(token, 'Verification token not found in server logs').not.toBeNull();
 
     await gotoAndWaitForHydration(page, `/auth/verify-email?token=${token}`);
@@ -339,16 +163,10 @@ test.beforeAll(async ({ request }) => {
   // Detect backend configuration
   try {
     const featuresResponse = await request.get(`${API_BASE}/iam/features`);
-    features = (await featuresResponse.json()) as Features;
+    expect(featuresResponse.ok(), `GET ${API_BASE}/iam/features failed with ${featuresResponse.status()}`).toBeTruthy();
+    features = parseFeatures(await featuresResponse.json());
   } catch {
-    features = {
-      emailVerification: true,
-      enabled: true,
-      jwt: false,
-      passkey: true,
-      signUpChecks: true,
-      twoFactor: true,
-    };
+    features = { ...DEFAULT_FEATURES };
   }
 });
 

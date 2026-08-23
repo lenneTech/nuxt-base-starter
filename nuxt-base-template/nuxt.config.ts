@@ -212,6 +212,24 @@ export default defineNuxtConfig({
         publicPaths: ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/auth/setup'],
       },
     },
+    // Both of the following repair framework-level hydration defects and are ON by default.
+    // They are spelled out here because this template is the reference configuration people
+    // copy: a knob nobody can see is a knob nobody turns off when they need to.
+    formLabelAssociation: {
+      // Re-points Nuxt UI field labels whose `for` no longer resolves after hydration, caused
+      // by `useId()` returning different values on server and client. Without it the control
+      // has no accessible name and clicking the label focuses nothing.
+      // Disable only if your app assigns `for` itself, or if tests assert on literal id values.
+      enabled: true,
+      maxRepairMs: 1500,
+    },
+    preHydrationInput: {
+      // Keeps text typed before Vue hydrates. Vue 3.5.41 covers `type="text"` and `textarea`;
+      // `email`, `password`, `tel`, `url`, `search` and `number` still lose the entry — which
+      // is most of a sign-in form. Remove once Vue widens its gate (vuejs/core#15210).
+      enabled: true,
+      maxRestoreMs: 1500,
+    },
     tus: {
       defaultEndpoint: '/files/upload',
       defaultChunkSize: 5 * 1024 * 1024,

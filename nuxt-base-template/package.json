@@ -47,7 +47,7 @@
     "test:all": "pnpm run test:unit && pnpm run test:e2e",
     "typecheck": "cross-env NUXT_BUILD_DIR=.nuxt-check nuxt typecheck",
     "typecheck:tests": "cross-env NUXT_BUILD_DIR=.nuxt-check nuxt prepare && tsc --noEmit -p tsconfig.tests.check.json && tsc --noEmit -p .nuxt-check/tsconfig.server.json",
-    "lint": "oxlint app/ scripts/ server/",
+    "lint": "oxlint app/ scripts/ server/ tests/",
     "lint:fix": "oxlint --fix --fix-suggestions app/ scripts/ server/",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
@@ -56,7 +56,7 @@
   "dependencies": {
     "@better-auth/passkey": "1.7.1",
     "@lenne.tech/bug.lt": "1.6.9",
-    "@lenne.tech/nuxt-extensions": "1.12.0",
+    "@lenne.tech/nuxt-extensions": "1.14.0",
     "@nuxt/image": "2.1.0",
     "@nuxt/ui": "4.11.0",
     "@pinia/nuxt": "1.0.2",

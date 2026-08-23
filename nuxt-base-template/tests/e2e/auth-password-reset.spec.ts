@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from '@nuxt/test-utils/playwright';
+import { waitForHydration } from '@lenne.tech/nuxt-extensions/testing';
 
 /**
  * Regression guard for the production reset-link lockout.
@@ -24,22 +25,6 @@ import { expect, test } from '@nuxt/test-utils/playwright';
 // Same convention as the other e2e specs: never hardcode the port — the suite runs
 // under classic ports, `lt dev up` (https://<slug>.localhost) and CI alike.
 const FRONTEND_BASE = process.env.NUXT_PUBLIC_SITE_URL || process.env.APP_URL || 'http://localhost:3001';
-
-/**
- * Wait until Vue has taken over the server-rendered markup.
- *
- * Filling a field before hydration is lost work: Vue re-renders the input from its
- * own (empty) state, and the subsequent submit sends nothing — the failure then looks
- * like "no request was ever made" rather than like a race. `#__nuxt` carries
- * `__vue_app__` only once `app.mount()` has run, which is exactly the moment the
- * form's listeners are bound.
- */
-async function waitForHydration(page: Page): Promise<void> {
-  await page.waitForFunction(() => {
-    const root = document.querySelector('#__nuxt');
-    return Boolean(root && '__vue_app__' in root);
-  });
-}
 
 /**
  * Answer the reset endpoint with Better Auth's success shape.

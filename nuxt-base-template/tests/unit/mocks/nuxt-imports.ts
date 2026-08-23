@@ -46,10 +46,10 @@ export const useRuntimeConfig = vi.fn(() => ({
 }));
 
 // Mock navigateTo
-export const navigateTo = vi.fn((path: string) => Promise.resolve());
+export const navigateTo = vi.fn((_path: string) => Promise.resolve());
 
 // Mock useCookie
-export const useCookie = vi.fn((name: string, options?: any) => {
+export const useCookie = vi.fn((_name: string, _options?: any) => {
   const value = ref<any>(null);
   return value;
 });

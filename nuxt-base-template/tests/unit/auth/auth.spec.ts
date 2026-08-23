@@ -13,8 +13,8 @@
  * - Error translations
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { createMockAuthClient, mockUser, mockTotpData, mockPasskey, resetMockAuthClient } from '../mocks/auth-client.mock';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { createMockAuthClient } from '../mocks/auth-client.mock';
 import { resetCookies } from '../setup';
 
 // ============================================================================

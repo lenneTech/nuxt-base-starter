@@ -1,8 +1,11 @@
+/**
+ * Auth E2E — prerequisites, the four backend configuration scenarios and how to run them all:
+ * see `docs/e2e-auth.md`. The suite detects the live configuration via GET /iam/features and
+ * skips whatever does not apply.
+ */
+
 import { expect, test } from '@nuxt/test-utils/playwright';
 import type { BrowserContext, Page } from '@playwright/test';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { MongoClient } from 'mongodb';
 import {
   extractTOTPSecret,
   fillInput,
@@ -13,285 +16,7 @@ import {
   waitForURLAndHydration,
 } from '@lenne.tech/nuxt-extensions/testing';
 
-/**
- * Comprehensive Better-Auth E2E Tests — Auth Lifecycle
- *
- * Tests the complete authentication lifecycle:
- * 0. Full reset (database + browser)
- * 1. Registration (with terms checkbox if signUpChecks enabled)
- * 2. Email verification (if emailVerification enabled)
- * 3. Passkey activation + login via Passkey
- * 4. 2FA activation
- * 5. Login via 2FA
- * 6. Passkey deletion
- * 7. 2FA deactivation
- * 8. Login without 2FA
- *
- * Automatically detects the current backend configuration via GET /iam/features
- * and adapts the test flow accordingly (skips non-applicable steps).
- *
- * ═══════════════════════════════════════════════════════════════════════════════
- * CONFIGURATION SCENARIOS (for AI agents / CI)
- * ═══════════════════════════════════════════════════════════════════════════════
- *
- * The tests should be run against ALL 4 backend configurations to ensure
- * full coverage. The configuration is set in the betterAuth section of:
- *
- *   Fullstack (lt fullstack init): projects/api/src/config.env.ts
- *   Standalone (nest-server-starter): src/config.env.ts
- *
- * After changing the config, restart the backend server and re-run the tests.
- *
- * Scenario 1 — Zero Config (default, everything enabled):
- *   No changes needed. Default nest-server-starter config.
- *   Expected features: cookies=true, emailVerification=true, signUpChecks=true,
- *                      twoFactor=true, passkey=true
- *
- * Scenario 2 — Cookies, no verification/checks:
- *   betterAuth: {
- *     cookies: true,
- *     emailVerification: false,
- *     signUpChecks: false,
- *   }
- *   Expected features: jwt=false, emailVerification=false, signUpChecks=false,
- *                      twoFactor=true, passkey=true
- *   Effect: No terms checkbox, no email verification step, direct login after register.
- *
- * Scenario 3 — JWT mode, everything else enabled:
- *   betterAuth: {
- *     cookies: false,
- *   }
- *   Expected features: jwt=true, emailVerification=true, signUpChecks=true,
- *                      twoFactor=true, passkey=true
- *   Effect: Auth via JWT instead of cookies, all features active.
- *
- * Scenario 4 — JWT mode, no verification/checks:
- *   betterAuth: {
- *     cookies: false,
- *     emailVerification: false,
- *     signUpChecks: false,
- *   }
- *   Expected features: jwt=true, emailVerification=false, signUpChecks=false,
- *                      twoFactor=true, passkey=true
- *   Effect: JWT mode, no terms checkbox, no email verification.
- *
- * ═══════════════════════════════════════════════════════════════════════════════
- * BACKEND OPTIONS
- * ═══════════════════════════════════════════════════════════════════════════════
- *
- * Either of these can serve as the API backend on port 3000:
- *
- * Option A — nest-server-starter (standalone template):
- *   Repository: nest-server-starter
- *   Config:     src/config.env.ts → betterAuth section
- *   Start:      cd <nest-server-starter> && npm run start > /tmp/nest-server.log 2>&1 &
- *
- * Option B — nest-server (direct, e.g. during nest-server development):
- *   Repository: nest-server
- *   Config:     src/config.env.ts → betterAuth section
- *   Start:      cd <nest-server> && npm run start > /tmp/nest-server.log 2>&1 &
- *
- * In a fullstack project (lt fullstack init), the API is at:
- *   Config:     projects/api/src/config.env.ts → betterAuth section
- *   Start:      cd projects/api && npm run start > /tmp/nest-server.log 2>&1 &
- *
- * The backend MUST be started with stdout redirected to a log file
- * (default: /tmp/nest-server.log, override via NEST_SERVER_LOG env var)
- * because email verification tokens are extracted from the server logs.
- *
- * ═══════════════════════════════════════════════════════════════════════════════
- * HOW TO RUN ALL SCENARIOS (automated, for AI agents like Claude Code)
- * ═══════════════════════════════════════════════════════════════════════════════
- *
- * For each scenario:
- *   1. Edit config.env.ts → betterAuth section (see paths above)
- *   2. Restart backend:
- *        pkill -f "nest-server" 2>/dev/null
- *        cd <backend-path> && npm run start > /tmp/nest-server.log 2>&1 &
- *   3. Wait for backend ready: curl -s http://localhost:3000/ > /dev/null
- *   4. Run tests:
- *        npx playwright test tests/e2e/auth-lifecycle.spec.ts
- *   5. Check config banner in output to verify which scenario was detected
- *   6. Restore config.env.ts to original state after all scenarios
- *
- * The test output includes a configuration banner showing the detected scenario:
- *   ╔═════════════════════════════╗
- *   ║  Szenario X: <description>  ║
- *   ╚═════════════════════════════╝
- *
- * ═══════════════════════════════════════════════════════════════════════════════
- *
- * Requirements:
- * - API: nest-server-starter OR nest-server running on port 3000
- *        (stdout redirected to /tmp/nest-server.log or NEST_SERVER_LOG)
- * - Frontend: nuxt-base-starter running on port 3001
- * - MongoDB: running on localhost:27017
- *
- * Run: npx playwright test tests/e2e/auth-lifecycle.spec.ts
- */
-
-// =============================================================================
-// Types
-// =============================================================================
-
-interface Features {
-  emailVerification: boolean;
-  enabled: boolean;
-  jwt: boolean;
-  passkey: boolean;
-  resendCooldownSeconds: number;
-  signUpChecks: boolean;
-  socialProviders: string[];
-  twoFactor: boolean;
-}
-
-// =============================================================================
-// Constants
-// =============================================================================
-
-// Env-driven so the same suite runs against classic ports (3000/3001), a
-// `lt dev up` session (https://<slug>.localhost via the .lt-dev/.env bridge)
-// and CI. Falls back to the classic localhost defaults when nothing is set.
-const MONGO_URI = process.env.NSC__MONGOOSE__URI || process.env.MONGO_URI || 'mongodb://127.0.0.1/nest-server-local';
-const API_BASE = process.env.NUXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3000';
-const FRONTEND_BASE = process.env.NUXT_PUBLIC_SITE_URL || process.env.APP_URL || 'http://localhost:3001';
-
-// Better-Auth collection names (default without prefix)
-const COLLECTIONS = ['session', 'account', 'verification', 'passkey', 'twoFactor', 'backupCode'];
-
-// =============================================================================
-// MongoDB Helpers
-// =============================================================================
-
-async function resetTestData(email: string): Promise<void> {
-  const client = new MongoClient(MONGO_URI);
-  try {
-    await client.connect();
-    const db = client.db();
-
-    // Try to find user in the 'users' collection (Better-Auth modelName)
-    const user = await db.collection('users').findOne({ email });
-    if (user) {
-      const userId = user._id.toString();
-      for (const coll of COLLECTIONS) {
-        try {
-          await db.collection(coll).deleteMany({ userId });
-        } catch {
-          // Collection may not exist yet
-        }
-      }
-      try {
-        await db.collection('webauthn_challenge_mappings').deleteMany({ userId });
-      } catch {
-        // Collection may not exist
-      }
-      // Also clean verification by identifier (email)
-      try {
-        await db.collection('verification').deleteMany({ identifier: email });
-      } catch {
-        // Collection may not exist
-      }
-      await db.collection('users').deleteOne({ _id: user._id });
-    }
-  } finally {
-    await client.close();
-  }
-}
-
-/**
- * Read the backend server log(s) that contain the email verification lines.
- * Robust across environments: honours NEST_SERVER_LOG, then searches upward
- * from cwd for the `lt dev` log files (`.lt-dev/api.test.log` under
- * `lt dev test`, `.lt-dev/api.log` under `lt dev up`), then the classic
- * `/tmp/nest-server.log`. All existing candidates are concatenated so the
- * token is found regardless of which file the active stack writes to.
- */
-function readServerLog(): string {
-  const candidates: string[] = [];
-  if (process.env.NEST_SERVER_LOG) {
-    candidates.push(process.env.NEST_SERVER_LOG);
-  }
-  let dir = process.cwd();
-  for (let i = 0; i < 6; i++) {
-    candidates.push(path.resolve(dir, '.lt-dev/api.test.log'));
-    candidates.push(path.resolve(dir, '.lt-dev/api.log'));
-    const parent = path.dirname(dir);
-    if (parent === dir) {
-      break;
-    }
-    dir = parent;
-  }
-  candidates.push('/tmp/nest-server.log');
-
-  let content = '';
-  const seen = new Set<string>();
-  for (const candidate of candidates) {
-    const resolved = path.resolve(candidate);
-    if (seen.has(resolved)) {
-      continue;
-    }
-    seen.add(resolved);
-    try {
-      content += fs.readFileSync(resolved, 'utf-8') + '\n';
-    } catch {
-      // Candidate log file does not exist — skip.
-    }
-  }
-  return content;
-}
-
-/**
- * Reproduce the server-side email masking so the log line can be matched.
- *
- * `nest-server` does NOT log the address it sends to — it logs
- * `maskEmail(user.email)`, i.e. the first two characters of the local part plus
- * `***` and the domain (`logging.helper.ts`). Matching on the full address finds
- * nothing, which surfaces as "Verification token not found in server logs" while the
- * line is sitting right there in the log.
- *
- * Two masked addresses collide whenever their local parts share the first two
- * characters. That is safe here because every suite uses a distinct
- * `generateTestUser()` prefix (`2f***`, `co***`, `pa***`), and within one suite the
- * "last match wins" scan below returns the newest token — which is the one the
- * current registration just produced.
- */
-function maskEmailLikeServer(email: string): string {
-  const atIndex = email.indexOf('@');
-  if (atIndex <= 0) {
-    return '***';
-  }
-  const localPart = email.substring(0, atIndex);
-  return `${localPart.substring(0, Math.min(2, localPart.length))}***${email.substring(atIndex)}`;
-}
-
-/**
- * Extract email verification token from backend server logs.
- *
- * The nest-server logs verification URLs in this format:
- * [EMAIL VERIFICATION] User: <email>, URL: <baseUrl>/auth/verify-email?token=<jwt>
- *
- * The token is a JWT (not stored in MongoDB), so we must read it from the logs.
- * A global scan is used so the freshest token wins on retries — never a stale
- * earlier one.
- */
-async function getVerificationToken(email: string, maxRetries = 10): Promise<string | null> {
-  const escaped = maskEmailLikeServer(email).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-  for (let i = 0; i < maxRetries; i++) {
-    const log = readServerLog();
-    const regex = new RegExp(`\\[EMAIL VERIFICATION\\] User: ${escaped}, URL: \\S*?[?&]token=([^&\\s]+)`, 'g');
-    let match: null | RegExpExecArray;
-    let token: null | string = null;
-    while ((match = regex.exec(log)) !== null) {
-      token = match[1] ?? null;
-    }
-    if (token) {
-      return token;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  return null;
-}
+import { API_BASE, DEFAULT_FEATURES, FRONTEND_BASE, parseFeatures, resetTestData, waitForVerificationToken, type Features } from './helpers/auth-backend';
 
 // =============================================================================
 // UI Helpers
@@ -402,19 +127,11 @@ test.beforeAll(async ({ request }) => {
   // Fetch features to detect configuration
   try {
     const featuresResponse = await request.get(`${API_BASE}/iam/features`);
-    features = (await featuresResponse.json()) as Features;
+    expect(featuresResponse.ok(), `GET ${API_BASE}/iam/features failed with ${featuresResponse.status()}`).toBeTruthy();
+    features = parseFeatures(await featuresResponse.json());
   } catch {
     console.error('Could not fetch /iam/features - assuming zero config (defaults)');
-    features = {
-      emailVerification: true,
-      enabled: true,
-      jwt: false,
-      passkey: true,
-      resendCooldownSeconds: 60,
-      signUpChecks: true,
-      socialProviders: [],
-      twoFactor: true,
-    };
+    features = { ...DEFAULT_FEATURES };
   }
 
   // Print configuration banner
@@ -515,7 +232,7 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
 
     // Fetch verification token from backend server logs
     // The nest-server logs: [EMAIL VERIFICATION] User: <email>, URL: ...?token=<jwt>
-    const token = await getVerificationToken(testUser.email);
+    const token = await waitForVerificationToken(testUser.email);
     expect(token, 'Verification token not found in server logs. Ensure backend logs to /tmp/nest-server.log or set NEST_SERVER_LOG').not.toBeNull();
 
     // Navigate to verify-email with token
