@@ -83,6 +83,25 @@ npm run start > /tmp/nest-server.log 2>&1 &
 
 Config: `projects/api/src/config.env.ts` → `betterAuth`
 
+**Option D — CI (GitHub Actions), automatic**
+
+The `e2e-auth` job in `.github/workflows/test.yml` does all of the above on every push and
+pull request: a `mongo:7` service, `lenneTech/nest-server-starter@main` checked out into
+`api/`, built, migrated and started with its stdout redirected to `$NEST_SERVER_LOG`, then
+this suite against it. Playwright starts the app itself via its `webServer` block.
+
+It is **blocking**, and deliberately so. This is the only job in that pipeline that exercises
+behaviour across the client/server boundary — everything else proves this repo is internally
+consistent, which is exactly the property that stayed green while a better-auth version split
+broke every 2FA activation in every fullstack project. A non-blocking gate without a
+visibility path is worse than no gate: it keeps looking like a net while catching nothing.
+
+The job never uploads `$NEST_SERVER_LOG` as an artefact — see the credentials warning above.
+Only the Playwright report is kept, and only on failure.
+
+If the job ever gets too slow to block on, shard it the way lt-monorepo's `app:test` does
+(`parallel: 2`) rather than demoting it to advisory.
+
 ## Configuration scenarios
 
 The suite detects the live configuration via `GET /iam/features` and adapts — it skips steps

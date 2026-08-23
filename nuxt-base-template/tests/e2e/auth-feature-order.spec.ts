@@ -89,6 +89,25 @@ async function enable2FA(page: Page, password: string): Promise<string> {
 
   const response = await responsePromise;
   const responseBody = await response.json();
+
+  // Assert the DISCRIMINANT before anything else, because it is the one field whose
+  // absence this test would otherwise blame on the wrong thing.
+  //
+  // better-auth >= 1.7 answers with `{ method: 'otp' | 'totp', ... }`, and the security
+  // page narrows on it before reading totpURI. A 1.6.x SERVER answers 200 with a valid
+  // totpURI and NO `method` — so every assertion below still passes, the page silently
+  // bails out of the flow, and the run dies further down on `.bg-white svg` with a
+  // locator timeout. That message sends the reader into QR rendering; the actual cause
+  // is an api and an app on different better-auth versions, and it is sitting right
+  // here in a response body the test already parsed.
+  const method = responseBody.method ?? responseBody.data?.method;
+  expect(
+    method,
+    'No `method` in the 2FA enable response. That field exists from better-auth 1.7 — ' +
+      'the API is almost certainly on an older version than the app. Compare better-auth ' +
+      'in projects/api and projects/app; they must be identical.',
+  ).toBe('totp');
+
   const totpUri = responseBody.totpURI || responseBody.data?.totpURI;
   expect(totpUri, '2FA enable response should contain totpURI').toBeTruthy();
 

@@ -155,3 +155,139 @@ jobs:
           name: build
           path: .output/
           retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # The only job in this pipeline that exercises BEHAVIOUR across the client /
+  # server boundary. Everything above proves this repo is internally consistent;
+  # none of it can see a contract broken by the API on the other side.
+  #
+  # It exists because that gap shipped. nest-server pinned better-auth 1.6.26 as a
+  # hard dependency while nuxt-extensions declared it as a peer, so this template
+  # moved to 1.7.1 and the API could not follow. better-auth 1.7 gives
+  # `twoFactor.enable` a discriminated result carrying `method`, which a 1.6.26
+  # server never sends — so every 2FA activation in every fullstack project
+  # failed, with a generic client error and nothing unusual in the server log.
+  # Both repos' `check` stayed green throughout: each was internally consistent.
+  # The auth E2E suite would have caught it, but it ran nowhere automatic — only
+  # inside `lt dev test`, driven by the smoke test, which had last run the day
+  # before the bump.
+  #
+  # BLOCKING on purpose. A non-blocking gate without a visibility path is worse
+  # than no gate: it keeps looking like a net while catching nothing. If this job
+  # ever becomes too slow to block on, shard it (see lt-monorepo's app:test,
+  # `parallel: 2`) rather than demoting it to advisory.
+  # ---------------------------------------------------------------------------
+  e2e-auth:
+    name: E2E Auth (against a real API)
+    runs-on: ubuntu-latest
+    # Well above the observed runtime (install + API build + boot + suite), well
+    # below GitHub's 360-minute default, which is long enough that a wedged run is
+    # noticed by a human instead of by CI.
+    timeout-minutes: 45
+    # Cheap checks gate the expensive one: a red lint or unit run must not let this
+    # burn a full E2E budget first. Both finish long before this job could, so the
+    # dependency costs no wall-clock.
+    needs: [unit-tests, lint]
+
+    services:
+      # Matches the stack's other CI (lt-monorepo api:test / app:test). Runs
+      # without authentication, which is what a throwaway CI service wants.
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    env:
+      # The suite reads verification tokens out of the API log, because Better
+      # Auth signs them as stateless JWTs that are never written to the database.
+      # No log, no email-verification coverage.
+      NEST_SERVER_LOG: ${{ github.workspace }}/api-e2e.log
+      MONGO_URI: mongodb://127.0.0.1:27017/app-ci
+      NSC__MONGOOSE__URI: mongodb://127.0.0.1:27017/app-ci
+      API_URL: http://localhost:3000
+      NUXT_PUBLIC_API_URL: http://localhost:3000
+      NUXT_PUBLIC_SITE_URL: http://localhost:3001
+      # Relaxes rate limiting and disables the Better-Auth user cache, so a
+      # freshly promoted admin is recognised immediately.
+      PLAYWRIGHT: 'true'
+
+    steps:
+      - name: Checkout template
+        uses: actions/checkout@v4
+
+      # The API half of the contract. This template has no backend of its own, and
+      # that is exactly why the split could go unnoticed here — the other side was
+      # never present in this pipeline. `main` on purpose: the released starter is
+      # what consumers actually pair this template with.
+      - name: Checkout nest-server-starter (the API side of the contract)
+        uses: actions/checkout@v4
+        with:
+          repository: lenneTech/nest-server-starter
+          ref: main
+          path: api
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install API dependencies
+        working-directory: api
+        run: pnpm install --frozen-lockfile
+
+      - name: Build API
+        working-directory: api
+        run: pnpm run build
+
+      # Migrations BEFORE the start: `start:e2e:dist` is bare node and does not run
+      # them. Without them the demo data is missing and every test built on it
+      # skips itself — a suite that quietly skips away reports green and verifies
+      # nothing.
+      - name: Run API migrations
+        working-directory: api
+        run: pnpm run migrate:up
+
+      # `$!` is captured so the readiness loop can tell "still booting" from
+      # "already dead". Without it a crashed API is only noticed when the timeout
+      # expires, and it reports as a timeout rather than as the crash it was.
+      - name: Start API and wait for readiness
+        run: |
+          (cd api && pnpm run start:e2e:dist > "$NEST_SERVER_LOG" 2>&1) &
+          API_PID=$!
+          echo "API_PID=$API_PID" >> "$GITHUB_ENV"
+          timeout 180 bash -c '
+            until curl -sf http://localhost:3000/meta > /dev/null; do
+              kill -0 '"$API_PID"' 2>/dev/null || {
+                echo "::error::API process died during boot"; tail -n 60 "$NEST_SERVER_LOG"; exit 1;
+              }
+              sleep 2
+            done'
+          echo "API is up"
+
+      - name: Install app dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Only Chromium: the suite's WebAuthn coverage drives a CDP virtual
+      # authenticator, which is Chromium-only anyway.
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # playwright.config.ts starts the app itself via its `webServer` block, so
+      # only the API is booted above.
+      - name: Run auth E2E suite
+        run: pnpm run test:e2e
+
+      # NEVER upload the API log: it carries live bearer credentials — a
+      # verification token grants email verification for that account to whoever
+      # holds it. The Playwright report is safe and is what a failure needs.
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
