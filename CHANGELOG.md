@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.21.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.20.0...v2.21.0) (2026-08-23)
+
+
+### Features
+
+* update [@lenne](https://github.com/lenne).tech/nuxt-extensions to 1.14.0 and harden the auth e2e suite ([e00d43c](https://github.com/lenneTech/nuxt-base-starter/commit/e00d43c00f8da0df10b96dd1c47627cc89512b0e))
+
 ## [2.20.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.19.0...v2.20.0) (2026-08-23)
 
 
