@@ -184,8 +184,20 @@ async function enable2FA(payload: FormSubmitEvent<PasswordSchema>): Promise<void
       return;
     }
 
-    totpUri.value = data?.totpURI ?? '';
-    backupCodes.value = data?.backupCodes ?? [];
+    // better-auth >= 1.7 returns a discriminated result: `{ method: 'otp' }` or
+    // `{ method: 'totp', totpURI, backupCodes }`. This flow enrols via TOTP (it passes
+    // no `method`), so narrow before reading the TOTP-only fields.
+    if (data?.method !== 'totp') {
+      toast.add({
+        color: 'error',
+        description: '2FA konnte nicht aktiviert werden',
+        title: 'Fehler',
+      });
+      return;
+    }
+
+    totpUri.value = data.totpURI;
+    backupCodes.value = data.backupCodes;
 
     // Generate QR code as SVG for better password manager compatibility
     if (totpUri.value) {

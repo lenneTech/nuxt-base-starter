@@ -142,7 +142,7 @@ overrides:
   # a pin below it breaks `nuxt prepare` outright ("Package subpath
   # './stream/iife' is not defined by exports"). Drop it once @nuxt/ui carries
   # a v3 peer itself; verify with `pnpm why unhead` (exactly one major).
-  'unhead': 3.3.1
+  'unhead': 3.4.0
   # Lifts every minimatch 5.x–9.x consumer onto 10.x so it inherits the PATCHED
   # brace-expansion 5.x — see the brace-expansion note further down for why minimatch is
   # the lever. Closes the nitro>archiver and readdir-glob chains; the lockfile now
@@ -166,11 +166,11 @@ overrides:
   'minimatch@>=5.0.0 <10.2.6': 10.2.6
   # @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking credentials via
   # GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via @lenne.tech/bug.lt,
-  # which hard-pins @nuxt/ui@4.2.1. Target 4.10.0 == the app's own @nuxt/ui version, so
+  # which hard-pins @nuxt/ui@4.2.1. Target 4.11.0 == the app's own @nuxt/ui version, so
   # this also dedupes the tree onto a single @nuxt/ui.
-  '@nuxt/ui@<4.7.2': 4.10.0
+  '@nuxt/ui@<4.7.2': 4.11.0
   # esbuild dev-server request smuggling (GHSA-67mh-4wv8-2f99, >=0.27.3 <0.28.1) - transitive via vite tooling.
-  'esbuild@<0.28.1': 0.28.1
+  'esbuild@<0.28.1': 0.28.2
   # sharp: use-after-free / heap buffer overflow when decoding a malformed image
   # (GHSA-f88m-g3jw-g9cj, high, patched >=0.35.0). Transitive via @nuxt/image>ipx>sharp,
   # which reaches user-supplied images on any /_ipx/ route — so this is a live path, not
@@ -187,8 +187,10 @@ overrides:
   'tar@<7.5.21': 7.5.22
   # postcss <=8.5.17 (GHSA-r28c-9q8g-f849, high), patched >=8.5.18. Build-time only, via
   # nuxt>@nuxt/vite-builder>autoprefixer/cssnano (100 paths). Bounded key so it can only raise.
-  # Target 8.5.24 (not the 8.5.18 floor) mirrors the @lenne.tech/nuxt-extensions override.
-  'postcss@<8.5.18': 8.5.24
+  # Target 8.5.26 (not the 8.5.18 floor) mirrors the @lenne.tech/nuxt-extensions override.
+  # Raised from 8.5.24 on 2026-08-23: the lockfile carried TWO postcss copies (8.5.24 forced
+  # by this pin, 8.5.26 requested naturally elsewhere) — a stale target is a downgrade lock.
+  'postcss@<8.5.18': 8.5.26
   # brace-expansion DoS via unbounded expansion (GHSA-mh99-v99m-4gvg, high). Patched ONLY
   # in 5.0.8 — there is no 2.x backport, so the 2.x key below merely keeps that major on its
   # newest release.
@@ -233,4 +235,4 @@ overrides:
   # Drop once @nuxt/image requests >=4.0.2. Verified 2026-07-30.
   'svgo@>=4.0.0 <4.0.2': 4.0.2
   # fast-xml-parser ReDoS (GHSA-8r6m-32jq-jx6q, high). Transitive via @nuxtjs/seo>@nuxtjs/sitemap.
-  'fast-xml-parser@>=5.9.3 <5.10.1': 5.10.1
+  'fast-xml-parser@>=5.9.3 <5.10.1': 5.11.0

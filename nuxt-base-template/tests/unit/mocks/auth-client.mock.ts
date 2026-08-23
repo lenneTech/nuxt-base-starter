@@ -28,7 +28,10 @@ export const mockSession = {
 };
 
 // Mock TOTP data
+// `method` mirrors better-auth >= 1.7, where twoFactor.enable returns a discriminated
+// result: `{ method: 'otp' }` | `{ method: 'totp', totpURI, backupCodes }`.
 export const mockTotpData = {
+  method: 'totp' as const,
   totpURI: 'otpauth://totp/Test:test@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Test',
   backupCodes: ['12345678', '23456789', '34567890', '45678901', '56789012'],
 };
