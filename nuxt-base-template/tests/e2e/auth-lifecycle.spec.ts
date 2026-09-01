@@ -16,7 +16,16 @@ import {
   waitForURLAndHydration,
 } from '@lenne.tech/nuxt-extensions/testing';
 
-import { API_BASE, DEFAULT_FEATURES, FRONTEND_BASE, parseFeatures, resetTestData, waitForVerificationToken, type Features } from './helpers/auth-backend';
+import {
+  API_BASE,
+  DEFAULT_FEATURES,
+  FRONTEND_BASE,
+  parseFeatures,
+  resetTestData,
+  waitForPasswordResetToken,
+  waitForVerificationToken,
+  type Features,
+} from './helpers/auth-backend';
 
 // =============================================================================
 // UI Helpers
@@ -479,6 +488,49 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
     // Verify user is logged in
     await expect(page.getByText(testUser.email).first()).toBeVisible({ timeout: 5000 });
     console.info('  Logged in without 2FA - direct to /app');
+  });
+
+  test('Step 9: Reset password via the mailed link and sign in with the new one', async ({ page }) => {
+    test.skip(!apiAvailable, 'Servers not running');
+
+    // The one half of the reset flow no other layer can see. nest-server covers
+    // redeeming a token against the API; auth-password-reset.spec.ts covers the
+    // request the app sends. Between them sits the browser path — token out of the
+    // query string, form, and whether the new password actually works afterwards —
+    // and it was uncovered until this step existed.
+    const newPassword = `${testUser.password}-Reset1`;
+
+    // Step 8 left the user signed in, and `guest.global` bounces an authenticated
+    // visitor off every /auth page — including this one. Without the logout the step
+    // fails on a redirect that is entirely correct.
+    await logout(page);
+
+    await gotoAndWaitForHydration(page, '/auth/forgot-password');
+    await fillInput(page, 'input[name="email"]', testUser.email);
+    await page.getByRole('button', { name: 'Link anfordern' }).click();
+
+    // The token is opaque and the log line masks the address, so it is read per user
+    // from the verification document rather than out of the server log.
+    const token = await waitForPasswordResetToken(testUser.email);
+    expect(token, 'No password-reset token was issued for the test user').not.toBeNull();
+
+    await gotoAndWaitForHydration(page, `/auth/reset-password?token=${token}`);
+    await fillInput(page, 'input[name="password"]', newPassword);
+    await fillInput(page, 'input[name="confirmPassword"]', newPassword);
+    await page.getByRole('button', { name: 'Passwort speichern' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Passwort zurückgesetzt' })).toBeVisible({ timeout: 15000 });
+    console.info('  Password reset accepted');
+
+    // The assertion that carries the step: a success screen proves the request was
+    // accepted, not that the credential changed. Only signing in does.
+    await loginWithEmail(page, testUser.email, newPassword);
+    await waitForURLAndHydration(page, /\/app/, { timeout: 15000 });
+    await expect(page.getByText(testUser.email).first()).toBeVisible({ timeout: 5000 });
+    console.info('  Logged in with the new password');
+
+    // Later steps and the cleanup address this user by password.
+    testUser.password = newPassword;
   });
 
   // =========================================================================

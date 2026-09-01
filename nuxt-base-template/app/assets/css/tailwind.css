@@ -8,13 +8,43 @@
 
 @theme static {
   --breakpoint-3xl: 2400px;
+}
 
-  /* ============================================================================
-     NuxtUI Color Scales - Customize for your brand
-     Each semantic color requires a scale from 50 to 950
-     ========================================================================= */
-
-  /* Primary Color - Green (NuxtUI Default) */
+/*
+ * Nuxt UI's colour tokens must be declared UNLAYERED, not inside `@theme`.
+ *
+ * Nuxt UI 4.11 injects a stylesheet of its own at the end of `@layer theme`
+ * that maps every one of its tokens onto Tailwind's `--color-*` namespace:
+ *
+ *   --ui-color-primary-700: var(--color-primary-700, );
+ *   --ui-color-neutral-200: var(--color-old-neutral-200, oklch(92.2% 0 none));
+ *
+ * Anything this file puts in `@theme` lands in that SAME layer and earlier, so
+ * Nuxt UI's mapping wins. And the fallback it maps to is EMPTY for the six
+ * semantic colours, because the palettes here are named `--ui-color-*` rather
+ * than `--color-*`. The result: `--ui-color-primary-700` computes to nothing,
+ * `--ui-primary` -> `var(--ui-color-primary-700)` computes to nothing, and
+ * `bg-primary` renders transparent — a button still in the DOM and still
+ * clickable, but with no fill.
+ *
+ * Only the neutrals survive, because theirs is the one mapping with a real
+ * fallback. That is why the failure looks like "the whole app went grey"
+ * rather than "the stylesheet is broken", and why it is so easy to misread as
+ * a cache or build problem.
+ *
+ * An unlayered `:root` outranks every `@layer`, whatever Nuxt UI does inside
+ * one, which is what makes this the durable fix rather than a race on source
+ * order. `--breakpoint-3xl` stays in `@theme`: it IS a Tailwind namespace,
+ * Nuxt UI never touches it, and Tailwind needs it there to build `3xl:`
+ * variants.
+ *
+ * Verified in the browser: with the declarations in `@theme`,
+ * `getComputedStyle(document.documentElement)` reports `--ui-color-primary-700`
+ * as empty while `--breakpoint-3xl` reports `2400px` — same rule, adjacent
+ * lines.
+ */
+:root {
+  /* Primary - Green (NuxtUI default) */
   --ui-color-primary-50: #f0fdf4;
   --ui-color-primary-100: #dcfce7;
   --ui-color-primary-200: #bbf7d0;
@@ -27,7 +57,7 @@
   --ui-color-primary-900: #14532d;
   --ui-color-primary-950: #052e16;
 
-  /* Secondary Color - Indigo */
+  /* Secondary - Indigo */
   --ui-color-secondary-50: #eef2ff;
   --ui-color-secondary-100: #e0e7ff;
   --ui-color-secondary-200: #c7d2fe;
@@ -40,7 +70,7 @@
   --ui-color-secondary-900: #312e81;
   --ui-color-secondary-950: #1e1b4b;
 
-  /* Success Color - Emerald */
+  /* Success - Emerald */
   --ui-color-success-50: #ecfdf5;
   --ui-color-success-100: #d1fae5;
   --ui-color-success-200: #a7f3d0;
@@ -53,7 +83,7 @@
   --ui-color-success-900: #064e3b;
   --ui-color-success-950: #022c22;
 
-  /* Info Color - Blue */
+  /* Info - Blue */
   --ui-color-info-50: #eff6ff;
   --ui-color-info-100: #dbeafe;
   --ui-color-info-200: #bfdbfe;
@@ -66,7 +96,7 @@
   --ui-color-info-900: #1e3a8a;
   --ui-color-info-950: #172554;
 
-  /* Warning Color - Amber */
+  /* Warning - Amber */
   --ui-color-warning-50: #fffbeb;
   --ui-color-warning-100: #fef3c7;
   --ui-color-warning-200: #fde68a;
@@ -79,7 +109,7 @@
   --ui-color-warning-900: #78350f;
   --ui-color-warning-950: #451a03;
 
-  /* Error Color - Red */
+  /* Error - Red */
   --ui-color-error-50: #fef2f2;
   --ui-color-error-100: #fee2e2;
   --ui-color-error-200: #fecaca;
@@ -92,7 +122,7 @@
   --ui-color-error-900: #7f1d1d;
   --ui-color-error-950: #450a0a;
 
-  /* Neutral Color - Slate */
+  /* Neutral - Slate */
   --ui-color-neutral-50: #f8fafc;
   --ui-color-neutral-100: #f1f5f9;
   --ui-color-neutral-200: #e2e8f0;
@@ -105,10 +135,7 @@
   --ui-color-neutral-900: #0f172a;
   --ui-color-neutral-950: #020617;
 
-  /* ============================================================================
-     NuxtUI Semantic Shortcuts
-     ========================================================================= */
-
+  /* Semantic shortcuts */
   --ui-primary: var(--ui-color-primary-500);
   --ui-secondary: var(--ui-color-secondary-500);
   --ui-success: var(--ui-color-success-500);
@@ -116,10 +143,7 @@
   --ui-warning: var(--ui-color-warning-500);
   --ui-error: var(--ui-color-error-500);
 
-  /* ============================================================================
-     NuxtUI Global Settings
-     ========================================================================= */
-
+  /* Global settings */
   --ui-radius: 0.5rem;
 }
 

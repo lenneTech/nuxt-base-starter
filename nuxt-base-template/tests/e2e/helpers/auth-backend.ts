@@ -154,6 +154,52 @@ function assertSafeToDelete(email: string): void {
  * @throws When `MONGO_URI` is not loopback (unless `E2E_ALLOW_REMOTE_DB=true`), or when the
  *   address is not a test address.
  */
+/**
+ * Wait for the password-reset token that Better Auth issued for `email`.
+ *
+ * WHY THIS IS NOT `waitForVerificationToken`. The two flows carry different things.
+ * Email verification signs a stateless JWT, so its token can be pulled out of the server
+ * log and matched by decoding its payload. A reset token is the opposite: `generateId(24)`,
+ * opaque, with nothing inside it to match on. Better Auth stores it as a `verification`
+ * document — `identifier: "reset-password:<token>"`, `value: <userId>` — and the log line
+ * carries a MASKED address (`2f***@test.com`), which is not distinctive between two test
+ * users whose addresses share a prefix. So the database is the only place this can be read
+ * per user rather than per run.
+ *
+ * The lookup goes users → _id → verification.value, because `value` holds the user id and
+ * nothing else ties the document to an address.
+ *
+ * @param email Address whose reset was requested.
+ * @param maxRetries Attempts before giving up; each is followed by a 500 ms wait.
+ * @returns The raw token to put in `?token=`, or `null` once the attempts are exhausted.
+ */
+export async function waitForPasswordResetToken(email: string, maxRetries = 10): Promise<null | string> {
+  const client = new MongoClient(MONGO_URI);
+  try {
+    await client.connect();
+    const db = client.db();
+
+    for (let i = 0; i < maxRetries; i++) {
+      const user = await db.collection('users').findOne({ email });
+      if (user) {
+        // Newest first: a spec may request a reset more than once, and only the last token
+        // is still redeemable.
+        const doc = await db.collection('verification').findOne({ identifier: { $regex: '^reset-password:' }, value: user._id.toString() }, { sort: { createdAt: -1 } });
+
+        const token = doc?.identifier?.slice('reset-password:'.length);
+        if (token) {
+          return token;
+        }
+      }
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    return null;
+  } finally {
+    await client.close();
+  }
+}
+
 export async function resetTestData(email: string): Promise<void> {
   assertSafeToDelete(email);
 

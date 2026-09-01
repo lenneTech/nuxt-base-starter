@@ -31,8 +31,14 @@ const FRONTEND_BASE = process.env.NUXT_PUBLIC_SITE_URL || process.env.APP_URL ||
  *
  * What this spec verifies is what the APP sends and how it behaves afterwards — the
  * request body it builds, and the confirmation UI. Neither depends on a live backend,
- * and stubbing keeps the spec deterministic and runnable without one. The end-to-end
- * integration against a real Better Auth is covered by `auth-lifecycle.spec.ts`.
+ * and stubbing keeps the spec deterministic and runnable without one.
+ *
+ * The other half — redeeming the token in the browser and proving the credential
+ * actually changed — is `auth-lifecycle.spec.ts` Step 9, against a real Better Auth.
+ * This header claimed that coverage before it existed: the lifecycle spec ran nine
+ * steps and none of them touched a password reset. A pointer to coverage that is not
+ * there is worse than no pointer, because it answers the question "is this tested?"
+ * with a confident yes.
  */
 async function stubResetEndpoint(page: Page): Promise<void> {
   await page.route('**/request-password-reset', async (route) => {
