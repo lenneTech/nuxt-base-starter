@@ -245,3 +245,13 @@ overrides:
   # the key is matched against the requested RANGE, so `^7.1.0` intersects it and this
   # entry PINS. Drop once cssnano requests >=7.1.3 itself. Verified 2026-09-01.
   'postcss-selector-parser@>=7.1.0 <7.1.3': 7.1.5
+  # browserslist, two HIGH advisories on the same package, both closed here:
+  #   - GHSA-c83g-rgw3-j3cx — unbounded cache growth to OOM
+  #   - GHSA-73wf-gq98-2v4g — crash / prototype write via an untrusted
+  #     browserslist-stats.json
+  # Both `<=4.28.6`, first patched 4.28.7. Build-time only, transitive via
+  # @babel/core>@babel/helper-compilation-targets. Target 4.28.8 rather than the
+  # 4.28.7 floor: it is the current release, so the tree resolves one copy instead
+  # of two. Bounded key — it can only raise a vulnerable version, never cap a
+  # patched one. RAISE THE TARGET when a newer 4.28.x ships. Verified 2026-09-01.
+  'browserslist@<4.28.7': 4.28.8
