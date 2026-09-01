@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.23.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.22.4...v2.23.0) (2026-09-01)
+
+
+### Features
+
+* send security headers, and fix Step 9's false premise ([634f9a5](https://github.com/lenneTech/nuxt-base-starter/commit/634f9a5e30aca7721c2d5a568a15f2d1ae6332c4))
+
 ### [2.22.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.22.3...v2.22.4) (2026-09-01)
 
 ### [2.22.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.22.2...v2.22.3) (2026-08-23)
