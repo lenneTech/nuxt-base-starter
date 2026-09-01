@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.22.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.22.3...v2.22.4) (2026-09-01)
+
 ### [2.22.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.22.2...v2.22.3) (2026-08-23)
 
 ### [2.22.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.22.1...v2.22.2) (2026-08-23)
