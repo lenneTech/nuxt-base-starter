@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.23.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.23.1...v2.23.2) (2026-09-01)
+
+
+### Bug Fixes
+
+* close the two HIGH browserslist advisories ([53dd713](https://github.com/lenneTech/nuxt-base-starter/commit/53dd713cf038b4be659063dd0f74819520d01158))
+
 ### [2.23.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.23.0...v2.23.1) (2026-09-01)
 
 ## [2.23.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.22.4...v2.23.0) (2026-09-01)
