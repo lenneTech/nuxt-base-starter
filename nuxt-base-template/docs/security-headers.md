@@ -36,6 +36,32 @@ Nitro is plain HTTP, so the header is the only truth) with the connection protoc
 fallback. It is never inferred from an env var — a misconfigured env is exactly the
 case that would poison a developer's browser.
 
+## Checking them by hand
+
+Three ways to measure this wrong, all of them observed:
+
+```bash
+curl -sI https://<slug>.localhost/ | grep -iE 'x-frame|nosniff|referrer|strict-transport'
+```
+
+- **Case-insensitively.** Over HTTPS the connection is HTTP/2, where header names are
+  always lowercase (`x-frame-options`); on a direct HTTP/1.1 connection the original
+  casing survives. A `grep` without `-i` finds nothing through a proxy and everything
+  directly, on identical responses.
+- **Against the same target.** `127.0.0.1:4000` and `<slug>.localhost` are the API and
+  the app in a `lt dev` setup — two different servers.
+- **After the server actually restarted.** A readiness probe that only asks whether
+  `/meta` answers is satisfied by the process from _before_ the change. Comparing that
+  against a later direct measurement compares two builds and blames the difference on
+  whatever sits in between. This is how a "the reverse proxy strips our headers" report
+  came about that turned out to be neither the proxy nor the headers.
+
+**HSTS appearing only through the proxy is correct, not a bug.** Caddy terminates TLS
+and forwards `x-forwarded-proto: https`, so the app sends it; the direct plain-HTTP
+connection is exactly the case where it must stay away. Measured on both sides: the
+full set arrives either way, `x-powered-by` is gone, and `strict-transport-security`
+shows up only over real HTTPS.
+
 ## Why there is no Content-Security-Policy
 
 Not an oversight. A CSP is the one header in this family that breaks a working app
