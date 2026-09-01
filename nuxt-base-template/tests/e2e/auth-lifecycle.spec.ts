@@ -500,11 +500,10 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
     // and it was uncovered until this step existed.
     const newPassword = `${testUser.password}-Reset1`;
 
-    // Step 8 left the user signed in, and `guest.global` bounces an authenticated
-    // visitor off every /auth page — including this one. Without the logout the step
-    // fails on a redirect that is entirely correct.
-    await logout(page);
-
+    // No logout needed, and adding one breaks the step: every test in this file gets
+    // a FRESH page, which is why each step starts by signing in again. The visitor
+    // here is already a guest, so `guest.global` never fires — and a `logout()` call
+    // waits 5s for a Logout button that is not on a login page.
     await gotoAndWaitForHydration(page, '/auth/forgot-password');
     await fillInput(page, 'input[name="email"]', testUser.email);
     await page.getByRole('button', { name: 'Link anfordern' }).click();
