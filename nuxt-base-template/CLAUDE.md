@@ -486,6 +486,79 @@ work, check both:
   one-time token — a wildcard hands it to any origin it admits. nest-server warns at boot
   from 11.36.1.
 
+### Auth error handling — translate, then classify by `code`
+
+Two rules, both enforced by `tests/unit/auth/auth-pages-translate-errors.spec.ts`.
+
+**1. Every page under `app/pages/auth/` routes backend errors through `translateError`**
+(`useLtErrorTranslation`). Skipping it is invisible until an error happens in production,
+and it got worse with nest-server's error wrapping: a page printing `error.message`
+unfiltered no longer shows English prose but the literal marker,
+`#LTNS_0027: Link is invalid or expired`, which reads like a system fault. Two sibling
+projects had drifted here — in both, it was the recovery flows that skipped it, reached
+by people who are already locked out.
+
+**Never write `translateError(x) || 'Fallback'`.** The fallback is unreachable:
+`translateError` returns the input unchanged when it cannot translate, so it is only
+empty for empty input. Test the input first: `x ? translateError(x) : 'Fallback'`.
+
+**Reach for `useLtAuthClient()` before writing `$fetch` against `/iam/*`.** Until
+nuxt-extensions 1.17.0 the client's spread promised ~14 methods at the type level that were
+`undefined` at runtime, so three projects independently met a `TypeError`, concluded the
+library did not support the call, and rebuilt it against raw `$fetch` — this template among
+them. The methods are passed through explicitly now. What still has no client method is
+`/iam/features`, which is a nest-server endpoint rather than a Better-Auth one; that one
+stays on `$fetch`.
+
+Two rules when calling the verification endpoints, both of which cost somebody a debugging
+session:
+
+- **`callbackURL` must be absolute** and is passed through untouched. Better Auth resolves a
+  relative value against the API origin, so `/auth/verify-email` becomes
+  `api.<host>/auth/verify-email` — the mail goes out and the link 404s.
+- **Do not pass `callbackURL` when VERIFYING.** The endpoint branches on it: with one it
+  answers 302 carrying neither token nor status, without one it answers `{ status: true }` as
+  JSON. It is not the same parameter as the one that goes into the mail, and confusing the two
+  produces a page that reports failure on success.
+
+**2. Classify by `error.code`, never by HTTP status.** Better Auth answers
+`POST /reset-password` with five distinct failures under a single 400: `INVALID_TOKEN`
+(twice), `PASSWORD_TOO_SHORT`, `PASSWORD_TOO_LONG`, `USER_NOT_FOUND`. `reset-password.vue`
+splits them three ways, and the split is what matters, not the wording:
+
+| Class         | Codes                                              | Where it goes                                          |
+| ------------- | -------------------------------------------------- | ------------------------------------------------------ |
+| Link dead     | `INVALID_TOKEN`, `TOKEN_EXPIRED`, `USER_NOT_FOUND` | Persistent alert, with "request a new link"            |
+| Input wrong   | `PASSWORD_TOO_SHORT`, `PASSWORD_TOO_LONG`          | At the field, where the correction happens             |
+| Anything else | 429, 5xx, transport failure                        | "Not possible right now, try later" — never "new link" |
+
+The third row is the one that bites: telling somebody to request a new link after a 429
+or a 500 sends them back into the path that just failed, and they will loop.
+
+**The error alert must persist, not toast.** nest-server links password-reset mails
+straight to the app by default rather than through Better Auth's redirect hop, so nothing
+validates the token before the form is shown. Submitting is the only moment anyone learns
+their link is dead, and a message that fades while they are still typing a password is
+barely better than none.
+
+**`minLength(8)` in the reset form is the only length check that exists.** The client
+hashes with `ltSha256` before sending, so Better Auth always sees a 64-character digest
+and its own `minPasswordLength` passes unconditionally. Weakening the Valibot rule leaves
+no server-side backstop — and nothing fails, which is what makes it dangerous. By the
+same mechanism `maxPasswordLength` can never be exceeded: do **not** add an upper bound,
+it would reject passwords the server accepts.
+
+**The reset token is stripped from the URL** on mount via `history.replaceState`. It stays
+valid until used or expired, and otherwise survives in browser history and travels with
+the URL whenever somebody pastes it asking for help.
+
+`tests/unit/auth/error-translation-contract.spec.ts` guards the layer underneath: it runs
+against the `ERROR_CODE_REGEX` **shipped by the installed package** rather than a copy,
+and pins the silent-failure mode — when the `/i18n/errors/:locale` fetch fails at app
+start the table stays empty, `translateError` falls through to the English developer text,
+and a broken translation layer becomes indistinguishable from a working one. `isLoaded` is
+the only signal that tells them apart.
+
 ## Security Overrides (pnpm)
 
 All workspace-scoped pnpm settings — `overrides` (CVE patches for vulnerable transitive deps), `minimumReleaseAgeExclude`, build-script approvals (`allowBuilds` / `onlyBuiltDependencies`), and `ignoredOptionalDependencies` — live in **`pnpm-workspace.yaml`**, each with an inline comment stating its reason (CVE/advisory). The detailed advisory list is therefore the file itself, not duplicated here.

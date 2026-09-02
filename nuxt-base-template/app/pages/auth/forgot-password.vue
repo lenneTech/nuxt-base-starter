@@ -73,7 +73,10 @@ async function requestResetLink(email: string): Promise<boolean> {
   });
 
   if (error) {
-    submitError.value = translateError(error.message || '') || 'Die Anfrage konnte nicht verarbeitet werden.';
+    // Not `translateError(...) || fallback`: that fallback is unreachable. `translateError`
+    // hands back the original message when it cannot translate, so it only returns an empty
+    // string for empty input — which is the case tested here, before translating.
+    submitError.value = error.message ? translateError(error.message) : 'Die Anfrage konnte nicht verarbeitet werden.';
     return false;
   }
 

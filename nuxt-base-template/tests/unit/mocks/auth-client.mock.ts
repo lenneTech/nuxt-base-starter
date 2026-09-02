@@ -64,7 +64,12 @@ export function createMockAuthClient() {
     signIn: {
       email: vi.fn(async (params: { email: string; password: string }) => {
         if (params.email === 'invalid@test.com') {
-          return { data: null, error: { message: 'Ungültige Anmeldedaten', code: 'LTNS_0010' } };
+          // Shaped like a REAL failed IAM response, which had the two fields the other way
+          // round: `code` stays Better-Auth's own (nest-server leaves it untouched on purpose,
+          // so anything branching on it keeps working), while the `#LTNS_…` marker rides in
+          // `message`, where `translateError` looks for it. The previous mock swapped them and
+          // therefore tested against a response shape that cannot occur.
+          return { data: null, error: { message: '#LTNS_0010: Invalid credentials', code: 'INVALID_EMAIL_OR_PASSWORD' } };
         }
         sessionData.value = { user: { ...mockUser, email: params.email }, session: mockSession };
         return { data: { user: mockUser, session: mockSession }, error: null };

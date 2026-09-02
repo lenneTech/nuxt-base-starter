@@ -12,7 +12,7 @@ import * as v from 'valibot';
 // ============================================================================
 const toast = useToast();
 const { translateError } = useLtErrorTranslation();
-const { fetchWithAuth, setUser, switchToJwtMode, jwtToken } = useLtAuth();
+const { setUser, switchToJwtMode, jwtToken } = useLtAuth();
 const authClient = useLtAuthClient();
 const route = useRoute();
 
@@ -74,7 +74,9 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       if (result.error) {
         toast.add({
           color: 'error',
-          description: translateError(result.error.message || '') || 'Backup-Code ungültig',
+          // Not `translateError(...) || fallback` — that fallback never runs, because
+          // `translateError` returns the input unchanged when it cannot translate it.
+          description: result.error.message ? translateError(result.error.message) : 'Backup-Code ungültig',
           title: 'Bestätigung fehlgeschlagen',
         });
         return;
@@ -87,7 +89,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       if (result.error) {
         toast.add({
           color: 'error',
-          description: translateError(result.error.message || '') || 'Code ungültig',
+          description: result.error.message ? translateError(result.error.message) : 'Code ungültig',
           title: 'Bestätigung fehlgeschlagen',
         });
         return;
@@ -111,24 +113,23 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       // Try to get JWT token for fallback
       switchToJwtMode().catch(() => {});
     } else {
-      // Fallback: fetch session data from API using authenticated fetch
+      // Fallback: read the session from the API.
+      //
+      // This used to build the URL by hand and go through `fetchWithAuth`, because
+      // `useLtAuthClient().getSession` did not survive the client's spread and was `undefined`
+      // at runtime — the workaround, not a preference. Since nuxt-extensions 1.17.0 the method
+      // is passed through explicitly, so the hand-built base URL can go.
       try {
-        const isDev = import.meta.dev;
-        const runtimeConfig = useRuntimeConfig();
-        const apiBase = isDev ? '/api/iam' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/iam`;
-        const sessionResponse = await fetchWithAuth(`${apiBase}/get-session`);
-        if (sessionResponse.ok) {
-          const sessionData = await sessionResponse.json();
-          const sessionToken = sessionData?.token;
-          if (sessionToken) {
-            jwtToken.value = sessionToken;
-            if (sessionData?.user) {
-              setUser(sessionData.user, 'jwt');
-            }
-          } else if (sessionData?.user) {
-            setUser(sessionData.user, 'cookie');
-            switchToJwtMode().catch(() => {});
+        const { data: sessionData } = await authClient.getSession();
+        const sessionToken = (sessionData as { token?: string } | null)?.token;
+        if (sessionToken) {
+          jwtToken.value = sessionToken;
+          if (sessionData?.user) {
+            setUser(sessionData.user, 'jwt');
           }
+        } else if (sessionData?.user) {
+          setUser(sessionData.user, 'cookie');
+          switchToJwtMode().catch(() => {});
         }
       } catch {
         // Ignore session fetch errors

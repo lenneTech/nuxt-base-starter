@@ -5,7 +5,15 @@
 const route = useRoute();
 const toast = useToast();
 const runtimeConfig = useRuntimeConfig();
+const authClient = useLtAuthClient();
+const { translateError } = useLtErrorTranslation();
+
+// Still needed for `/features`, which is a nest-server endpoint rather than a Better-Auth one
+// and therefore has no client method. The two verification calls no longer use it.
 const apiBase = import.meta.dev ? '/api/iam' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/iam`;
+
+/** Covers "never existed" and "expired" alike — Better Auth answers both the same way. */
+const LINK_DEAD_MESSAGE = 'Dieser Link ist nicht (mehr) gültig. Bitte fordere einen neuen an.';
 
 // ============================================================================
 // Page Meta
@@ -56,13 +64,19 @@ async function verifyEmailWithToken(verificationToken: string): Promise<void> {
   verifyError.value = '';
 
   try {
-    const result = await $fetch<{ status: boolean }>(`${apiBase}/verify-email`, {
-      params: { token: verificationToken },
-      redirect: 'manual',
-    });
+    // No `callbackURL` here, deliberately. The endpoint branches on it: with one it answers 302
+    // to that URL carrying neither token nor status, without one it answers `{ status: true }`
+    // as JSON. It is NOT the same parameter as the one that goes into the mail below, and
+    // passing it here produces a page that reports failure on success.
+    const { data, error } = await authClient.verifyEmail({ query: { token: verificationToken } });
 
-    if (!result?.status) {
-      verifyError.value = 'Verifizierung fehlgeschlagen';
+    if (error) {
+      verifyError.value = error.message ? translateError(error.message) : LINK_DEAD_MESSAGE;
+      return;
+    }
+
+    if (!data?.status) {
+      verifyError.value = LINK_DEAD_MESSAGE;
       return;
     }
 
@@ -73,7 +87,10 @@ async function verifyEmailWithToken(verificationToken: string): Promise<void> {
       title: 'E-Mail bestätigt',
     });
   } catch {
-    verifyError.value = 'Die Verifizierung ist fehlgeschlagen. Der Link ist möglicherweise abgelaufen.';
+    // Better Auth returns `{ error }` rather than throwing, so reaching here means the transport
+    // failed: offline, DNS, a proxy closing the connection. Telling the user their link is dead
+    // would be the wrong advice — it is very likely fine.
+    verifyError.value = 'Die Verbindung zum Server ist fehlgeschlagen. Bitte versuche es später erneut.';
   } finally {
     verifying.value = false;
   }
@@ -85,17 +102,23 @@ async function resendVerificationEmail(): Promise<void> {
   resending.value = true;
 
   try {
-    await $fetch(`${apiBase}/send-verification-email`, {
-      body: {
-        // Absolute, for the same reason as the reset link in `forgot-password.vue`:
-        // Better Auth redirects to this value from its OWN origin, so a relative path
-        // resolves against the API host and lands on `api.<host>/auth/verify-email`,
-        // where the route does not exist. See `utils/app-origin.ts`.
-        callbackURL: appUrl('/auth/verify-email', runtimeConfig.public.siteUrl),
-        email: email.value,
-      },
-      method: 'POST',
+    const { error } = await authClient.sendVerificationEmail({
+      // Absolute, and it must stay that way. Better Auth resolves a relative value against its
+      // OWN origin, so `/auth/verify-email` becomes `api.<host>/auth/verify-email`, where the
+      // route does not exist — the mail goes out and the user follows a link to a 404. The
+      // client passes this through untouched on purpose. See `utils/app-origin.ts`.
+      callbackURL: appUrl('/auth/verify-email', runtimeConfig.public.siteUrl),
+      email: email.value,
     });
+
+    if (error) {
+      toast.add({
+        color: 'error',
+        description: error.message ? translateError(error.message) : 'Die E-Mail konnte nicht gesendet werden. Bitte versuche es später erneut.',
+        title: 'Fehler',
+      });
+      return;
+    }
 
     toast.add({
       color: 'success',

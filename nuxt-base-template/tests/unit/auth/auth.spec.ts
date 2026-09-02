@@ -92,7 +92,10 @@ describe('Login', () => {
     const result = await authClient.signIn.email(credentials);
 
     expect(result.error).not.toBeNull();
-    expect(result.error?.message).toBe('Ungültige Anmeldedaten');
+    // German text is what the USER sees, and it comes out of `translateError` reading the
+    // marker — not out of the API, which answers in English. Asserting the German string
+    // here would describe a response the backend never sends.
+    expect(result.error?.message).toBe('#LTNS_0010: Invalid credentials');
     expect(result.data).toBeNull();
   });
 
@@ -292,16 +295,22 @@ describe('Error Translations', () => {
       password: 'WrongPassword!',
     });
 
-    expect(result.error?.message).toBe('Ungültige Anmeldedaten');
+    // The marker travels in `message` — that is the field `translateError` parses.
+    expect(result.error?.message).toBe('#LTNS_0010: Invalid credentials');
   });
 
-  it('should return error code for backend errors', async () => {
+  it('keeps Better-Auth’s own code intact alongside the nest-server marker', async () => {
     const result = await authClient.signIn.email({
       email: 'invalid@test.com',
       password: 'WrongPassword!',
     });
 
-    expect(result.error?.code).toBe('LTNS_0010');
+    // nest-server rewrites only the human-facing `message` and leaves `code` alone, so a page
+    // branching on the code keeps working after the wrapping was introduced. Asserting both
+    // together is the point: the two fields carry different vocabularies, and a mock that
+    // swaps them makes every test that uses it green against an impossible response.
+    expect(result.error?.code).toBe('INVALID_EMAIL_OR_PASSWORD');
+    expect(result.error?.message).toContain('#LTNS_0010:');
   });
 });
 

@@ -255,3 +255,34 @@ overrides:
   # of two. Bounded key — it can only raise a vulnerable version, never cap a
   # patched one. RAISE THE TARGET when a newer 4.28.x ships. Verified 2026-09-01.
   'browserslist@<4.28.7': 4.28.8
+  # @tiptap/core prototype pollution: `mergeAttributes()` turns an own `__proto__` key into
+  # inherited, executable DOM attributes (GHSA-cp6q-959q-f8rh, moderate, `<3.30.4`).
+  #
+  # NOT build-time only, unlike most entries above. It arrives through
+  # @lenne.tech/bug.lt>@nuxt/ui, and both are PRODUCTION dependencies here — 96 paths. The
+  # template renders no editor of its own, so nothing calls `mergeAttributes` today; a
+  # project that starts using @nuxt/ui's editor inherits the exposure without touching this
+  # file, which is why it is fixed at the template rather than left to each project.
+  #
+  # Neither parent can resolve it: @nuxt/ui (4.11.0) and @lenne.tech/bug.lt (1.6.9) are both
+  # already at their newest release and still request `^3`, so raising them changes nothing.
+  # An override is the first rung of the ladder that applies, not a shortcut past it.
+  #
+  # Target 3.30.5, not the newest. Two independent reasons, and the first is a hard gate:
+  # `minimumReleaseAge` is 1 day here, and on 2026-09-02 the newer releases sit right on it
+  # (3.31.0 one day old, 3.30.6 two) — an install would resolve differently depending on the
+  # hour it runs, or need an exclude entry to work at all. 3.30.5 is seven days old, carries
+  # the fix (>=3.30.4), and is the same target @lenne.tech/nuxt-extensions pins, so library
+  # and starter resolve one identical tiptap line.
+  #
+  # `@tiptap/pm` MUST move with it. Every @tiptap package pins its siblings EXACTLY, not by
+  # range: `@tiptap/core@3.30.5` peers `@tiptap/pm: "3.30.5"`, and 3.24.0 peers "3.24.0".
+  # Lifting the core alone therefore leaves `unmet peer @tiptap/pm` behind — measured, not
+  # assumed. The 36 remaining @tiptap packages need no entry: pnpm rewrites their peer
+  # request on the overridden package, so `pnpm peers check` is clean with just these two.
+  #
+  # Bounded keys — they can only raise a vulnerable version and never cap a patched one.
+  # RAISE BOTH TOGETHER when a newer 3.30.x ships; a lone bump reopens the peer mismatch.
+  # Drop once @nuxt/ui requests >=3.30.4 itself. Verified 2026-09-02.
+  '@tiptap/core@<3.30.4': 3.30.5
+  '@tiptap/pm@<3.30.4': 3.30.5

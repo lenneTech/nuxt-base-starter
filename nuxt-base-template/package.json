@@ -13,9 +13,9 @@
   "scripts": {
     "c": "pnpm run check",
     "check": "node scripts/check.mjs",
-    "check:raw": "cross-env NUXT_BUILD_DIR=.nuxt-check pnpm install --frozen-lockfile && cross-env NUXT_BUILD_DIR=.nuxt-check pnpm audit && pnpm run format:check && pnpm run lint && pnpm test && pnpm run build:check && pnpm run typecheck && pnpm run typecheck:tests && bash scripts/check-server-start.sh",
-    "check:fix": "cross-env NUXT_BUILD_DIR=.nuxt-check pnpm install && cross-env NUXT_BUILD_DIR=.nuxt-check pnpm audit --fix && pnpm run format && pnpm run lint:fix && pnpm test && pnpm run build:check && pnpm run typecheck && pnpm run typecheck:tests && bash scripts/check-server-start.sh",
-    "check:naf": "cross-env NUXT_BUILD_DIR=.nuxt-check pnpm install && pnpm run format && pnpm run lint:fix && pnpm test && pnpm run build:check && pnpm run typecheck && pnpm run typecheck:tests && bash scripts/check-server-start.sh",
+    "check:raw": "cross-env NUXT_BUILD_DIR=.nuxt-check pnpm install --frozen-lockfile && cross-env NUXT_BUILD_DIR=.nuxt-check pnpm audit && pnpm peers check && pnpm run format:check && pnpm run lint && pnpm test && pnpm run build:check && pnpm run typecheck && pnpm run typecheck:tests && bash scripts/check-server-start.sh",
+    "check:fix": "cross-env NUXT_BUILD_DIR=.nuxt-check pnpm install && cross-env NUXT_BUILD_DIR=.nuxt-check pnpm audit --fix && pnpm peers check && pnpm run format && pnpm run lint:fix && pnpm test && pnpm run build:check && pnpm run typecheck && pnpm run typecheck:tests && bash scripts/check-server-start.sh",
+    "check:naf": "cross-env NUXT_BUILD_DIR=.nuxt-check pnpm install && pnpm peers check && pnpm run format && pnpm run lint:fix && pnpm test && pnpm run build:check && pnpm run typecheck && pnpm run typecheck:tests && bash scripts/check-server-start.sh",
     "cf": "pnpm run check:fix",
     "cnaf": "pnpm run check:naf",
     "init": "pnpm install",
@@ -56,7 +56,7 @@
   "dependencies": {
     "@better-auth/passkey": "1.7.1",
     "@lenne.tech/bug.lt": "1.6.9",
-    "@lenne.tech/nuxt-extensions": "1.16.0",
+    "@lenne.tech/nuxt-extensions": "1.18.0",
     "@nuxt/image": "2.1.0",
     "@nuxt/ui": "4.11.0",
     "@pinia/nuxt": "1.0.2",
