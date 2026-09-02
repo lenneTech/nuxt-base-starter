@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.25.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.24.0...v2.25.0) (2026-09-02)
+
+
+### Features
+
+* **auth:** use the client's verification methods and translate every auth error ([8975b2f](https://github.com/lenneTech/nuxt-base-starter/commit/8975b2f4dc63851937053b4802eda8f7d6c9f98f))
+
 ## [2.24.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.23.2...v2.24.0) (2026-09-02)
 
 
