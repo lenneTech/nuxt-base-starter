@@ -175,8 +175,20 @@ overrides:
   # (GHSA-f88m-g3jw-g9cj, high, patched >=0.35.0). Transitive via @nuxt/image>ipx>sharp,
   # which reaches user-supplied images on any /_ipx/ route — so this is a live path, not
   # a build-time-only concern. Bounded key so it can only raise a vulnerable version and
-  # never cap a patched one. Drop once ipx requests >=0.35.0 itself.
-  'sharp@<0.35.0': 0.35.3
+  # never cap a patched one.
+  #
+  # Target raised 0.35.3 -> 0.35.4 for GHSA-rgj7-g3m4-5g8c (high, patched >=0.35.4), so a
+  # consumer the key catches lands on the patched line. The KEY stays `<0.35.0` on purpose:
+  # widened to `<0.35.4` it would intersect ipx's own `^0.35.3` request and PIN it, a
+  # downgrade lock as soon as 0.35.5 ships.
+  #
+  # Latent today: ipx already requests `^0.35.3`, and two fresh resolves, with and without
+  # this entry, both give 0.35.4. The advisory only fired because the lockfile still carried
+  # 0.35.3. It stays because nuxt-og-image 6.8.0 (via @nuxtjs/seo, still inside the 1-day
+  # release-age gate on 2026-09-14) accepts `^0.34.0 || ^0.35.4`, a range this key catches.
+  # RAISE THE TARGET when a newer 0.35.x ships. Drop once no consumer accepts sharp <0.35.0.
+  # Verified 2026-09-14.
+  'sharp@<0.35.0': 0.35.4
   # tar: multiple advisories across the 7.x line. Transitive via
   # @lenne.tech/nuxt-extensions>nuxt>@nuxt/nitro-*. Bounded key so it can only raise.
   # Drop once nitro requests a patched tar itself.
@@ -217,7 +229,13 @@ overrides:
   # js-yaml quadratic CPU consumption via YAML merge-key chains (GHSA-52cp-r559-cp3m, high),
   # incompletely fixed in 4.3.0 — the follow-up advisory is patched only in 4.3.1.
   # Transitive via @hey-api/openapi-ts>@hey-api/json-schema-ref-parser.
-  'js-yaml@>=4.0.0 <4.3.1': 4.3.1
+  #
+  # Raised 4.3.1 -> 4.3.2 (key and target) for GHSA-2883-xcg3-v3hh (high, patched >=4.3.2);
+  # 4.3.2 is the newest 4.x. Load-bearing, not a leftover: json-schema-ref-parser 1.4.4 (its
+  # latest) pins js-yaml EXACTLY at 4.2.0, so no bump can fix it. A fresh resolve without
+  # this entry gives 4.2.0 with three high advisories. Drop once the parser requests
+  # >=4.3.2 itself. Verified 2026-09-14.
+  'js-yaml@>=4.0.0 <4.3.2': 4.3.2
   # nanoid — custom generators loop indefinitely when size is 0 (GHSA-qmxm-cq3q-gh8v, high,
   # patched >=3.3.17). Only the 3.x line is in this tree (via postcss); 3.3.18 is the
   # current `legacy` dist-tag, so this stays inside the major its consumers ask for.
@@ -230,10 +248,20 @@ overrides:
   # request >=1.8.5 themselves. Verified 2026-07-30.
   'shell-quote@<1.8.5': 1.10.0
   # svgo ReDoS in the SVG path parser (GHSA-8w4h-3c9p-7c9r, patched >=4.0.2).
-  # Build-time only, transitive via @nuxt/vite-builder>@nuxt/image image optimisation.
-  # Bounded key so it can only raise a vulnerable 4.0.x and never cap a later one.
-  # Drop once @nuxt/image requests >=4.0.2. Verified 2026-07-30.
-  'svgo@>=4.0.0 <4.0.2': 4.0.2
+  # Build-time only, transitive via nuxt>@nuxt/vite-builder>cssnano>cssnano-preset-default>
+  # postcss-svgo. Bounded key so it can only raise a vulnerable 4.0.x and never cap a later
+  # one.
+  #
+  # Target raised 4.0.2 -> 4.1.0 for GHSA-w27v-7q3p-w38r (high) and GHSA-4vpr-x523-8j87
+  # (moderate), both patched >=4.1.0; 4.1.0 is the newest release. The KEY stays `<4.0.2`:
+  # postcss-svgo 8.0.4 requests `^4.0.2`, which it does not intersect, so it cannot pin
+  # that path.
+  #
+  # Latent today: two fresh resolves, with and without this entry, both give 4.1.0. The
+  # advisories only fired because the lockfile still carried 4.0.2. It stays as a floor in
+  # case a consumer accepting 4.0.0/4.0.1 enters the tree; with no such consumer it matches
+  # nothing. RAISE THE TARGET when a newer 4.x ships. Verified 2026-09-14.
+  'svgo@>=4.0.0 <4.0.2': 4.1.0
   # fast-xml-parser ReDoS (GHSA-8r6m-32jq-jx6q, high). Transitive via @nuxtjs/seo>@nuxtjs/sitemap.
   'fast-xml-parser@>=5.9.3 <5.10.1': 5.11.0
   # postcss-selector-parser DoS through uncontrolled AST recursion
