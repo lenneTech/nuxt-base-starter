@@ -109,7 +109,9 @@ function toFixCommand(kind, cmd) {
   if (kind === 'lint') {
     if (/\blint:fix\b/.test(cmd) || /--fix\b/.test(cmd)) return cmd;
     if (/\brun\s+lint\b/.test(cmd)) return cmd.replace(/\brun\s+lint\b/, 'run lint:fix');
-    if (/\boxlint\b/.test(cmd)) return cmd.replace(/\boxlint\b/, 'oxlint --fix --fix-suggestions');
+    // Never `--fix-suggestions`: oxlint marks suggestions as possibly behaviour-changing,
+    // and the no-console one deletes every console call it touches.
+    if (/\boxlint\b/.test(cmd)) return cmd.replace(/\boxlint\b/, 'oxlint --fix');
     return cmd;
   }
   return cmd;
