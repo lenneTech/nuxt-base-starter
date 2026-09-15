@@ -217,3 +217,70 @@ jobs:
           name: playwright-report
           path: nuxt-base-template/playwright-report/
           retention-days: 7
+
+  # -------------------------------------------------------------------------
+  # Windows visibility job. NON-BLOCKING until Windows support is complete
+  # (milestone M5, decision D4): it exists to show what is red on Windows, not
+  # to gate merges. Flip `continue-on-error` off once it is green.
+  #
+  # Every check after the install runs even when an earlier one failed, so a
+  # single run lists everything that breaks instead of stopping at the first.
+  # No E2E yet, and no `pnpm run check`: its chain still calls
+  # `bash scripts/check-server-start.sh`, which is ported in M2.
+  # -------------------------------------------------------------------------
+  windows:
+    name: Windows (non-blocking)
+    runs-on: windows-latest
+    continue-on-error: true
+    timeout-minutes: 45
+
+    steps:
+      # Git for Windows defaults to core.autocrlf=true. Reproducing that before
+      # the checkout proves .gitattributes keeps every text file LF; the format
+      # check below turns a CRLF leak into a red step.
+      - name: Emulate the Git for Windows line-ending default
+        run: git config --global core.autocrlf true
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install root dependencies
+        id: root-install
+        run: pnpm install --frozen-lockfile
+
+      - name: Install template dependencies
+        id: template-install
+        working-directory: nuxt-base-template
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify CI placement
+        if: ${{ !cancelled() && steps.root-install.outcome == 'success' }}
+        run: pnpm run check:ci-placement
+
+      - name: Test repo scripts
+        if: ${{ !cancelled() && steps.root-install.outcome == 'success' }}
+        run: pnpm run test:scripts
+
+      - name: Format check (template)
+        if: ${{ !cancelled() && steps.template-install.outcome == 'success' }}
+        working-directory: nuxt-base-template
+        run: pnpm run format:check
+
+      - name: Lint (template)
+        if: ${{ !cancelled() && steps.template-install.outcome == 'success' }}
+        working-directory: nuxt-base-template
+        run: pnpm run lint
+
+      - name: Unit tests (template)
+        if: ${{ !cancelled() && steps.template-install.outcome == 'success' }}
+        working-directory: nuxt-base-template
+        run: pnpm run test:unit

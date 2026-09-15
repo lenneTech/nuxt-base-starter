@@ -1,0 +1,11 @@
+# EditorConfig: https://EditorConfig.org
+#
+# Covers the starter's own root files only. nuxt-base-template/ carries its own
+# .editorconfig with `root = true`, so nothing here reaches the template.
+#
+# Deliberately minimal: oxfmt reads .editorconfig, and wider settings here would
+# start reformatting root files (see the note in .oxfmtrc.jsonc).
+root = true
+
+[*]
+end_of_line = lf
