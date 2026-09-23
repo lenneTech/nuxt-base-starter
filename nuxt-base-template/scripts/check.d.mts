@@ -70,3 +70,9 @@ export function buildGroups(projects: CheckProject[]): CheckGroups;
  * `tests/unit/nuxt-builddir-isolation.test.ts` asserts the new arrangement:
  * that the scripts themselves declare it, for every entry point.
  */
+
+/** What `killTree` will do for one pid: run a command (Windows) or send a signal (POSIX). */
+export type KillTreePlan = { args: string[]; command: 'taskkill' } | { signal: NodeJS.Signals };
+
+/** Pure: plans the tree kill for `platform` without touching any process. */
+export function killTreePlan(pid: number, signal: NodeJS.Signals, platform?: NodeJS.Platform): KillTreePlan;
