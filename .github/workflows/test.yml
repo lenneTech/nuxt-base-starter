@@ -225,8 +225,8 @@ jobs:
   #
   # Every check after the install runs even when an earlier one failed, so a
   # single run lists everything that breaks instead of stopping at the first.
-  # No E2E yet, and no `pnpm run check`: its chain still calls
-  # `bash scripts/check-server-start.sh`, which is ported in M2.
+  # No E2E yet, and no `pnpm run check`: the chain's server-start step is now
+  # Node (`scripts/check-server-start.mjs`), but the full chain is not wired in yet.
   # -------------------------------------------------------------------------
   windows:
     name: Windows (non-blocking)
