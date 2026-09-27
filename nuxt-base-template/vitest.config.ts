@@ -8,7 +8,8 @@ export default defineConfig({
     environment: 'happy-dom',
     include: ['tests/unit/**/*.{test,spec}.ts'],
     globals: true,
-    setupFiles: ['tests/unit/setup.ts'],
+    // signal-guard: a test may only signal processes it spawned (see the file header).
+    setupFiles: ['tests/unit/setup.ts', 'tests/unit/support/signal-guard.setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

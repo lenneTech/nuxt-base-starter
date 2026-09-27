@@ -74,5 +74,22 @@ export function buildGroups(projects: CheckProject[]): CheckGroups;
 /** What `killTree` will do for one pid: run a command (Windows) or send a signal (POSIX). */
 export type KillTreePlan = { args: string[]; command: 'taskkill' } | { signal: NodeJS.Signals };
 
-/** Pure: plans the tree kill for `platform` without touching any process. */
-export function killTreePlan(pid: number, signal: NodeJS.Signals, platform?: NodeJS.Platform): KillTreePlan;
+/** Pure: whether `pid` may become a kill target — an integer above 1 (POSIX) or above 4 (Windows). */
+export function isKillablePid(pid: unknown, platform?: NodeJS.Platform): boolean;
+
+/** Pure: plans the tree kill for `platform` without touching any process; null when `pid` must not be touched. */
+export function killTreePlan(pid: unknown, signal: NodeJS.Signals, platform?: NodeJS.Platform): KillTreePlan | null;
+
+/** Every effect `killTreeWith` performs. All four are required — nothing defaults to the real one. */
+export interface KillTreeEffects {
+  /** Direct children of `pid` (POSIX). */
+  childrenOf: (pid: number) => number[];
+  platform: NodeJS.Platform;
+  /** Executes the Windows plan. */
+  run: (command: string, args: string[]) => unknown;
+  /** Delivers `sig` to `pid` (POSIX). */
+  signal: (pid: number, sig: NodeJS.Signals) => unknown;
+}
+
+/** Kills `pid` and its tree with every effect injected; throws a TypeError when one is missing. */
+export function killTreeWith(pid: unknown, sig: NodeJS.Signals, effects: KillTreeEffects): void;

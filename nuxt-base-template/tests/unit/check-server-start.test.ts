@@ -14,7 +14,7 @@ import { connect } from 'node:net';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { isReadyOutput, isRenderedStatus, killTreePlan, NUXT_DEFAULTS, parseArgs } from '../../scripts/check-server-start.mjs';
+import { isKillablePid, isReadyOutput, isRenderedStatus, killTreePlan, NUXT_DEFAULTS, parseArgs } from '../../scripts/check-server-start.mjs';
 
 const fixtures = join(import.meta.dirname, 'fixtures', 'server-start');
 const runner = join(import.meta.dirname, '..', '..', 'scripts', 'check-server-start.mjs');
@@ -59,6 +59,13 @@ describe('check-server-start helpers', () => {
   it('plans taskkill on Windows and a signal elsewhere', () => {
     expect(killTreePlan(4242, 'SIGTERM', 'win32')).toEqual({ args: ['/PID', '4242', '/T', '/F'], command: 'taskkill' });
     expect(killTreePlan(4242, 'SIGTERM', 'linux')).toEqual({ signal: 'SIGTERM' });
+  });
+
+  it('plans nothing for a pid that is not ours — a failed spawn, init, a broadcast, Windows System', () => {
+    for (const pid of [undefined, Number.NaN, -1, 0, 1]) expect(killTreePlan(pid, 'SIGTERM', 'linux'), `pid ${String(pid)}`).toBeNull();
+    for (const pid of [undefined, 0, 4]) expect(killTreePlan(pid, 'SIGTERM', 'win32'), `pid ${String(pid)}`).toBeNull();
+    expect(isKillablePid(2, 'linux')).toBe(true);
+    expect(isKillablePid(5, 'win32')).toBe(true);
   });
 
   it('parses the options another server needs', () => {
