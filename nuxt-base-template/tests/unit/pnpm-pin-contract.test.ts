@@ -182,9 +182,13 @@ describe.runIf(Boolean(process.env.CI || process.env.PIN_PROVISION_TEST))('pnpm 
     prefix = mkdtempSync(join(tmpdir(), 'pnpm-pin-'));
     execSync(`npm install -g --prefix "${prefix}" "${derived}"`, { encoding: 'utf8', stdio: 'pipe' });
 
-    const pnpmBin = join(prefix, 'bin', 'pnpm');
-    expect(existsSync(pnpmBin)).toBe(true);
-    const version = execSync(`"${pnpmBin}" --version`, { encoding: 'utf8' }).trim();
+    // npm's global layout differs per platform: `<prefix>/bin/pnpm` on macOS/Linux,
+    // `<prefix>\pnpm.cmd` directly in the prefix on Windows (no `bin` directory there).
+    // Accept either, but exactly one: the test must run the pnpm it just installed, never
+    // one found on PATH. Same fix as @lenne.tech/nuxt-extensions' pin test.
+    const launchers = [join(prefix, 'bin', 'pnpm'), join(prefix, 'pnpm.cmd')].filter((path) => existsSync(path));
+    expect(launchers).toHaveLength(1);
+    const version = execSync(`"${launchers[0]}" --version`, { encoding: 'utf8' }).trim();
     expect(version).toBe(pinnedVersion);
   }, 180_000);
 });

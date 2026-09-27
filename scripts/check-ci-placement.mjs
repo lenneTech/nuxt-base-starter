@@ -34,10 +34,18 @@
  * Exit code: 0 when the layout is coherent, 1 otherwise.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+/**
+ * Repo-relative path with `/` separators on every platform. `relative()` answers with
+ * `\` on Windows, which made `rel.split('/')[0]` the whole path — no directory ever
+ * matched TEMPLATE_DIRS there, and every message named a path in a different shape
+ * than on macOS and Linux.
+ */
+const repoPath = (path) => relative(ROOT, path).split(sep).join('/');
 
 /**
  * Directories whose `.github/` is template content on purpose.
@@ -107,7 +115,7 @@ const allDirs = findWorkflowDirs(ROOT);
 // --- 1. Nothing may sit where it can never run -----------------------------
 for (const dir of allDirs) {
   if (dir === rootWorkflowDir) continue;
-  const rel = relative(ROOT, dir);
+  const rel = repoPath(dir);
   const owner = rel.split('/')[0];
   if (TEMPLATE_DIRS.includes(owner)) continue;
 
@@ -139,7 +147,7 @@ const templateBehaviourStages = [];
 for (const dir of allDirs) {
   if (dir === rootWorkflowDir) continue;
   for (const file of workflowFiles(dir)) {
-    if (hasBehaviourStage(readFileSync(file, 'utf8'))) templateBehaviourStages.push(relative(ROOT, file));
+    if (hasBehaviourStage(readFileSync(file, 'utf8'))) templateBehaviourStages.push(repoPath(file));
   }
 }
 

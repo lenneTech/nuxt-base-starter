@@ -453,7 +453,10 @@ describe('runGenerateTypes — the wrapper never reports success it did not have
   // the bridge and the registration are faked at that same directory, which
   // keeps this block free of any assumption about the repo layout above it.
   const BRIDGE = ['NUXT_API_URL=https://api.my-app-2.localhost', `NODE_EXTRA_CA_CERTS=${CA}`, 'DATABASE_URL=postgresql://secret@localhost/db'].join('\n');
-  const BRIDGE_PATH = join(APP_DIR, '.lt-dev', '.env');
+  // The resolver asks for `${toPosix(cwd)}/.lt-dev/.env` on every platform, so the fake
+  // file must be keyed the same way. A native `join` gives `D:\...\.lt-dev\.env` on
+  // Windows, the lookup misses, and every wrapper test fails before it spawns anything.
+  const BRIDGE_PATH = `${APP_DIR.replace(/\\/g, '/')}/.lt-dev/.env`;
   const APP_REGISTRY = JSON.stringify({ projects: { 'my-app-2': { path: APP_DIR, subdomains: { api: 'api.my-app-2.localhost' } } } });
 
   /** A spawn double whose recorded arguments stay typed. */
