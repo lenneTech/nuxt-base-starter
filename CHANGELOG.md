@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.27.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.26.0...v2.27.0) (2026-09-27)
+
+
+### Bug Fixes
+
+* **ui:** meet WCAG AA with the light-mode semantic color tokens ([75076b9](https://github.com/lenneTech/nuxt-base-starter/commit/75076b9d3f5d988349ed6989dbe7bfa7084a601e))
+
 ## [2.26.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.25.1...v2.26.0) (2026-09-27)
 
 
