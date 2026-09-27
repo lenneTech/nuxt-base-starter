@@ -135,13 +135,28 @@
   --ui-color-neutral-900: #0f172a;
   --ui-color-neutral-950: #020617;
 
-  /* Semantic shortcuts */
-  --ui-primary: var(--ui-color-primary-500);
-  --ui-secondary: var(--ui-color-secondary-500);
-  --ui-success: var(--ui-color-success-500);
-  --ui-info: var(--ui-color-info-500);
-  --ui-warning: var(--ui-color-warning-500);
-  --ui-error: var(--ui-color-error-500);
+  /*
+   * Semantic shortcuts. Light mode uses a darker step than the palette's 500
+   * on purpose. Each token is used in three roles: as a filled surface under
+   * white text (`bg-primary`, solid buttons), as text on white
+   * (`text-primary`), and as text on a 10% tint of itself in Nuxt UI's
+   * `subtle` / `soft` alerts, badges and buttons. The 500 step clears WCAG 2.1
+   * AA (4.5:1) in hardly any of them — white on primary-500 measures 2.28:1,
+   * warning-500 as text 2.15:1 — and for primary, info, warning and error the
+   * next step down still fails on the tint (4.38, 4.49, 4.39, 4.13:1). Each
+   * step below is the lightest one that passes in all three roles, so the
+   * palette itself is untouched and the hues stay recognisable
+   * (on white, which equals white on the fill / on the tint):
+   *   primary-800 7.13 / 6.14 · secondary-600 6.29 / 5.43 · success-700 5.48 / 4.78
+   *   info-700 6.70 / 5.72 · warning-800 7.09 / 6.08 · error-700 6.47 / 5.45
+   * Dark mode keeps the 400 step, which already passes on the dark surfaces.
+   */
+  --ui-primary: var(--ui-color-primary-800);
+  --ui-secondary: var(--ui-color-secondary-600);
+  --ui-success: var(--ui-color-success-700);
+  --ui-info: var(--ui-color-info-700);
+  --ui-warning: var(--ui-color-warning-800);
+  --ui-error: var(--ui-color-error-700);
 
   /* Global settings */
   --ui-radius: 0.5rem;
