@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.26.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.25.1...v2.26.0) (2026-09-27)
+
+
+### Features
+
+* update [@lenne](https://github.com/lenne).tech/nuxt-extensions to 1.18.2 and refresh dependencies ([08ae93e](https://github.com/lenneTech/nuxt-base-starter/commit/08ae93e1cccc9a5e8e70dd356cc1e98f895e4657))
+
+
+### Bug Fixes
+
+* **check:** kill the watchdog's process tree via taskkill on Windows ([#21](https://github.com/lenneTech/nuxt-base-starter/issues/21)) ([4b8aaea](https://github.com/lenneTech/nuxt-base-starter/commit/4b8aaead6bf6986d74309ddd4ce94a57b43be3cb))
+* **check:** port the server-start step from bash to Node ([#22](https://github.com/lenneTech/nuxt-base-starter/issues/22)) ([8ac2766](https://github.com/lenneTech/nuxt-base-starter/commit/8ac2766a00a9a0d9d24b0ef08ed2c6834825a978))
+* **check:** refuse foreign pids in the watchdog's tree kill and guard unit tests against real signals ([25e60d8](https://github.com/lenneTech/nuxt-base-starter/commit/25e60d817fb3b3718d6bdde6dadd0fb98d69348f))
+* **lint:** drop --fix-suggestions from the template's auto-fix ([#17](https://github.com/lenneTech/nuxt-base-starter/issues/17)) ([34ae516](https://github.com/lenneTech/nuxt-base-starter/commit/34ae516457f49c2c9246d96f2fe78eb46c17c3da))
+* **lint:** rename oxlint.json to .oxlintrc.json so oxlint loads it ([#20](https://github.com/lenneTech/nuxt-base-starter/issues/20)) ([983817c](https://github.com/lenneTech/nuxt-base-starter/commit/983817c2e73988b8a76ec73248c76d6e3884ad1b))
+* **lint:** turn no-console off for scripts/ ([397ca6b](https://github.com/lenneTech/nuxt-base-starter/commit/397ca6b74f8ca4524581ba5d241c827f2b959417))
+* **seo:** set site.defaultLocale so pages render lang="de" ([6215a72](https://github.com/lenneTech/nuxt-base-starter/commit/6215a727cc0ededa5b459f38c26496b1e1fba9e0))
+
 ### [2.25.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.25.0...v2.25.1) (2026-09-04)
 
 ## [2.25.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.24.0...v2.25.0) (2026-09-02)
