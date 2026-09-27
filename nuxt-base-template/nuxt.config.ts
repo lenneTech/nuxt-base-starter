@@ -338,6 +338,11 @@ export default defineNuxtConfig({
   // SEO: Site Metadata
   // ============================================================================
   site: {
+    // Must match `app.head.htmlAttrs.lang`. Without it the site locale falls back to
+    // `en`, and nuxt-seo-utils (applyDefaults) renders `<html lang="en">` over the `de`
+    // set above — og:locale, canonical casing and Schema.org follow it. Since 8.5 the
+    // module warns about the mismatch at startup; the override itself is older.
+    defaultLocale: 'de',
     name: 'Nuxt Base Starter',
     // No `url` here on purpose. nuxt-site-config's own `initSiteConfig()` already
     // reads NUXT_SITE_URL / NUXT_PUBLIC_SITE_URL — at build time with priority
