@@ -16,9 +16,9 @@ This repo has TWO package.json files requiring maintenance:
    - `pnpm-workspace.yaml` holds overrides + `ignoredOptionalDependencies` (30) + build-script settings — NOT package.json (see [[pnpm-version-reads-overrides]]). Overrides are down to **3** (from 32) as of 2026-07-16; validate any change with [[override-necessity-fresh-resolve-test]].
    - `vue` is an explicit devDependency (phantom-dep fix for pnpm 11 — see [[vue-phantom-dep-under-pnpm11]]).
 
-The `check` script in root runs `pnpm audit && pnpm run format:check && cd nuxt-base-template && pnpm run check`. The template check covers audit + format + lint + unit tests (56) + build + server-start (`scripts/check-server-start.sh`, self-terminating, no lingering processes).
+The `check` script in root runs install + `pnpm audit` + `pnpm peers check` + its own script tests + format check, then `cd nuxt-base-template && pnpm run check`. The template check (`scripts/check.mjs` → `check:raw`) covers audit + peers + format + lint + unit tests + build + `typecheck` (vue-tsc, app/ + server/) + `typecheck:tests` (tsc, tests/) + server-start (`scripts/check-server-start.mjs`, Node since 2026-09-23, self-terminating, no lingering processes).
 
-**The gate does NOT typecheck.** `nuxt.config.ts` sets no `typescript.typeCheck` and there is no `vue-tsc`/`tsc --noEmit` step. A green `check` therefore proves NOTHING about TypeScript compatibility — never justify a `typescript` bump with "the gate passed". (TS 7 is separately blocked: `@nuxt/ui` peers `typescript: ^5.6.3 || ^6.0.0`.)
+**The gate typechecks** — tests since `fba4ee0` (2026-07-20), app/ + server/ since `4661b86` (2026-08-12). Before that a green `check` proved nothing about TypeScript; now it does. (TS 7 is separately blocked: `@nuxt/ui` peers `typescript: ^5.6.3 || ^6.0.0`.)
 
 **npm-mode peer contract (do NOT move to devDeps or remove):** This template runs in npm mode (no `app/core/VENDOR.md`). `@lenne.tech/nuxt-extensions` (1.9.0) declares `better-auth`, `@better-auth/passkey`, `tus-js-client`, `nuxt`, `@playwright/test` as PEER deps. So `better-auth`, `@better-auth/passkey`, `tus-js-client` stay in `dependencies` (consumed via composables, no direct import). `@playwright/test` correctly stays in devDependencies.
 
