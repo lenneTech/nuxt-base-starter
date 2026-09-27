@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### Bug Fixes
 
 * **check:** kill the watchdog's process tree via taskkill on Windows ([#21](https://github.com/lenneTech/nuxt-base-starter/issues/21)) ([4b8aaea](https://github.com/lenneTech/nuxt-base-starter/commit/4b8aaead6bf6986d74309ddd4ce94a57b43be3cb))
+* **check:** make the Windows CI job green ([6d63f5b](https://github.com/lenneTech/nuxt-base-starter/commit/6d63f5b29c3275dfc873a6b86aa4c4982892d02e))
 * **check:** port the server-start step from bash to Node ([#22](https://github.com/lenneTech/nuxt-base-starter/issues/22)) ([8ac2766](https://github.com/lenneTech/nuxt-base-starter/commit/8ac2766a00a9a0d9d24b0ef08ed2c6834825a978))
 * **check:** refuse foreign pids in the watchdog's tree kill and guard unit tests against real signals ([25e60d8](https://github.com/lenneTech/nuxt-base-starter/commit/25e60d817fb3b3718d6bdde6dadd0fb98d69348f))
 * **lint:** drop --fix-suggestions from the template's auto-fix ([#17](https://github.com/lenneTech/nuxt-base-starter/issues/17)) ([34ae516](https://github.com/lenneTech/nuxt-base-starter/commit/34ae516457f49c2c9246d96f2fe78eb46c17c3da))
