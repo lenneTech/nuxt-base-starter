@@ -29,10 +29,10 @@
   },
   "dependencies": {
     "cross-spawn": "7.0.6",
-    "fs-extra": "11.4.0"
+    "fs-extra": "11.4.1"
   },
   "devDependencies": {
-    "oxfmt": "0.64.0",
+    "oxfmt": "0.70.0",
     "standard-version": "9.5.0"
   },
   "engines": {

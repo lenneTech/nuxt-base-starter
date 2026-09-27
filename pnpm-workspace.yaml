@@ -44,9 +44,23 @@ overrides:
   #
   # Dev only, exactly one path: standard-version > dotgitignore > minimatch@3 >
   # brace-expansion. Reaching 5.x needs the patch below — see `patchedDependencies`;
-  # the patch pins minimatch@3.1.5, not a brace-expansion version, so the 5.0.9 bump
-  # rides along (5.0.9 keeps 5.0.8's namespace export shape).
-  'brace-expansion@<5.0.9': 5.0.9
+  # the patch pins minimatch@3.1.5, not a brace-expansion version, so a 5.x target
+  # bump rides along as long as the namespace export shape holds.
+  #
+  # Raised 5.0.9 -> 5.0.12 (newest 5.x). 5.0.12 keeps the namespace export (`expand`
+  # plus two new EXPANSION_MAX_* limits) and returns identical results to 5.0.9 for
+  # `a{b,c}d`, `x{1..3}`, `{a,b}{1,2}`, `*.{js,ts}` and `{}`. Verified 2026-09-27.
+  #
+  # PREMISE NO LONGER TRUE (2026-09-27): the advisories now carry per-major backports,
+  # and brace-expansion 1.1.18 (published 2026-07-30, 17 minutes after this entry's
+  # 5.0.9 target) closes GHSA-rgw5 / GHSA-mh99 / GHSA-3jxr on the 1.x line minimatch@3
+  # asks for. A fresh resolve with NO override and NO patch gives brace-expansion
+  # 1.1.21 and `pnpm audit` is clean. So this entry and the minimatch patch are no
+  # longer load-bearing; they are kept only because removals need a deliberate
+  # decision, not a maintenance run. To drop both: delete this entry, the
+  # `patchedDependencies` block and `patches/minimatch@3.1.5.patch`, re-resolve with
+  # no lockfile, and confirm `pnpm audit` stays clean.
+  'brace-expansion@<5.0.9': 5.0.12
 
 # ----------------------------------------------------------------------------------
 # Why a patch rather than an override or a suppression.

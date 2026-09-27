@@ -150,13 +150,28 @@ overrides:
   # a pin below it breaks `nuxt prepare` outright ("Package subpath
   # './stream/iife' is not defined by exports"). Drop it once @nuxt/ui carries
   # a v3 peer itself; verify with `pnpm why unhead` (exactly one major).
-  'unhead': 3.4.0
+  #
+  # Keep the target on the NEWEST 3.x, too: the unhead family pins itself exactly.
+  # `@unhead/vue@3.4.1` and `@unhead/bundler@3.4.1` both declare `unhead: 3.4.1`, so a
+  # 3.4.0 target ran them against a core one patch older than they were built for.
+  # Raised 3.4.0 -> 3.4.1 (newest 3.x). Verified 2026-09-27.
+  'unhead': 3.4.1
   # @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking credentials via
   # GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via @lenne.tech/bug.lt,
-  # which hard-pins @nuxt/ui@4.2.1. Target 4.11.0 == the app's own @nuxt/ui version, so
-  # this also dedupes the tree onto a single @nuxt/ui.
-  '@nuxt/ui@<4.7.2': 4.11.0
-  # esbuild dev-server request smuggling (GHSA-67mh-4wv8-2f99, >=0.27.3 <0.28.1) - transitive via vite tooling.
+  # which hard-pins @nuxt/ui@4.2.1. Target == the app's own @nuxt/ui version, so this
+  # also dedupes the tree onto a single @nuxt/ui — bump both in ONE change, or the tree
+  # splits into two copies.
+  #
+  # Key re-derived 2026-09-27: the advisory's vulnerable range was widened from <4.7.2
+  # to <4.8.1 (first patched 4.8.1) after this entry was written.
+  '@nuxt/ui@<4.8.1': 4.11.2
+  # esbuild dev-server advisories - transitive via vite tooling. The key covers both:
+  #   - GHSA-g7r4-m6w7-qqqr (low): arbitrary file read via the dev server on Windows,
+  #     >=0.27.3 <0.28.1, first patched 0.28.1. This is the one the `<0.28.1` bound encodes.
+  #   - GHSA-67mh-4wv8-2f99 (medium): any website can send requests to the dev server and
+  #     read the response, <=0.24.2, first patched 0.25.0.
+  # (This comment previously cited GHSA-67mh for the 0.27.3-0.28.1 window; that range
+  # belongs to GHSA-g7r4.) 0.28.2 is the newest 0.28.x. Verified 2026-09-27.
   'esbuild@<0.28.1': 0.28.2
   # js-yaml quadratic CPU consumption via YAML merge-key chains (GHSA-52cp-r559-cp3m, high),
   # incompletely fixed in 4.3.0 — the follow-up advisory is patched only in 4.3.1.
