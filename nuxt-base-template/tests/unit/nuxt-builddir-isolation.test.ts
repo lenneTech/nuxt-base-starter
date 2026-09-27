@@ -487,7 +487,7 @@ describe(`the check runner's own package-manager steps write ${CHECK_DIR} too`, 
     expect(PM_INVOCATION.test(cmd), `\`${cmd}\` runs a lifecycle hook but no longer matches PM_INVOCATION`).toBe(true);
   });
 
-  it.each(['pnpm run test:unit', 'bash scripts/check-server-start.sh', 'oxlint app/', 'pnpm important-custom-script'])('PM_INVOCATION leaves `%s` alone', (cmd) => {
+  it.each(['pnpm run test:unit', 'node scripts/check-server-start.mjs', 'oxlint app/', 'pnpm important-custom-script'])('PM_INVOCATION leaves `%s` alone', (cmd) => {
     // Over-matching is the other failure direction: it would demand a build-dir pin
     // on steps that write no build dir, so the chains would grow pins that mean
     // nothing and the real ones would be harder to spot.
@@ -735,7 +735,7 @@ describe('helpers', () => {
   it('resolveSteps follows indirections and flags the ones it cannot', () => {
     const table = { a: 'pnpm run b && echo done', b: 'cross-env NUXT_BUILD_DIR=.nuxt-check nuxt prepare', loop: 'pnpm run loop' };
     expect(resolveSteps('pnpm run a', table)).toEqual(['cross-env NUXT_BUILD_DIR=.nuxt-check nuxt prepare', 'echo done']);
-    expect(resolveSteps('bash scripts/check-server-start.sh', table)).toEqual(['bash scripts/check-server-start.sh']);
+    expect(resolveSteps('node scripts/check-server-start.mjs', table)).toEqual(['node scripts/check-server-start.mjs']);
     expect(resolveSteps('pnpm run loop', table)).toEqual(['pnpm run loop']);
   });
 
@@ -765,7 +765,7 @@ describe('helpers', () => {
     ['audit behind a flag', 'pnpm --silent audit'],
     ['add', 'pnpm add cross-env'],
     ['dlx', 'pnpm dlx some-tool'],
-    ['plain binary', 'bash scripts/check-server-start.sh'],
+    ['plain binary', 'node scripts/check-server-start.mjs'],
     ['nuxt build', 'cross-env NUXT_BUILD_DIR=.nuxt-check nuxt build'],
   ])('unresolved leaves `%s` alone', (_label, step) => {
     expect(unresolved(step)).toBe(false);
