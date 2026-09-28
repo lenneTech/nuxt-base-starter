@@ -21,8 +21,11 @@ const runner = join(import.meta.dirname, '..', '..', 'scripts', 'check-server-st
 
 /** Run the CLI against a fixture; resolves to its exit code, output and the port it used. */
 function runFixture(entry: string, timeoutSeconds = 10): Promise<{ code: null | number; output: string; port: number }> {
+  // The CLI keeps an inherited NUXT_API_URL on purpose, and the CI test job sets one for the E2E
+  // suite; the assertions here are about the default, so the fixture runs without it.
+  const { NUXT_API_URL: _apiUrl, NUXT_PUBLIC_API_URL: _publicApiUrl, ...env } = process.env;
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, [runner, `--entry=${entry}`, `--timeout=${timeoutSeconds}`], { cwd: fixtures });
+    const child = spawn(process.execPath, [runner, `--entry=${entry}`, `--timeout=${timeoutSeconds}`], { cwd: fixtures, env });
     let output = '';
     child.stdout.on('data', (d) => (output += d));
     child.stderr.on('data', (d) => (output += d));
