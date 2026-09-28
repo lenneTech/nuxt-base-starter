@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.27.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.27.0...v2.27.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **test:** run the server-start fixtures without an inherited NUXT_API_URL ([b1df0e7](https://github.com/lenneTech/nuxt-base-starter/commit/b1df0e7ee493372c88f7c1584b5395574e81c374))
+
 ## [2.27.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.26.0...v2.27.0) (2026-09-27)
 
 
