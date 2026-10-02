@@ -38,7 +38,11 @@ export default defineNuxtConfig({
         lang: 'de',
       },
       title: 'Nuxt Base Starter',
-      viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
+      // No `maximum-scale` / `user-scalable=no`: blocking pinch zoom fails WCAG 1.4.4
+      // (Android honours it; iOS ignores it). Their usual purpose, stopping iOS from
+      // zooming into inputs under 16px, does not apply: Nuxt UI fields are 16px at the
+      // default `md` size.
+      viewport: 'width=device-width, initial-scale=1.0',
     },
   },
 
