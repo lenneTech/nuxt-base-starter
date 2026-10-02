@@ -19,9 +19,6 @@
 # three sentences honestly, fix the dependency instead. An entry here is a debt, not
 # a decision — every one carries the condition under which it gets deleted again.
 #
-# There is deliberately no `auditConfig.ignoreGhsas` block right now — `pnpm audit`
-# is clean on its own merits, with nothing suppressed.
-#
 # Worth knowing before adding one: this file used to suppress the two HIGH image-size
 # advisories (GHSA-w3rx-r6r6-pgpr, GHSA-5p2g-fcmc-qvqq). The justification was sound
 # and the stated delete-condition — "as soon as image-size 2.0.3 is published" —
@@ -32,6 +29,28 @@
 # resolves"), and re-check suppressions on every dependency bump, not only when the
 # named fix version appears.
 # ----------------------------------------------------------------------------------
+auditConfig:
+  ignoreGhsas:
+    # GHSA-86w9-cpqp-85rv (high): node-forge <=1.4.0 accepts extra nested DigestAlgorithm
+    # elements when VERIFYING an RSA PKCS#1 v1.5 signature, so a forged signature can pass.
+    #
+    # Path: nuxt > @nuxt/cli | @nuxt/nitro-server > nitropack > listhen > node-forge 1.4.0.
+    #
+    # Not fixable: there is no patched release. npm audit names ">=1.4.1", but that version
+    # does not exist (registry.npmjs.org/node-forge/1.4.1 answers 404, latest is 1.4.0) and
+    # GitHub lists no first patched version. An override has nothing to point at, and a
+    # patchedDependencies entry would mean writing our own fix to a crypto library.
+    #
+    # Residual risk, none reachable: listhen uses node-forge only for the dev certificate of
+    # `nuxt dev --https`: createCertificate, generateKeyPair, signing it with sha256, PEM/ASN.1
+    # conversion, and reading a developer-supplied PFX file (HMAC-checked, not RSA-verified).
+    # It never calls verify or a chain check. node-forge is not traced into `.output/`, so a
+    # generated app's production server does not contain it at all.
+    #
+    # Delete when `pnpm audit` is clean without this entry, i.e. node-forge resolves to a
+    # patched version or no longer resolves. Re-check on every dependency bump.
+    # Verified 2026-10-02.
+    - GHSA-86w9-cpqp-85rv
 
 # pnpm 11 renamed `onlyBuiltDependencies` to `allowBuilds` (map of pkg -> bool).
 # We keep BOTH keys so the file works across pnpm 10 (reads onlyBuiltDependencies)
