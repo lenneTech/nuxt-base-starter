@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.28.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.27.1...v2.28.0) (2026-10-02)
+
+
+### Features
+
+* **check:** re-check audit suppressions on every check ([61396b9](https://github.com/lenneTech/nuxt-base-starter/commit/61396b9278890878f0782a78050496635166fd84))
+* update [@lenne](https://github.com/lenne).tech/nuxt-extensions to 1.18.3 ([bc5ac2a](https://github.com/lenneTech/nuxt-base-starter/commit/bc5ac2a9c78530f2c55479b143590477a24674b7))
+
+
+### Bug Fixes
+
+* **a11y:** allow pinch zoom in the viewport meta (WCAG 1.4.4) ([492700d](https://github.com/lenneTech/nuxt-base-starter/commit/492700d85f2454d8f59fa02ecd3c4a7384954822))
+* **audit:** suppress GHSA-86w9-cpqp-85rv until node-forge ships a fix ([7666beb](https://github.com/lenneTech/nuxt-base-starter/commit/7666bebe2630633f9cd9117938bf6e8bcb263e9d))
+* **check:** type-check the app against the isolated .nuxt-check build dir ([da4fc05](https://github.com/lenneTech/nuxt-base-starter/commit/da4fc056367cce2f81552ab39cf0b659c9b3dbfe))
+
 ### [2.27.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.27.0...v2.27.1) (2026-09-28)
 
 
