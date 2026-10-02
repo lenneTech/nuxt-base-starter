@@ -45,7 +45,7 @@
     "test:unit:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:all": "pnpm run test:unit && pnpm run test:e2e",
-    "typecheck": "cross-env NUXT_BUILD_DIR=.nuxt-check nuxt typecheck",
+    "typecheck": "cross-env NUXT_BUILD_DIR=.nuxt-check nuxt prepare && vue-tsc --noEmit -p tsconfig.check.json",
     "typecheck:tests": "cross-env NUXT_BUILD_DIR=.nuxt-check nuxt prepare && tsc --noEmit -p tsconfig.tests.check.json && tsc --noEmit -p .nuxt-check/tsconfig.server.json",
     "lint": "oxlint app/ scripts/ server/ tests/",
     "lint:fix": "oxlint --fix app/ scripts/ server/",
