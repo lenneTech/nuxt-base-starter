@@ -21,8 +21,8 @@ importers:
         specifier: 1.6.9
         version: 1.6.9(1cea52a5d2f2ff0e1e33a6ca6bf75723)
       '@lenne.tech/nuxt-extensions':
-        specifier: 1.18.2
-        version: 1.18.2(42bb17b377e9f85833ce2b57209bd41c)
+        specifier: 1.18.3
+        version: 1.18.3(42bb17b377e9f85833ce2b57209bd41c)
       '@nuxt/image':
         specifier: 2.1.0
         version: 2.1.0(@types/node@26.6.3)(magic-string@1.4.2)(magicast@0.5.5)(oxc-parser@0.151.0)(rolldown@1.2.11)(unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.11)(rollup@4.63.5)(vite@8.3.1(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)))(unstorage@1.17.5(db0@0.3.4)(ioredis@5.11.1))
@@ -703,8 +703,8 @@ packages:
   '@lenne.tech/bug.lt@1.6.9':
     resolution: {integrity: sha512-1lLNiYqqKiPT1p/lU3f07L2moKq+0oM5SiE3PJ9069RglVrOyJ5IcPhL246qEWEg5gBzbVful1vrK368HqZmUg==}
 
-  '@lenne.tech/nuxt-extensions@1.18.2':
-    resolution: {integrity: sha512-mMUkVlW7B6M+NPjiXFC54HYpphdaQ3hiCQoa0PHg8d8+cAjb3VyGKjsDVY+2Zp09XogALFkxILh3DvWFza6alw==}
+  '@lenne.tech/nuxt-extensions@1.18.3':
+    resolution: {integrity: sha512-BnxOVUHS2k07XgX3x0SRMHMtuR9jUx5ShGnLTmbgu5v5nbweQ0KLFHTjZ/6usUgEP8wMwVcqbbW1UGyrooVRUg==}
     engines: {node: '>= 22', pnpm: ^11.0.0}
     peerDependencies:
       '@better-auth/passkey': '>=1.7.1 <1.8.0'
@@ -6331,7 +6331,7 @@ snapshots:
       - webpack
       - yup
 
-  '@lenne.tech/nuxt-extensions@1.18.2(42bb17b377e9f85833ce2b57209bd41c)':
+  '@lenne.tech/nuxt-extensions@1.18.3(42bb17b377e9f85833ce2b57209bd41c)':
     dependencies:
       '@nuxt/kit': 4.5.2(magic-string@1.4.2)(magicast@0.5.5)(oxc-parser@0.151.0)(rolldown@1.2.11)(unplugin@3.4.0(esbuild@0.28.2)(rolldown@1.2.11)(rollup@4.63.5)(vite@8.3.1(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)))
       better-auth: 1.7.1(mongodb@7.6.0)(vitest@4.1.11(@types/node@26.6.3)(happy-dom@20.14.5)(vite@8.3.1(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)))(vue@3.5.43(typescript@6.0.3))
