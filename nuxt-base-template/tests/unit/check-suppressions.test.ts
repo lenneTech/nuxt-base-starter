@@ -14,7 +14,7 @@
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 
 import { parseSuppressionSummary } from '../../scripts/check.mjs';
@@ -182,14 +182,17 @@ describe('where the entries are read from', () => {
   });
 
   it('walks up to the nearest pnpm-workspace.yaml, as pnpm does', () => {
-    const files = new Set(['/mono/pnpm-workspace.yaml']);
+    // Native paths: the walk joins with node:path, so on Windows it asks for `D:\mono\…`.
+    const mono = resolve('/mono');
+    const app = join(mono, 'projects', 'app');
+    const files = new Set([join(mono, 'pnpm-workspace.yaml')]);
     const exists = (p: string) => files.has(p);
     // Generated monorepo: lt hoisted auditConfig into the root and deleted the app's file.
-    expect(findWorkspaceRoot('/mono/projects/app', exists)).toBe('/mono');
+    expect(findWorkspaceRoot(app, exists)).toBe(mono);
     // Standalone, or an app that kept its own file: that one wins.
-    files.add('/mono/projects/app/pnpm-workspace.yaml');
-    expect(findWorkspaceRoot('/mono/projects/app', exists)).toBe('/mono/projects/app');
-    expect(findWorkspaceRoot('/elsewhere', () => false)).toBeNull();
+    files.add(join(app, 'pnpm-workspace.yaml'));
+    expect(findWorkspaceRoot(app, exists)).toBe(app);
+    expect(findWorkspaceRoot(resolve('/elsewhere'), () => false)).toBeNull();
   });
 
   it('run() finds the hoisted root file in a monorepo layout, offline when nothing is suppressed', async () => {
