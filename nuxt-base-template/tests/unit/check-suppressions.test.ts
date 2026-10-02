@@ -35,6 +35,9 @@ import type { SuppressionResult, SuppressionStatus } from '../../scripts/check-s
 
 const ID = 'GHSA-86w9-cpqp-85rv';
 const TEMPLATE = join(import.meta.dirname, '..', '..');
+// Lockfile and suppressions live at the workspace root: the template itself when it
+// stands alone, the monorepo root once `lt fullstack init` put the app under projects/.
+const WORKSPACE = findWorkspaceRoot(TEMPLATE) ?? TEMPLATE;
 
 function npm(name: string, firstPatched: unknown, range = '<= 1.4.0') {
   return { first_patched_version: firstPatched, package: { ecosystem: 'npm', name }, vulnerable_version_range: range };
@@ -148,7 +151,7 @@ describe('lockfile and range reading', () => {
   });
 
   it("finds node-forge 1.4.0 in the template's real lockfile", () => {
-    expect(resolvedVersions(readFileSync(join(TEMPLATE, 'pnpm-lock.yaml'), 'utf8'), 'node-forge')).toContain('1.4.0');
+    expect(resolvedVersions(readFileSync(join(WORKSPACE, 'pnpm-lock.yaml'), 'utf8'), 'node-forge')).toContain('1.4.0');
   });
 
   it('honours every operator at its boundary, and says when it cannot tell', () => {
@@ -178,7 +181,7 @@ describe('where the entries are read from', () => {
   });
 
   it("lists this template's own entry", () => {
-    expect(listSuppressions(readFileSync(join(TEMPLATE, 'pnpm-workspace.yaml'), 'utf8'))).toContain(ID);
+    expect(listSuppressions(readFileSync(join(WORKSPACE, 'pnpm-workspace.yaml'), 'utf8'))).toContain(ID);
   });
 
   it('walks up to the nearest pnpm-workspace.yaml, as pnpm does', () => {
