@@ -30,6 +30,9 @@ import { readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+/** `null` or `undefined` (what a loose `== null` compares against, without the loose comparison). */
+const isNil = (value) => value === null || value === undefined;
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const VERBOSE = process.argv.includes('--verbose') || process.argv.includes('-v');
 const SEQUENTIAL = process.argv.includes('--sequential') || process.argv.includes('--seq');
@@ -139,7 +142,7 @@ function parseVitest(out) {
   const passed = sumMatches(clean, /Tests\s+(?:\d+\s+failed[^\n]*?)?(\d+)\s+passed/gi);
   const files = sumMatches(clean, /Test Files\s+(?:\d+\s+failed[^\n]*?)?(\d+)\s+passed/gi);
   const failed = sumMatches(clean, /Tests\s+(\d+)\s+failed/gi);
-  if (passed == null && files == null) return null;
+  if (isNil(passed) && isNil(files)) return null;
   return {
     failed: failed ?? 0,
     files,
@@ -667,9 +670,9 @@ export function parseSuppressionSummary(out) {
 }
 
 function metricSuffix(r) {
-  if (r.kind === 'test' && r.tests?.passed != null) {
+  if (r.kind === 'test' && !isNil(r.tests?.passed)) {
     const failed = r.tests.failed ? C.red(` / ${r.tests.failed} failed`) : '';
-    return `  ${C.dim(`${r.tests.passed} passed${r.tests.files != null ? ` / ${r.tests.files} files` : ''}`)}${failed}`;
+    return `  ${C.dim(`${r.tests.passed} passed${!isNil(r.tests.files) ? ` / ${r.tests.files} files` : ''}`)}${failed}`;
   }
   // Unverified is yellow, never a plain tick: an entry nobody could check has not been checked.
   if (r.kind === 'suppressions' && r.suppressions) {
@@ -732,12 +735,12 @@ function report(started, results) {
   console.log(`\n${C.bold('Tests')}`);
   if (unit || api) {
     // Monorepo with app and/or api projects → the canonical area breakdown.
-    console.log(`  ${'Unit (app)'.padEnd(18)}${unit?.passed != null ? `${unit.passed} passed` : C.dim('—')}`);
-    console.log(`  ${'API (api)'.padEnd(18)}${api?.passed != null ? `${api.passed} passed` : C.dim('—')}`);
+    console.log(`  ${'Unit (app)'.padEnd(18)}${!isNil(unit?.passed) ? `${unit.passed} passed` : C.dim('—')}`);
+    console.log(`  ${'API (api)'.padEnd(18)}${!isNil(api?.passed) ? `${api.passed} passed` : C.dim('—')}`);
     console.log(`  ${'Playwright'.padEnd(18)}${C.dim('— (run via `lt dev test` / CI)')}`);
   } else {
     // Single-package repo → one line per test-bearing project.
-    for (const r of tests) console.log(`  ${shortRel(r.project).padEnd(18)}${r.tests?.passed != null ? `${r.tests.passed} passed` : C.dim('—')}`);
+    for (const r of tests) console.log(`  ${shortRel(r.project).padEnd(18)}${!isNil(r.tests?.passed) ? `${r.tests.passed} passed` : C.dim('—')}`);
     if (tests.length === 0) console.log(`  ${C.dim('no test step')}`);
   }
   console.log(`  ${C.bold('Total'.padEnd(18))}${C.bold(`${totalPassed} passed`)}`);
