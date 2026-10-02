@@ -72,6 +72,10 @@ jobs:
 
       - name: Run check
         run: pnpm run check
+        # check-suppressions queries the GitHub Advisory API. With the token an entry it could not
+        # verify fails the run; without one it only warns (the runner's shared IP quota).
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   # -------------------------------------------------------------------------
   # The only job here that exercises BEHAVIOUR across the client/server

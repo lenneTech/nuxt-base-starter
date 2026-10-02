@@ -27,7 +27,9 @@
 # image-size for buffer-image-size. So the entry outlived its cause by a full release
 # cycle. Prefer a delete-condition you can actually observe ("this package no longer
 # resolves"), and re-check suppressions on every dependency bump, not only when the
-# named fix version appears.
+# named fix version appears. `scripts/check-suppressions.mjs` (part of `check`) does both
+# for every entry: it fails once the advisory gets an installable fix, is withdrawn, or
+# its package no longer resolves to a vulnerable version.
 # ----------------------------------------------------------------------------------
 auditConfig:
   ignoreGhsas:

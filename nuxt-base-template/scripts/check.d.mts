@@ -12,6 +12,17 @@
  * side effect (the module's `isCliEntry()` gate is what makes that safe).
  */
 
+/** What `parseSuppressionSummary` reads from the `check-suppressions` step's output. */
+export interface SuppressionSummary {
+  /** Obsolete or unverified entries, depending on `state`; 0 for `none`. */
+  count: number;
+  state: 'none' | 'obsolete' | 'unverified' | 'verified';
+  total: number;
+}
+
+/** Reads the summary line of `scripts/check-suppressions.mjs`; null when there is none. */
+export function parseSuppressionSummary(out: string): SuppressionSummary | null;
+
 /** A workspace project as `discoverProjects()` yields it. */
 export interface CheckProject {
   /** The project's real `check` chain, `&&`-separated. */

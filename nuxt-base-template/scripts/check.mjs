@@ -87,6 +87,9 @@ function fmtDuration(ms) {
 function classify(cmd) {
   const c = cmd.toLowerCase();
   if (c.includes('vendor-freshness')) return { fatal: false, kind: 'vendor', label: 'vendor-freshness' };
+  // Its own kind, so the summary line is parsed and an unverified run renders yellow instead of
+  // the plain tick an unclassified step would get.
+  if (c.includes('check-suppressions') || c.includes('check:suppressions')) return { fatal: true, kind: 'suppressions', label: 'suppressions' };
   if (c.includes('audit')) return { fatal: true, kind: 'audit', label: 'audit' };
   if (c.includes('format:check') || c.includes('oxfmt') || c.includes('prettier')) return { fatal: true, kind: 'format', label: 'format' };
   if (c.includes('lint')) return { fatal: true, kind: 'lint', label: 'lint' };
@@ -545,6 +548,7 @@ async function runGroup(group, states, results, abort) {
     const r = { dur, kind: step.kind, label: step.label, project: rel };
     if (step.kind === 'test') r.tests = parseVitest(out);
     if (step.kind === 'lint') r.lint = parseLint(out);
+    if (step.kind === 'suppressions') r.suppressions = parseSuppressionSummary(out);
     results.push(r);
     if (code !== 0 && step.fatal) {
       st.failed = step.label;
@@ -647,10 +651,33 @@ function renderVulnLine(counts) {
   }).join(C.dim(' · '));
 }
 
+/**
+ * Read the summary line of `scripts/check-suppressions.mjs` back out of its output, or null when
+ * there is none. Null renders as no metric at all — never as "verified": a step that printed
+ * nothing readable did not verify anything. Parsed here rather than imported, because this runner
+ * stays free of sibling imports.
+ */
+export function parseSuppressionSummary(out) {
+  const text = stripAnsi(String(out));
+  if (/\[suppressions\] none declared/.test(text)) return { count: 0, state: 'none', total: 0 };
+  const m = text.match(/\[suppressions\] (OBSOLETE|NOT verified|verified) (\d+) of (\d+)/);
+  if (!m) return null;
+  const state = m[1] === 'OBSOLETE' ? 'obsolete' : m[1] === 'verified' ? 'verified' : 'unverified';
+  return { count: Number(m[2]), state, total: Number(m[3]) };
+}
+
 function metricSuffix(r) {
   if (r.kind === 'test' && r.tests?.passed != null) {
     const failed = r.tests.failed ? C.red(` / ${r.tests.failed} failed`) : '';
     return `  ${C.dim(`${r.tests.passed} passed${r.tests.files != null ? ` / ${r.tests.files} files` : ''}`)}${failed}`;
+  }
+  // Unverified is yellow, never a plain tick: an entry nobody could check has not been checked.
+  if (r.kind === 'suppressions' && r.suppressions) {
+    const s = r.suppressions;
+    if (s.state === 'verified') return `  ${C.dim(`${s.total} verified`)}`;
+    if (s.state === 'none') return `  ${C.dim('none declared')}`;
+    if (s.state === 'unverified') return `  ${C.yellow(`${s.count} of ${s.total} NOT verified`)}`;
+    return `  ${C.red(`${s.count} obsolete`)}`;
   }
   if (r.kind === 'lint' && r.lint) {
     return r.lint.warnings > 0 ? `  ${C.yellow(`${r.lint.warnings} warning${r.lint.warnings === 1 ? '' : 's'}`)}` : `  ${C.dim('clean')}`;
