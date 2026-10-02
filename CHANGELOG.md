@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.28.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.28.0...v2.28.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* **test:** read the suppression fixtures from the workspace root ([73330b9](https://github.com/lenneTech/nuxt-base-starter/commit/73330b9d8d097125c183bb75af0b2a82b44d076c))
+
 ## [2.28.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.27.1...v2.28.0) (2026-10-02)
 
 
