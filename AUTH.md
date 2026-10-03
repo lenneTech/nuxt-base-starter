@@ -22,8 +22,8 @@ The template uses [Better Auth](https://www.better-auth.com/) for authentication
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌─────────────────┐    ┌─────────────────┐                     │
-│  │   auth-client   │───▶│  useBetterAuth  │                     │
-│  │     (lib/)      │    │  (composable)   │                     │
+│  │ useLtAuthClient │───▶│    useLtAuth    │                     │
+│  │ (Better Auth)   │    │  (composable)   │                     │
 │  └────────┬────────┘    └────────┬────────┘                     │
 │           │                      │                              │
 │           │  SHA256 Hashing      │  Cookie-based State          │
@@ -41,18 +41,29 @@ The template uses [Better Auth](https://www.better-auth.com/) for authentication
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+Both boxes ship with `@lenne.tech/nuxt-extensions` and are auto-imported. The template
+contains no auth client and no auth composable of its own. Before that package existed it
+did (`app/lib/auth-client.ts`, `app/composables/use-better-auth.ts`), and a search for
+those names finds nothing today. That is not proof that the feature is missing. List
+`node_modules/@lenne.tech/nuxt-extensions/dist/runtime/composables/` (npm mode) or
+`app/core/runtime/composables/` (vendor mode) instead.
+
 ## Files
 
-| File                                 | Purpose                          |
-| ------------------------------------ | -------------------------------- |
-| `app/lib/auth-client.ts`             | Better Auth client configuration |
-| `app/composables/use-better-auth.ts` | Auth state management composable |
-| `app/pages/auth/login.vue`           | Login page                       |
-| `app/pages/auth/register.vue`        | Registration page                |
-| `app/pages/auth/2fa.vue`             | Two-factor authentication page   |
-| `app/pages/auth/forgot-password.vue` | Password reset request           |
-| `app/pages/auth/reset-password.vue`  | Password reset form              |
-| `app/utils/crypto.ts`                | SHA256 hashing utility           |
+| File                                   | Purpose                                         |
+| -------------------------------------- | ----------------------------------------------- |
+| `nuxt.config.ts` (`ltExtensions.auth`) | Auth configuration: base path, enabled features |
+| `app/middleware/auth.global.ts`        | Redirects anonymous visitors to the login       |
+| `app/middleware/guest.global.ts`       | Keeps signed-in users off the auth pages        |
+| `app/middleware/admin.global.ts`       | Guards `/app/admin/**`                          |
+| `app/pages/auth/login.vue`             | Login page (email/password and passkey)         |
+| `app/pages/auth/register.vue`          | Registration page                               |
+| `app/pages/auth/2fa.vue`               | Two-factor authentication page                  |
+| `app/pages/auth/verify-email.vue`      | E-mail verification                             |
+| `app/pages/auth/forgot-password.vue`   | Password reset request                          |
+| `app/pages/auth/reset-password.vue`    | Password reset form                             |
+| `app/pages/auth/setup.vue`             | First-run admin setup                           |
+| `app/pages/app/settings/security.vue`  | Manage passkeys and 2FA                         |
 
 ## Usage
 
@@ -60,7 +71,7 @@ The template uses [Better Auth](https://www.better-auth.com/) for authentication
 
 ```typescript
 // In a Vue component
-const { signIn, signUp, signOut, user, isAuthenticated } = useBetterAuth();
+const { signIn, signUp, signOut, user, isAuthenticated } = useLtAuth();
 
 // Sign in
 const result = await signIn.email({
@@ -87,24 +98,28 @@ if (isAuthenticated.value) {
 ### Passkey Authentication
 
 ```typescript
-import { authClient } from '~/lib/auth-client';
+const { authenticateWithPasskey, setUser, validateSession } = useLtAuth();
 
-// Sign in with passkey
-const result = await authClient.signIn.passkey();
+// Sign in with passkey (also handles the challengeId of JWT mode)
+const result = await authenticateWithPasskey();
 
-if (result.error) {
-  console.error('Passkey login failed:', result.error.message);
+if (!result.success) {
+  console.error('Passkey login failed:', result.error);
 } else {
-  // Validate session to get user data (passkey returns session only)
-  await validateSession();
+  // The response may carry the user; if not, fetch it from the session
+  result.user ? setUser(result.user) : await validateSession();
   navigateTo('/app');
 }
 ```
 
+Listing and deleting passkeys goes through the raw client:
+`useLtAuthClient().passkey.listUserPasskeys()` and `.passkey.deletePasskey({ id })`, as in
+`app/pages/app/settings/security.vue`.
+
 ### Two-Factor Authentication
 
 ```typescript
-import { authClient } from '~/lib/auth-client';
+const authClient = useLtAuthClient();
 
 // Verify TOTP code
 const result = await authClient.twoFactor.verifyTotp({
@@ -120,7 +135,7 @@ const result = await authClient.twoFactor.verifyBackupCode({
 ### Session Validation
 
 ```typescript
-const { validateSession, user } = useBetterAuth();
+const { validateSession, user } = useLtAuth();
 
 // On app init, validate the session
 const isValid = await validateSession();
@@ -219,19 +234,23 @@ there. List exact origins.
 
 ### Custom Configuration
 
-```typescript
-import { createBetterAuthClient } from '~/lib/auth-client';
+The client `useLtAuthClient()` returns is configured in `nuxt.config.ts`:
 
-// Create a custom client
-const customClient = createBetterAuthClient({
-  baseURL: 'https://api.example.com',
-  basePath: '/auth', // Default: '/iam'
-  twoFactorRedirectPath: '/login/2fa', // Default: '/auth/2fa'
-  enableAdmin: false,
-  enableTwoFactor: true,
-  enablePasskey: true,
-});
+```typescript
+ltExtensions: {
+  auth: {
+    basePath: '/iam', // Must match the nest-server IAM mount point
+    twoFactorRedirectPath: '/auth/2fa',
+    enableAdmin: true,
+    enableTwoFactor: true,
+    enablePasskey: true,
+  },
+}
 ```
+
+A second, separately configured client is rare. If one is needed, `createLtAuthClient()`
+(auto-imported) takes `baseURL`, `basePath`, `twoFactorRedirectPath`, the three `enable*`
+flags and `plugins`.
 
 ## Security
 
@@ -240,8 +259,9 @@ const customClient = createBetterAuthClient({
 Passwords are hashed with SHA256 on the client-side before transmission:
 
 ```typescript
-// This happens automatically in auth-client.ts
-const hashedPassword = await sha256(plainPassword);
+// Happens automatically inside useLtAuthClient(): sign-in, sign-up, password change and
+// reset, 2FA enable/disable/backup codes. Not admin.* — nest-server has no route for it.
+const hashedPassword = await ltSha256(plainPassword);
 // Result: 64-character hex string
 ```
 
@@ -255,22 +275,20 @@ const hashedPassword = await sha256(plainPassword);
 
 Sessions are stored in cookies for SSR compatibility:
 
-| Cookie                      | Purpose                    |
-| --------------------------- | -------------------------- |
-| `auth-state`                | User data (SSR-compatible) |
-| `token`                     | Session token              |
-| `better-auth.session_token` | Better Auth native cookie  |
+| Cookie              | Purpose                                                     |
+| ------------------- | ----------------------------------------------------------- |
+| `lt-auth-state`     | User data (SSR-compatible); write it only via `useLtAuth()` |
+| `lt-jwt-token`      | JWT, used when the session cookie does not work (JWT mode)  |
+| `iam.session_token` | Better Auth native cookie, set by the backend               |
+
+The two `lt-*` names are defaults and can be changed via `ltExtensions.auth.cookieNames`.
+The Better Auth prefix `iam` follows the backend's base path `/iam`; nest-server reads
+`COOKIE_PREFIX` to override it.
 
 ### Cross-Origin Requests
 
-The client is configured with `credentials: 'include'` for cross-origin cookie handling:
-
-```typescript
-// In auth-client.ts
-fetchOptions: {
-  credentials: 'include',
-}
-```
+`@lenne.tech/nuxt-extensions` sends its auth requests with `credentials: 'include'`, so the
+cookies travel to the API on its separate host.
 
 **Backend CORS Configuration:**
 

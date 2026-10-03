@@ -269,7 +269,7 @@ PORT=4011 NUXT_PUBLIC_SITE_URL=https://crm.localhost NUXT_PUBLIC_API_URL=https:/
 | Backend Types    | Generated only (`types.gen.ts`) — never manual interfaces for DTOs |
 | Forms            | Valibot (not Zod)                                                  |
 | Modals           | `useOverlay()` (programmatic)                                      |
-| Auth             | `useBetterAuth()` from `@lenne.tech/nuxt-extensions`               |
+| Auth             | `useLtAuth()` from `@lenne.tech/nuxt-extensions`                   |
 | Protected Routes | `middleware: 'auth'` in page `definePageMeta`                      |
 
 ## AI Module (since v2.8.0)
@@ -375,7 +375,7 @@ benefits and the local patch disappears on the next sync.
 | File                        | Purpose                                                    |
 | --------------------------- | ---------------------------------------------------------- |
 | `CLAUDE.md`                 | Framework overview, composables, components, configuration |
-| `dist/runtime/composables/` | Available composables (useBetterAuth, useTusUpload, etc.)  |
+| `dist/runtime/composables/` | Available composables (useLtAuth, useLtTusUpload, etc.)    |
 | `dist/runtime/components/`  | Available auto-imported components                         |
 | `dist/runtime/middleware/`  | Route middleware (auth)                                    |
 | `dist/runtime/plugins/`     | Nuxt plugins (auth initialization)                         |
@@ -387,9 +387,9 @@ benefits and the local patch disappears on the next sync.
 
 1. **ALWAYS read actual source code** before guessing framework behavior — from `node_modules/@lenne.tech/nuxt-extensions/` in npm mode, or from `app/core/` in vendor mode
 2. **NEVER re-implement** functionality that nuxt-extensions already provides — check composables first
-3. **Use `useBetterAuth()`** for authentication — never implement auth manually
+3. **Use `useLtAuth()`** for authentication (`useLtAuthClient()` for the raw Better Auth client: `passkey.*`, `twoFactor.*`) — never implement auth manually
 4. **When debugging auth issues**, read the auth proxy server route and middleware source
-5. **Check runtime composables** before creating new composables — may already exist
+5. **Check runtime composables** before creating new composables — may already exist. List the directory rather than grepping the docs for a name: `useBetterAuth` stood in this file for months after it became `useLtAuth`, and `useTusUpload` after it became `useLtTusUpload`, so a search for the documented name "proved" the feature did not exist
 6. **In vendor mode**, only edit `app/core/` for generally-useful changes and submit them upstream via `/lt-dev:frontend:contribute-nuxt-extensions-core`. Project-specific code belongs outside `app/core/`.
 
 ## Authentication
