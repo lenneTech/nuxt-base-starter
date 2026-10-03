@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.29.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.28.1...v2.29.0) (2026-10-03)
+
+
+### Features
+
+* update [@lenne](https://github.com/lenne).tech/nuxt-extensions to 1.18.4, pin better-auth 1.7.7 ([74bdbfb](https://github.com/lenneTech/nuxt-base-starter/commit/74bdbfb17a0899ecb4fe0d6f5d602f115dd24b31))
+
+
+### Bug Fixes
+
+* **a11y:** localize Nuxt UI on app and error page, raise contrast ([d9e8d07](https://github.com/lenneTech/nuxt-base-starter/commit/d9e8d07032b9e2b6e62ad4ad302fd4880fdcdaa9))
+* **audit:** suppress the braces advisory, which has no patched release ([c2a73fb](https://github.com/lenneTech/nuxt-base-starter/commit/c2a73fb45a393534a780290ea327bdf508972cd3))
+
 ### [2.28.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.28.0...v2.28.1) (2026-10-02)
 
 
