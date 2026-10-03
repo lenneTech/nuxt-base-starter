@@ -53,6 +53,27 @@ auditConfig:
     # patched version or no longer resolves. Re-check on every dependency bump.
     # Verified 2026-10-02.
     - GHSA-86w9-cpqp-85rv
+    # GHSA-vfj7-8cjw-p6xm (high since 2026-10-02): braces <=3.0.3 recurses without a depth
+    # guard in its AST walkers, so a deeply nested brace pattern exhausts the call stack.
+    #
+    # Path: nuxt > @nuxt/nitro-server > nitropack > globby > fast-glob | micromatch >
+    # braces 3.0.3. A project that adds @nuxtjs/i18n gets a second path through
+    # @intlify/unplugin-vue-i18n > fast-glob.
+    #
+    # Not fixable: there is no patched release. npm audit names ">=3.0.4", which does not
+    # exist (latest is 3.0.3, GitHub lists no first patched version), and every link of the
+    # chain is already its newest release (micromatch 4.0.8, fast-glob 3.3.3). An override
+    # has nothing to point at; a patchedDependencies entry would mean writing the security
+    # fix ourselves.
+    #
+    # Residual risk, none reachable: the chain globs files at BUILD time (Nitro's and the
+    # i18n plugin's own scans) with patterns from the project's config, never with outside
+    # input. braces, micromatch and fast-glob are not traced into `.output/`.
+    #
+    # Delete when `pnpm audit` is clean without this entry, i.e. braces resolves to a
+    # patched version or no longer resolves. Re-check on every dependency bump.
+    # Verified 2026-10-03.
+    - GHSA-vfj7-8cjw-p6xm
 
 # pnpm 11 renamed `onlyBuiltDependencies` to `allowBuilds` (map of pkg -> bool).
 # We keep BOTH keys so the file works across pnpm 10 (reads onlyBuiltDependencies)
