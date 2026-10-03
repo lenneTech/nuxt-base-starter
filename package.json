@@ -32,7 +32,7 @@
     "fs-extra": "11.4.1"
   },
   "devDependencies": {
-    "oxfmt": "0.70.0",
+    "oxfmt": "0.71.0",
     "standard-version": "9.5.0"
   },
   "engines": {

@@ -5,14 +5,14 @@
 # keys and is read by pnpm 10 AND pnpm 11. (pnpm 11 silently ignores the same
 # keys when they live in package.json's `pnpm` block.)
 #
-# There are currently NO overrides here, and that is intentional: standard-version's
-# transitive tree now resolves to patched versions on its own (handlebars 4.7.9,
-# lodash 4.18.1, minimatch 3.1.5, brace-expansion 1.1.16), so the four overrides that
-# used to live here were dead weight and were removed. Verified by resolving with zero
-# overrides and no lockfile: `pnpm audit` reports no known vulnerabilities.
+# Exactly one override lives here (brace-expansion, below), together with the minimatch
+# patch it depends on. It is the only one left: the handlebars, lodash and minimatch
+# overrides that used to live here became dead weight once standard-version's transitive
+# tree resolved to patched versions on its own, and were removed. Read the notes on the
+# entry and on `patchedDependencies` before touching either.
 #
-# If you ever need to add one back: the override TARGET (right-hand side) must be a
-# FIXED version, never a range — an unbounded target like `>=X` lets pnpm jump a major.
+# When you add one: the override TARGET (right-hand side) must be a FIXED version, never
+# a range — an unbounded target like `>=X` lets pnpm jump a major.
 # Only override packages this project actually resolves; verify a candidate is live
 # with: grep "'\?<pkg>@[0-9]" pnpm-lock.yaml
 
@@ -60,7 +60,17 @@ overrides:
   # decision, not a maintenance run. To drop both: delete this entry, the
   # `patchedDependencies` block and `patches/minimatch@3.1.5.patch`, re-resolve with
   # no lockfile, and confirm `pnpm audit` stays clean.
-  'brace-expansion@<5.0.9': 5.0.12
+  #
+  # KEY widened `<5.0.9` -> `<5.0.12` (2026-10-03), mirroring @lenne.tech/nuxt-extensions.
+  # Three advisories published 2026-09-29 moved the window again: GHSA-6j4f-fj2g-mc7p
+  # (HIGH, 1.1.19 / 2.1.5 / 3.0.7 / 5.0.10), GHSA-qhr7-859c-m2p7 (HIGH, 1.1.20 / 2.1.6 /
+  # 3.0.8 / 5.0.11) and GHSA-q2hr-2g5m-vwhr (MODERATE, 1.1.21 / 2.1.7 / 3.0.9 / 5.0.12).
+  # The old key let a 5.0.9-5.0.11 copy slip past; the tree never held one (the only
+  # consumer, minimatch@3, requests ^1.1.7), so the resolved tree does not move. Target
+  # unchanged: 5.0.12 is both the furthest fix and still the newest 5.x. The premise note
+  # above still holds — 1.1.21, what a fresh resolve without this entry gives, is also the
+  # 1.x fix for all three new advisories (re-verified with a fresh resolve 2026-10-03).
+  'brace-expansion@<5.0.12': 5.0.12
 
 # ----------------------------------------------------------------------------------
 # Why a patch rather than an override or a suppression.
