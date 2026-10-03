@@ -7,9 +7,8 @@
 
 ## Version policy
 
-- [better-auth tracks nest-server](project-better-auth-tracks-nest-server.md) — client-only here; follow nest-server's exact pin, not npm latest
-- [better-auth 1.7.x blocked](project-better-auth-17-blocked.md) — protocol + account-schema break; the redirect risk is in `ctx.baseURL`, not the route files
-- [Blocked updates](project-blocked-updates.md) — typescript 7 held by nuxt's exact pin; plausible 3→4 already cleared as safe
+- [better-auth tracks nest-server](project-better-auth-tracks-nest-server.md) — client-only here; pin the version the two frameworks agree on, never npm latest
+- [Blocked updates](project-blocked-updates.md) — typescript 7 held by vue-tsc (needs `typescript/lib/tsc`); plausible 3→4 already cleared as safe
 - [minimumReleaseAge gate](feedback-minimum-release-age-gate.md) — skip sub-24h releases, never add a third-party exclude
 
 ## Overrides & advisories
