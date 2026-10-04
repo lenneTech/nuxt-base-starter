@@ -5,6 +5,10 @@
     (all of `/auth/**`) had no landmark structure at all.
 
     The skip link is visually hidden until focused — the first tab stop on the page.
+
+    `px-4`: every page here centres a fixed `w-md` (28rem) card. Below 28rem the card
+    shrinks to the full screen width, so without a gutter its fields and buttons ran
+    flush to the screen edge on a phone (measured at 390px: card from 0 to 390).
   -->
   <div class="min-h-screen">
     <a
@@ -13,7 +17,7 @@
     >
       Zum Inhalt springen
     </a>
-    <main id="main-content" class="flex min-h-screen items-center justify-center">
+    <main id="main-content" class="flex min-h-screen items-center justify-center px-4">
       <slot></slot>
     </main>
   </div>
