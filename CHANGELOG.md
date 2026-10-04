@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.29.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.29.0...v2.29.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* **layout:** give the slim layout a horizontal gutter on phones ([1a5e07c](https://github.com/lenneTech/nuxt-base-starter/commit/1a5e07c9007fed4bb7aae01f61e4bbee4f884d7f))
+
 ## [2.29.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.28.1...v2.29.0) (2026-10-03)
 
 
