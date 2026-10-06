@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.30.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.29.1...v2.30.0) (2026-10-06)
+
+
+### Features
+
+* **check:** add the check:overrides guard from nest-server ([a16cc77](https://github.com/lenneTech/nuxt-base-starter/commit/a16cc77750f746c0e6694b9c0c99163228890a1b))
+
+
+### Bug Fixes
+
+* **layout:** announce the header logo link with the site name ([41b75f7](https://github.com/lenneTech/nuxt-base-starter/commit/41b75f7d958db7eb7c03a067eda2cf2b62739e62))
+* **security:** close the simple-git and postcss-selector-parser advisories ([7fd6910](https://github.com/lenneTech/nuxt-base-starter/commit/7fd6910cc94819bae2079b48f552b07e72db0f0e))
+
 ### [2.29.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.29.0...v2.29.1) (2026-10-04)
 
 
