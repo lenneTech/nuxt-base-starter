@@ -2,6 +2,7 @@
 import type { NavigationMenuItem } from '@nuxt/ui';
 
 const { isAuthenticated, signOut, user, validateSession } = useLtAuth();
+const siteConfig = useSiteConfig();
 
 onMounted(() => {
   validateSession();
@@ -50,7 +51,10 @@ const footerItems: NavigationMenuItem[] = [
 
 <template>
   <div class="flex flex-col min-h-screen">
-    <UHeader>
+    <!-- `:title`: the slot below holds only an icon, so UHeader names its home link after
+         this prop, whose default is "Nuxt UI". The site name is what app.vue's titleTemplate
+         renders as `%siteName`. -->
+    <UHeader :title="siteConfig.name">
       <template #title>
         <UIcon name="i-lucide-code" class="text-primary" />
       </template>
