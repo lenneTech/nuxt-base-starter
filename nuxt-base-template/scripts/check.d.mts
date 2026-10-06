@@ -23,6 +23,16 @@ export interface SuppressionSummary {
 /** Reads the summary line of `scripts/check-suppressions.mjs`; null when there is none. */
 export function parseSuppressionSummary(out: string): SuppressionSummary | null;
 
+/** What `parseOverridesSummary` reads from the `check-overrides` step's output. */
+export interface OverridesSummary {
+  /** Overrides the guard checked; 0 for `none` and for a run that could not look. */
+  overrides: number;
+  state: 'none' | 'unverified' | 'verified';
+}
+
+/** Reads the verdict of `scripts/check-overrides.mjs`; null when there is none. */
+export function parseOverridesSummary(out: string): OverridesSummary | null;
+
 /** A workspace project as `discoverProjects()` yields it. */
 export interface CheckProject {
   /** The project's real `check` chain, `&&`-separated. */

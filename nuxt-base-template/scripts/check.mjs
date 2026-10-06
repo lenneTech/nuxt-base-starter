@@ -93,6 +93,9 @@ function classify(cmd) {
   // Its own kind, so the summary line is parsed and an unverified run renders yellow instead of
   // the plain tick an unclassified step would get.
   if (c.includes('check-suppressions') || c.includes('check:suppressions')) return { fatal: true, kind: 'suppressions', label: 'suppressions' };
+  // Same reason: the override guard exits 0 when it could not look (no audit report, advisory
+  // service down), and that must not render as the tick of a run that did.
+  if (c.includes('check-overrides') || c.includes('check:overrides')) return { fatal: true, kind: 'overrides', label: 'overrides' };
   if (c.includes('audit')) return { fatal: true, kind: 'audit', label: 'audit' };
   if (c.includes('format:check') || c.includes('oxfmt') || c.includes('prettier')) return { fatal: true, kind: 'format', label: 'format' };
   if (c.includes('lint')) return { fatal: true, kind: 'lint', label: 'lint' };
@@ -552,6 +555,7 @@ async function runGroup(group, states, results, abort) {
     if (step.kind === 'test') r.tests = parseVitest(out);
     if (step.kind === 'lint') r.lint = parseLint(out);
     if (step.kind === 'suppressions') r.suppressions = parseSuppressionSummary(out);
+    if (step.kind === 'overrides') r.overrides = parseOverridesSummary(out);
     results.push(r);
     if (code !== 0 && step.fatal) {
       st.failed = step.label;
@@ -669,6 +673,22 @@ export function parseSuppressionSummary(out) {
   return { count: Number(m[2]), state, total: Number(m[3]) };
 }
 
+/**
+ * Read the verdict of `scripts/check-overrides.mjs` back out of its output, or null when there is
+ * none. The guard exits 0 on its degraded paths — no audit report, npm's advisory service down, a
+ * suppression the Advisory API did not answer for — so the exit code cannot tell "verified" from
+ * "could not look". Parsed rather than imported, like `parseSuppressionSummary`.
+ */
+export function parseOverridesSummary(out) {
+  const text = stripAnsi(String(out));
+  if (/\[overrides\] ok — no overrides and no suppressions declared/.test(text)) return { overrides: 0, state: 'none' };
+  if (/\[overrides\] WARN — (could not obtain an audit report|the audit reported an empty tree)/.test(text)) return { overrides: 0, state: 'unverified' };
+  const m = text.match(/\[overrides\] ok — (\d+) override\(s\) checked/);
+  if (!m) return null;
+  const s = text.match(/; (\d+)\/(\d+) suppression\(s\) verified/);
+  return { overrides: Number(m[1]), state: s && Number(s[1]) < Number(s[2]) ? 'unverified' : 'verified' };
+}
+
 function metricSuffix(r) {
   if (r.kind === 'test' && !isNil(r.tests?.passed)) {
     const failed = r.tests.failed ? C.red(` / ${r.tests.failed} failed`) : '';
@@ -681,6 +701,12 @@ function metricSuffix(r) {
     if (s.state === 'none') return `  ${C.dim('none declared')}`;
     if (s.state === 'unverified') return `  ${C.yellow(`${s.count} of ${s.total} NOT verified`)}`;
     return `  ${C.red(`${s.count} obsolete`)}`;
+  }
+  if (r.kind === 'overrides' && r.overrides) {
+    const o = r.overrides;
+    if (o.state === 'none') return `  ${C.dim('none declared')}`;
+    if (o.state === 'unverified') return `  ${C.yellow('NOT verified')}`;
+    return `  ${C.dim(`${o.overrides} checked`)}`;
   }
   if (r.kind === 'lint' && r.lint) {
     return r.lint.warnings > 0 ? `  ${C.yellow(`${r.lint.warnings} warning${r.lint.warnings === 1 ? '' : 's'}`)}` : `  ${C.dim('clean')}`;
