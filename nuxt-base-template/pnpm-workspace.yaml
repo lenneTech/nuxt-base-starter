@@ -247,3 +247,56 @@ overrides:
   # advisories again. GHSA-r3ph-w7gj-g6xm (2026-09-29) affects only the 5.x line, which this
   # tree does not resolve.
   'js-yaml@>=4.0.0 <4.3.2': 4.3.2
+  # postcss-selector-parser, quadratic complexity when parsing flat selectors
+  # (GHSA-rj75-hqrm-r3gf, moderate, <7.1.6, first patched 7.1.6). Transitive via
+  # @tailwindcss/typography, whose newest release (0.5.20) pins it EXACTLY at 6.0.10, so no
+  # bump can fix it, and the 6.x line has no patched release.
+  #
+  # MAJOR jump 6.0.10 -> 7.1.6. Measured before setting it: Tailwind 4.3.3 compiled the
+  # typography plugin once against each version (prose, every size and gray scale, invert,
+  # not-prose, element and pseudo-element variants such as prose-li:marker), and the CSS came
+  # out byte-identical (69,798 bytes). The parser is pure build tooling here and is not traced
+  # into `.output/`. offers and lt-crm already run typography on 7.1.6.
+  #
+  # The key stays below the first patched version (see the selector note above): cssnano's
+  # postcss-calc asks for ^7.0.0 and already resolves 7.1.6 on its own. Drop this entry once
+  # @tailwindcss/typography requests >=7.1.6 itself. Verified 2026-10-06.
+  'postcss-selector-parser@<7.1.6': 7.1.6
+  # simple-git, four advisories in 3.36.0. Two critical: the VISUAL environment variable slips
+  # past the unsafe-editor check (GHSA-v5rq-49vh-5v5c, in @simple-git/argv-parser <2.0.1), and
+  # the unsafe-operation guard does not block trailer command configuration
+  # (GHSA-x6jw-m9v5-85vh, >=3.15.0 <4.0.1). Two high: command execution through Git
+  # configuration includes (GHSA-g4wm-2vf7-vfgr) and through long-option abbreviation
+  # (GHSA-858h-whjf-mvg5), both <=3.36.0. Transitive via nuxt > @nuxt/devtools, so dev and
+  # build tooling only; it is not traced into `.output/`. Fixed rather than suppressed: a fix
+  # exists, so the ladder in CLAUDE.md stops at step 1 (with the step-2 patch below).
+  #
+  # MAJOR jump 3.36.0 -> 4.x, and unavoidable: the critical range is >=3.15.0 <4.0.1, and the
+  # two high ones name 3.36.1, which was never published. There is no fixed 3.x. A devtools
+  # bump does not help either: nuxt 4.5.2 requests `@nuxt/devtools ^3.4.1`, the newest 3.x
+  # (3.4.2) requests `simple-git ^3.36.0`, and only the 4.0 betas drop simple-git.
+  # Measured before setting it: devtools calls exactly three APIs (git.branch, git.revparse,
+  # git.status), all core and present in 4.x. The one break is the module shape. 4.x has no
+  # default export, devtools does `import Git from 'simple-git'`, and the patch under
+  # `patchedDependencies` restores that export.
+  #
+  # Bare key, not a range: the patch is bound to exactly 4.0.2, so every simple-git in the tree
+  # has to be that version. No entry for @simple-git/argv-parser: simple-git 4.0.2 pins it
+  # exactly to the fixed 2.0.1, so the override brings it along.
+  #
+  # Drop this entry and the patch together once nuxt requests a @nuxt/devtools that no longer
+  # depends on simple-git 3 (the 4.0 line has dropped it). Verified 2026-10-06.
+  'simple-git': 4.0.2
+
+patchedDependencies:
+  # Restores the default export simple-git 4 dropped, which @nuxt/devtools imports. Pairs with
+  # the `simple-git` override above; a patch is legitimate when the fixed release changed SHAPE
+  # for one consumer (see CLAUDE.md). The path is relative to the workspace root, and the
+  # Dockerfile copies only the context-root `patches/` into its deps stage.
+  #
+  # pnpm reads `patchedDependencies` only from the workspace root. In an `lt fullstack` monorepo
+  # the lt CLI (from 1.50.4; older versions drop the entry) hoists it together with the override
+  # and moves the patch file to `<root>/patches/`. An override that arrives without its patch
+  # installs simple-git 4.0.2 unpatched, and `nuxt prepare` (postinstall) aborts the very first
+  # install.
+  simple-git@4.0.2: patches/simple-git@4.0.2.patch

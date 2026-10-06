@@ -9,6 +9,11 @@ overrides:
   '@nuxt/ui@<4.8.1': 4.11.3
   esbuild@<0.28.1: 0.28.2
   js-yaml@>=4.0.0 <4.3.2: 4.3.2
+  postcss-selector-parser@<7.1.6: 7.1.6
+  simple-git: 4.0.2
+
+patchedDependencies:
+  simple-git@4.0.2: f0072e5899a53b1bcc001ad7080228ed00c18b032a856c2b9136475e710a3a2a
 
 importers:
 
@@ -1905,8 +1910,8 @@ packages:
   '@simple-git/args-pathspec@1.0.4':
     resolution: {integrity: sha512-EtMX6XjRWSastG2SdkmSQByPtJ9dx/NIjnHbpQPCYt62j4RmSx5rgLTGpw0YCjF5h191gZOmBfheOT23cRSFdw==}
 
-  '@simple-git/argv-parser@1.1.1':
-    resolution: {integrity: sha512-Q9lBcfQ+VQCpQqGJFHe5yooOS5hGdLFFbJ5R+R5aDsnkPCahtn1hSkMcORX65J2Z5lxSkD0lQorMsncuBQxYUw==}
+  '@simple-git/argv-parser@2.0.1':
+    resolution: {integrity: sha512-M++IaVWrN+vYalilOHfwvT2IL3wYZtVEBQpmX6DLSOJLtxbZ+SUeIDE3IiPogzhPACLajwtxfa5rp+ZX1FczzQ==}
 
   '@simplewebauthn/browser@13.3.0':
     resolution: {integrity: sha512-BE/UWv6FOToAdVk0EokzkqQQDOWtNydYlY6+OrmiZ5SCNmb41VehttboTetUM3T/fr6EAFYVXjz4My2wg230rQ==}
@@ -4573,10 +4578,6 @@ packages:
     peerDependencies:
       postcss: ^8.5.26
 
-  postcss-selector-parser@6.0.10:
-    resolution: {integrity: sha512-IQ7TZdoaqbT+LCpShg46jnZVlhWD2w6iQYAcYXfHARZ7X1t/UGhhceQDs5X0cGqKvYlHNOuv7Oa1xmb0oQuA3w==}
-    engines: {node: '>=4'}
-
   postcss-selector-parser@7.1.6:
     resolution: {integrity: sha512-7qASPzhKF2l2KLboRZux8CCTRMdGiV08vWmyKzPz22qZ7ZjQBOeY7rNzNoCLSUiftJ7HUq0GERHmxw/t0dCdMw==}
     engines: {node: '>=4'}
@@ -4900,8 +4901,8 @@ packages:
     resolution: {integrity: sha512-kkTORPAuxQz2g1QUuN0J8yGWT28tjGBfPOdJ4xT7Vbeu30veKUZQIoID2qGgCDAakaQn59UeZJJ4cFGB8PVP2A==}
     hasBin: true
 
-  simple-git@3.36.0:
-    resolution: {integrity: sha512-cGQjLjK8bxJw4QuYT7gxHw3/IouVESbhahSsHrX97MzCL1gu2u7oy38W6L2ZIGECEfIBG4BabsWDPjBxJENv9Q==}
+  simple-git@4.0.2:
+    resolution: {integrity: sha512-l0sIsv9VrPwovKELFDBOj/lhmIcbMvxBk2B+hRhsMM4/VL3gKtuZvYnBNixVo+N/0HnqQx2cBdLvxnAbygHpqA==}
 
   sirv@3.0.2:
     resolution: {integrity: sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g==}
@@ -6631,7 +6632,7 @@ snapshots:
       perfect-debounce: 2.1.0
       pkg-types: 2.3.3
       semver: 7.8.5
-      simple-git: 3.36.0
+      simple-git: 4.0.2(patch_hash=f0072e5899a53b1bcc001ad7080228ed00c18b032a856c2b9136475e710a3a2a)
       sirv: 3.0.2
       structured-clone-es: 2.0.1
       tinyglobby: 0.2.17
@@ -8034,7 +8035,7 @@ snapshots:
 
   '@simple-git/args-pathspec@1.0.4': {}
 
-  '@simple-git/argv-parser@1.1.1':
+  '@simple-git/argv-parser@2.0.1':
     dependencies:
       '@simple-git/args-pathspec': 1.0.4
 
@@ -8134,7 +8135,7 @@ snapshots:
 
   '@tailwindcss/typography@0.5.20(tailwindcss@4.3.3)':
     dependencies:
-      postcss-selector-parser: 6.0.10
+      postcss-selector-parser: 7.1.6
       tailwindcss: 4.3.3
 
   '@tailwindcss/vite@4.3.3(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1))':
@@ -11049,11 +11050,6 @@ snapshots:
       postcss: 8.5.28
       postcss-value-parser: 4.2.0
 
-  postcss-selector-parser@6.0.10:
-    dependencies:
-      cssesc: 3.0.0
-      util-deprecate: 1.0.2
-
   postcss-selector-parser@7.1.6:
     dependencies:
       cssesc: 3.0.0
@@ -11439,12 +11435,12 @@ snapshots:
 
   simple-git-hooks@2.14.0: {}
 
-  simple-git@3.36.0:
+  simple-git@4.0.2(patch_hash=f0072e5899a53b1bcc001ad7080228ed00c18b032a856c2b9136475e710a3a2a):
     dependencies:
       '@kwsites/file-exists': 1.1.1
       '@kwsites/promise-deferred': 1.1.1
       '@simple-git/args-pathspec': 1.0.4
-      '@simple-git/argv-parser': 1.1.1
+      '@simple-git/argv-parser': 2.0.1
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color

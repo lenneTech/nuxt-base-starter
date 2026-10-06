@@ -16,12 +16,10 @@ WORKDIR /app
 # monorepo (multiple project manifests) and standalone (a single root manifest)
 # mode. Copying everything then installing is the simplest cross-mode approach —
 # mirrors projects/api/Dockerfile.
-# `patches/` is copied ahead of need. This template currently ships NO patches —
-# there is no `patches/` directory and no `patchedDependencies` key in either
-# `pnpm-workspace.yaml`; its CVEs are closed through `overrides:` instead. The copy
-# exists so a project that LATER adds `patchedDependencies` does not first discover
-# the omission as `ENOENT: … patches/<pkg>.patch` inside the Docker build, long
-# after every test reported green.
+# `patches/` carries the files `patchedDependencies` in `pnpm-workspace.yaml` points
+# at. The template ships one (`simple-git@4.0.2.patch`, see the note on its override),
+# and without it `pnpm install` stops on `ENOENT: … patches/<pkg>.patch` inside the
+# Docker build, long after every test reported green.
 #
 # Note the failure mode being guarded: absent is fine, present-but-uncopyable is
 # not. A plain `|| true` would swallow a real copy failure and still run the `rm`
