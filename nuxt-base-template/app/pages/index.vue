@@ -1,11 +1,5 @@
 <script lang="ts" setup>
 // ============================================================================
-// Composables
-// ============================================================================
-const config = useRuntimeConfig();
-const appConfig: ReturnType<typeof useAppConfig> = useAppConfig();
-
-// ============================================================================
 // Variables
 // ============================================================================
 const features: Array<{
@@ -39,16 +33,6 @@ const features: Array<{
     title: 'Production Ready',
   },
 ];
-
-// ============================================================================
-// Computed Properties
-// ============================================================================
-// The ./docs layer and this card's target are baked at build time
-// (appConfig.devBuild, which is NOT env-overridable); the runtime appEnv only
-// decides whether an existing build EXPOSES them. Gate on both so the card never
-// links to a /docs route that was not built (404) and hides once relabelled to
-// production.
-const isDevelopment = computed<boolean>(() => appConfig.devBuild && config.public.appEnv !== 'production');
 </script>
 
 <template>
@@ -110,26 +94,6 @@ const isDevelopment = computed<boolean>(() => appConfig.devBuild && config.publi
           color="primary"
           variant="subtle"
         />
-
-        <!-- Dev Examples Link (only in development) -->
-        <UCard v-if="isDevelopment" variant="outline" class="border-2 border-primary/20">
-          <template #header>
-            <div class="flex items-center gap-3">
-              <UBadge color="warning" variant="subtle" icon="i-lucide-flask-conical"> Development Only </UBadge>
-              <h3 class="font-semibold text-neutral-900 dark:text-white">Interactive Examples</h3>
-            </div>
-          </template>
-
-          <div class="space-y-4">
-            <p class="text-sm text-neutral-600 dark:text-neutral-400">
-              Explore interactive examples for all template components and composables. Perfect for learning and as a reference for new projects.
-            </p>
-            <div class="flex items-center gap-3">
-              <UButton to="/docs" icon="i-lucide-sparkles" trailing-icon="i-lucide-arrow-right" color="primary" size="md"> View Examples </UButton>
-              <p class="text-xs text-neutral-500 dark:text-neutral-500">This link is only visible in development mode</p>
-            </div>
-          </div>
-        </UCard>
       </div>
     </div>
 

@@ -75,9 +75,9 @@ docker build -f projects/app/Dockerfile --build-arg APP_VERSION_COMMIT=$CI_COMMI
   runner stage on purpose, so the volatile SHA never invalidates the cached
   `nuxt build` layer.
 - **`NUXT_PUBLIC_APP_ENV`** (builder build-arg, optional) → pass
-  `--build-arg NUXT_PUBLIC_APP_ENV=development` to bake the `./docs` layer + dev
-  card + bug.lt reporter into a **staging** image. Leave unset for production (dev
-  surfaces are then never built and cannot be re-enabled at runtime).
+  `--build-arg NUXT_PUBLIC_APP_ENV=development` to bake the bug.lt reporter into a
+  **staging** image. Leave unset for production (the reporter is then never built
+  and cannot be re-enabled at runtime).
 - The container listens on **port 3000** (`EXPOSE 3000`, `HOST=0.0.0.0`); compose
   maps host `3001` → container `3000`. A `HEALTHCHECK` probes `GET /`.
 
@@ -260,9 +260,9 @@ Create a `.env` file with the following variables:
 NUXT_PUBLIC_SITE_URL=http://localhost:3001
 NUXT_API_URL=http://localhost:3000
 NUXT_PUBLIC_API_URL=http://localhost:3000
-# Deployment environment. Build-time: `local`/`development` bake the ./docs layer
-# + dev card + bug.lt reporter into the bundle; unset resolves to `production`.
-# Runtime: relabels a running container (cannot conjure an un-built dev surface).
+# Deployment environment. Build-time: any value other than `production` bakes the
+# bug.lt reporter into the bundle; unset resolves to `production`.
+# Runtime: relabels a running container (cannot enable an un-built reporter).
 NUXT_PUBLIC_APP_ENV=local
 NODE_ENV=development
 ```
@@ -327,7 +327,7 @@ app/
 │   └── safe-redirect-target.ts  # Validates ?redirect= into a safe same-origin path
 └── app.config.ts    # NuxtUI configuration
 
-docs/                # Dev-only documentation layer
+docs/                # Developer docs (Markdown, not served)
 tests/
 ├── unit/            # Vitest unit tests (utils, composables, env)
 └── e2e/             # Playwright E2E tests

@@ -51,9 +51,9 @@ FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432
 ARG APP_DIR=.
 WORKDIR /app
 
-# Deployment environment, baked into the bundle. Docs layer + dev widgets are a
+# Deployment environment, baked into the bundle. The bug.lt reporter widget is a
 # BUILD choice (see nuxt.config.ts): unset stays production; a staging pipeline
-# passes --build-arg NUXT_PUBLIC_APP_ENV=development to ship them. It must live in
+# passes --build-arg NUXT_PUBLIC_APP_ENV=development to ship it. It must live in
 # the builder (not the runner) because these options freeze at `nuxt build` time.
 ARG NUXT_PUBLIC_APP_ENV
 ENV NUXT_PUBLIC_APP_ENV=$NUXT_PUBLIC_APP_ENV

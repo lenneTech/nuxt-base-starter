@@ -20,12 +20,6 @@ const appCommit = process.env.APP_VERSION_COMMIT || 'unknown';
 // NUXT_PUBLIC_APP_ENV explicitly.
 const appEnv = process.env.NUXT_PUBLIC_APP_ENV || (process.env.NODE_ENV === 'development' ? 'local' : 'production');
 
-// Dev-only surfaces — the ./docs layer and the landing-page dev card — are BAKED
-// at build time. The runtime NUXT_PUBLIC_APP_ENV can relabel a running container
-// but cannot add a route that was never built, so anything linking into ./docs
-// must gate on this build-time flag, not on the runtime public.appEnv.
-const devBuild = ['development', 'local'].includes(appEnv);
-
 export default defineNuxtConfig({
   // ============================================================================
   // App Configuration
@@ -44,17 +38,6 @@ export default defineNuxtConfig({
       // default `md` size.
       viewport: 'width=device-width, initial-scale=1.0',
     },
-  },
-
-  // ============================================================================
-  // App Config (build-frozen, reaches the client via useAppConfig())
-  // ============================================================================
-  appConfig: {
-    // Were dev-only surfaces (./docs layer + landing-page dev card) built into
-    // THIS bundle? Kept in app config, NOT runtimeConfig.public, precisely so a
-    // NUXT_PUBLIC_* env var cannot flip it at runtime — the client gates the dev
-    // card on it so the card never links to a /docs route the build omitted.
-    devBuild,
   },
 
   // ============================================================================
@@ -144,11 +127,6 @@ export default defineNuxtConfig({
     renderJsonPayloads: false,
     typedPages: true,
   },
-
-  // ============================================================================
-  // Environment-specific Layers
-  // ============================================================================
-  extends: devBuild ? ['./docs'] : [],
 
   // ============================================================================
   // Image Optimization
@@ -267,10 +245,7 @@ export default defineNuxtConfig({
   // SEO: Robots.txt
   // ============================================================================
   robots: {
-    // '/docs' is only built into dev bundles (see `extends`), but list it anyway
-    // as defense-in-depth: if a dev build is ever relabeled to production at
-    // runtime, the docs route stays out of crawlers regardless.
-    disallow: ['/app', '/auth', '/admin', '/docs'],
+    disallow: ['/app', '/auth', '/admin'],
   },
 
   // ============================================================================

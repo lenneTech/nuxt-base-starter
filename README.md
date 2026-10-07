@@ -98,7 +98,7 @@ my-project/
 │   │   └── app/          # Protected app pages
 │   ├── utils/            # Utility functions
 │   └── app.config.ts     # NuxtUI configuration
-├── docs/                 # Dev-only documentation layer
+├── docs/                 # Developer docs (Markdown, not served)
 ├── tests/                # Playwright E2E tests
 ├── nuxt.config.ts        # Nuxt configuration
 ├── openapi-ts.config.ts  # API type generation config
