@@ -13,6 +13,8 @@ update, not stray noise — commit it with the bump.
 **Why:** it looks like an unrelated working-tree modification during a
 dependencies-only run and invites a wrongful revert.
 
-**How to apply:** there is no Playwright CI image pin in this repo (E2E does not run in
-GitHub Actions — `.github/workflows/test.yml` covers unit, lint, typecheck, build), so
-`@playwright/test` has no coupled artifact here. `.nuxtrc` is the only one.
+**How to apply:** there is no Playwright CI image pin in THIS repo, so `.nuxtrc` is the only
+in-repo companion. But `@playwright/test` IS coupled across repos: lt-monorepo pins
+`mcr.microsoft.com/playwright:vX.Y.Z-noble` and its `check:playwright-image` guard compares
+it with `projects/app/package.json`, which is this template. A bump here without the
+lt-monorepo image bump turns every generated project red; see [[project-blocked-updates]].

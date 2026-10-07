@@ -18,11 +18,13 @@ Each looks like a free bump; each has a reason. Check the release condition, not
 Cleared 2026-10-03: better-auth + passkey (now 1.7.7, lock-step with nest-server 11.41.8 and
 nuxt-extensions 1.18.4) and vitest 5 (taken with it, 5.0.3).
 
-**Pending decision (not a hold):** root `brace-expansion` override + `patches/minimatch@3.1.5.patch`
-are no longer load-bearing — brace-expansion 1.1.18+ backports close the advisories on the 1.x
-line minimatch@3 requests; a fresh resolve with neither gives 1.1.21, audit clean (re-verified
-2026-10-03). The key was widened to `<5.0.12` (target 5.0.12) for the 2026-09-29 advisories
-instead of removed, because removal needs Kai's call.
+**Resolved 2026-10-07 (maintenance before 2.31.0):** the root `brace-expansion` override and
+`patches/minimatch@3.1.5.patch` were REMOVED (fresh resolve without either: brace-expansion
+1.1.21, audit clean), and so was the template's inert `unhead` pin. Parking proven-inert
+overrides "for Kai's call" was wrong: his standing policy (minimal overrides, each needs an
+audit proof) is the call. All four holds above were re-measured that day and still hold. The
+current list lives in the template memory: `nuxt-base-template/.claude/agent-memory/
+lt-dev-npm-package-maintainer/project-blocked-updates.md`.
 
 **Why:** each hold cost a trial or a cross-repo check to establish. **How to apply:** report these
 as held with the reason; act only when the last column is true. Related: [[override-necessity-fresh-resolve-test]].
