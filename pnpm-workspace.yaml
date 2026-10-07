@@ -5,16 +5,22 @@
 # keys and is read by pnpm 10 AND pnpm 11. (pnpm 11 silently ignores the same
 # keys when they live in package.json's `pnpm` block.)
 #
-# Exactly one override lives here (brace-expansion, below), together with the minimatch
-# patch it depends on. It is the only one left: the handlebars, lodash and minimatch
-# overrides that used to live here became dead weight once standard-version's transitive
-# tree resolved to patched versions on its own, and were removed. Read the notes on the
-# entry and on `patchedDependencies` before touching either.
+# No overrides and no patches live here. The last pair, `'brace-expansion@<5.0.12': 5.0.12`
+# plus `patches/minimatch@3.1.5.patch`, was removed on 2026-10-06. brace-expansion now
+# backports its fixes per major (1.1.21 closes GHSA-mh99-v99m-4gvg, GHSA-3jxr-9vmj-r5cp,
+# GHSA-rgw5-rvv9-x895, GHSA-6j4f-fj2g-mc7p, GHSA-qhr7-859c-m2p7 and GHSA-q2hr-2g5m-vwhr on the
+# 1.x line), and a fresh resolve WITHOUT either (no pnpm-lock.yaml, no node_modules) gives
+# brace-expansion 1.1.21 under standard-version > dotgitignore > minimatch@3.1.5 with
+# `pnpm audit` clean. The override had stopped closing anything: it only lifted that one dev
+# path across a major, and the patch existed solely to make that lift work. The handlebars,
+# lodash and minimatch overrides went the same way earlier.
 #
-# When you add one: the override TARGET (right-hand side) must be a FIXED version, never
-# a range — an unbounded target like `>=X` lets pnpm jump a major.
-# Only override packages this project actually resolves; verify a candidate is live
-# with: grep "'\?<pkg>@[0-9]" pnpm-lock.yaml
+# When you add one: prove it is needed first (scratch copy of package.json + this file, no
+# pnpm-lock.yaml, no node_modules, `pnpm install --lockfile-only`, `pnpm audit`). The
+# override TARGET (right-hand side) must be a FIXED version, never a range — an unbounded
+# target like `>=X` lets pnpm jump a major. Only override packages this project actually
+# resolves; verify a candidate is live with: grep "'\?<pkg>@[0-9]" pnpm-lock.yaml
+# Put each entry's reason as an indented comment directly above its own key.
 
 # ----------------------------------------------------------------------------------
 # No accepted advisories.
@@ -29,71 +35,10 @@
 # condition for deleting the entry, and date the verification. One GHSA id per entry —
 # never a range or a whole package — so anything new still turns the audit red.
 #
-# Worth knowing before reaching for it: the brace-expansion advisory below LOOKED
-# unfixable and was suppressed here for exactly that reason. It was not. See the
-# `patchedDependencies` note.
+# Worth knowing before reaching for it: the brace-expansion advisory LOOKED unfixable
+# and was suppressed here for exactly that reason. It was not. The only patched release
+# (5.0.8) had switched its CJS export from a callable to a namespace object, which broke
+# minimatch@3's `require('brace-expansion')(pattern)`; a one-line patchedDependencies
+# entry reading `.expand` off the namespace closed it (2026-07-30). Work the ladder in
+# nuxt-base-template/CLAUDE.md ("Security Overrides") before suppressing anything.
 # ----------------------------------------------------------------------------------
-
-overrides:
-  # brace-expansion DoS: exponential-time expansion of consecutive non-expanding {}
-  # groups (GHSA-3jxr-9vmj-r5cp), and unbounded expansion causing an OOM crash
-  # (GHSA-mh99-v99m-4gvg, high), plus unbounded intermediate arrays bypassing the
-  # CVE-2026-14257 mitigation (GHSA-rgw5-rvv9-x895, high, patched only in 5.0.9). Its
-  # vulnerable range runs up to and including 5.0.8, i.e. every 1.x/2.x/3.x/4.x
-  # release is affected and no in-major upgrade exists.
-  #
-  # Dev only, exactly one path: standard-version > dotgitignore > minimatch@3 >
-  # brace-expansion. Reaching 5.x needs the patch below — see `patchedDependencies`;
-  # the patch pins minimatch@3.1.5, not a brace-expansion version, so a 5.x target
-  # bump rides along as long as the namespace export shape holds.
-  #
-  # Raised 5.0.9 -> 5.0.12 (newest 5.x). 5.0.12 keeps the namespace export (`expand`
-  # plus two new EXPANSION_MAX_* limits) and returns identical results to 5.0.9 for
-  # `a{b,c}d`, `x{1..3}`, `{a,b}{1,2}`, `*.{js,ts}` and `{}`. Verified 2026-09-27.
-  #
-  # PREMISE NO LONGER TRUE (2026-09-27): the advisories now carry per-major backports,
-  # and brace-expansion 1.1.18 (published 2026-07-30, 17 minutes after this entry's
-  # 5.0.9 target) closes GHSA-rgw5 / GHSA-mh99 / GHSA-3jxr on the 1.x line minimatch@3
-  # asks for. A fresh resolve with NO override and NO patch gives brace-expansion
-  # 1.1.21 and `pnpm audit` is clean. So this entry and the minimatch patch are no
-  # longer load-bearing; they are kept only because removals need a deliberate
-  # decision, not a maintenance run. To drop both: delete this entry, the
-  # `patchedDependencies` block and `patches/minimatch@3.1.5.patch`, re-resolve with
-  # no lockfile, and confirm `pnpm audit` stays clean.
-  #
-  # KEY widened `<5.0.9` -> `<5.0.12` (2026-10-03), mirroring @lenne.tech/nuxt-extensions.
-  # Three advisories published 2026-09-29 moved the window again: GHSA-6j4f-fj2g-mc7p
-  # (HIGH, 1.1.19 / 2.1.5 / 3.0.7 / 5.0.10), GHSA-qhr7-859c-m2p7 (HIGH, 1.1.20 / 2.1.6 /
-  # 3.0.8 / 5.0.11) and GHSA-q2hr-2g5m-vwhr (MODERATE, 1.1.21 / 2.1.7 / 3.0.9 / 5.0.12).
-  # The old key let a 5.0.9-5.0.11 copy slip past; the tree never held one (the only
-  # consumer, minimatch@3, requests ^1.1.7), so the resolved tree does not move. Target
-  # unchanged: 5.0.12 is both the furthest fix and still the newest 5.x. The premise note
-  # above still holds — 1.1.21, what a fresh resolve without this entry gives, is also the
-  # 1.x fix for all three new advisories (re-verified with a fresh resolve 2026-10-03).
-  'brace-expansion@<5.0.12': 5.0.12
-
-# ----------------------------------------------------------------------------------
-# Why a patch rather than an override or a suppression.
-#
-# GHSA-mh99-v99m-4gvg (high) is fixed only in brace-expansion@5.0.8, and 5.0.8 changed
-# the CJS export from a callable to a namespace object (`{ EXPANSION_MAX,
-# EXPANSION_MAX_LENGTH, expand }`). `minimatch@3.1.5` does
-# `var expand = require('brace-expansion')` and then calls `expand(pattern)`, so the
-# override ALONE throws "expand is not a function" at match time.
-#
-# That is why this advisory was suppressed here before. The suppression was honest
-# about the mechanism but wrong about the conclusion: the fix is one line. The patch
-# reads `.expand` off the namespace and keeps a fallback to the old callable shape, so
-# it works against either. Verified 2026-07-30 that the two are signature-identical:
-# `expand('a{b,c}d')` → `["abd","acd"]` and `expand('x{1..3}')` → `["x1","x2","x3"]` on
-# both 1.1.16 and 5.0.8.
-#
-# The chain is dev-only (release tooling, never shipped to a generated project), which
-# is what makes a patch proportionate here rather than replacing standard-version.
-# Note that `commit-and-tag-version` — the maintained fork — does NOT remove the need:
-# it depends on the same `dotgitignore@^2.1.0`, and through it the same minimatch@3.
-#
-# Drop this patch (and narrow the override) once dotgitignore moves off minimatch@3.
-# ----------------------------------------------------------------------------------
-patchedDependencies:
-  minimatch@3.1.5: patches/minimatch@3.1.5.patch

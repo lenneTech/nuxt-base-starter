@@ -146,9 +146,14 @@ onlyBuiltDependencies:
 # This list is deliberately minimal: it is the set a fresh resolve proves is still
 # load-bearing. Method: copy package.json + this file (minus `overrides`) into a scratch
 # dir, `pnpm install --lockfile-only`, then `pnpm audit` — only an entry whose package
-# shows up there stays. On 2026-09-26 that was @nuxt/ui, esbuild and js-yaml (unhead is
-# build integrity, see its note); 13 other entries matched nothing a fresh resolve
-# produces and were removed. Re-check with the same method before adding any new one.
+# shows up there stays. On 2026-09-26 that was @nuxt/ui, esbuild and js-yaml; 13 other
+# entries matched nothing a fresh resolve produces and were removed. Re-check with the
+# same method before adding any new one. Re-run 2026-10-07 (fresh resolves, no lockfile,
+# no node_modules): all five entries below are load-bearing — without them `pnpm audit`
+# reports @nuxt/ui, simple-git + @simple-git/argv-parser, esbuild, js-yaml (three highs)
+# and postcss-selector-parser. The `unhead` build-integrity pin was removed that day: it
+# resolved the identical tree with or without it (see the @nuxt/ui entry, which now
+# carries the single-unhead-major invariant).
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -163,53 +168,6 @@ onlyBuiltDependencies:
 # and pins the OLD version, silently re-introducing the patched CVEs. hono is owned
 # by nest-server's overrides. Do not add it back.
 overrides:
-  # Build integrity, not a CVE: the SEO chain and nuxt must resolve exactly ONE
-  # unhead major, or Nitro's externals tracer copies a partial second copy into
-  # `.output/server/node_modules/unhead` and every SSR request of the BUILT app
-  # dies with 500 ERR_MODULE_NOT_FOUND (dev mode is unaffected — Playwright E2E
-  # against the built output is what catches it).
-  #
-  # Until nuxt 4.4.x this meant pinning DOWN: nuxt was built against unhead v2,
-  # nuxt-seo-utils >=8.1.10 hard-depended on @unhead/bundler v3, so both were
-  # held at the last pure-v2 combination. That pin has now flipped direction —
-  # nuxt 4.5.2 depends on `unhead ^3.3.1` itself, so pinning to 2.1.15 held the
-  # tree BELOW what nuxt needs and broke `nuxt prepare` outright ("Package
-  # subpath './stream/iife' is not defined by exports").
-  #
-  # The documented exit condition ("remove both once nuxt itself moves to unhead
-  # v3") is met, so the `nuxt-seo-utils` pin is gone — the SEO chain resolves v3
-  # on its own now (nuxt-seo-utils 8.3.3).
-  #
-  # The unhead pin stays, but it has FLIPPED DIRECTION: it no longer holds the
-  # tree down at v2, it lifts the last v2 consumer up to the version nuxt itself
-  # depends on. `@nuxt/ui` still drags in `@unhead/vue@2` through a peer
-  # variation, which reintroduced exactly the two-major state that
-  # `tests/unit/unhead-single-major.test.ts` guards against. Pinning UP is safe
-  # in a way pinning down was not: v3 is what nuxt builds against, so nothing
-  # resolves below its own requirement.
-  #
-  # Keep this in lock-step with nuxt's `unhead` dependency on every nuxt bump —
-  # a pin below it breaks `nuxt prepare` outright ("Package subpath
-  # './stream/iife' is not defined by exports"). Drop it once @nuxt/ui carries
-  # a v3 peer itself; verify with `pnpm why unhead` (exactly one major).
-  #
-  # Keep the target on the NEWEST 3.x, too: the unhead family pins itself exactly.
-  # `@unhead/vue@3.4.1` and `@unhead/bundler@3.4.1` both declare `unhead: 3.4.1`, so a
-  # 3.4.0 target ran them against a core one patch older than they were built for.
-  # Raised 3.4.0 -> 3.4.1 (newest 3.x). Verified 2026-09-27.
-  #
-  # Raised 3.4.1 -> 3.4.2 (newest 3.x, published 2026-09-29). A fresh resolve put
-  # `@unhead/vue` and `@unhead/bundler` on 3.4.2 — both declare `unhead: 3.4.2` exactly —
-  # while this entry still pinned the core to 3.4.1: the same one-patch skew as before.
-  #
-  # Currently LATENT, not load-bearing (fresh resolves 2026-10-03): dropping only this entry
-  # resolves the identical tree, because @nuxt/ui 4.11.3 depends on `@unhead/vue ^3.4.1`
-  # itself and the `@nuxt/ui` entry below lifts @lenne.tech/bug.lt's hard-pinned 4.2.1 —
-  # the copy that carried `@unhead/vue@2`. Drop BOTH overrides and unhead 2.1.17 is back
-  # next to 3.4.2. Kept because removal is a deliberate decision, and because as a pin it
-  # must keep tracking the newest 3.x or it turns into a downgrade lock again.
-  # Verified 2026-10-03.
-  'unhead': 3.4.2
   # @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking credentials via
   # GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via @lenne.tech/bug.lt,
   # which hard-pins @nuxt/ui@4.2.1. Target == the app's own @nuxt/ui version, so this
@@ -222,6 +180,20 @@ overrides:
   # Raised 4.11.2 -> 4.11.3 together with the app's own @nuxt/ui dependency. Key re-checked
   # against the advisory database 2026-10-03: GHSA-gj2h-2fpw-fhv9 is still the only @nuxt/ui
   # advisory and still `<4.8.1`.
+  #
+  # This entry ALSO keeps the tree on exactly one unhead major (build integrity). bug.lt's
+  # hard-pinned @nuxt/ui@4.2.1 carries `@unhead/vue@2` / `unhead@2`; with two unhead majors,
+  # Nitro's externals tracer copies a partial second copy into
+  # `.output/server/node_modules/unhead` and every SSR request of the BUILT app dies with
+  # 500 ERR_MODULE_NOT_FOUND (dev mode is unaffected). @nuxt/ui 4.11.3 itself depends on
+  # `@unhead/vue ^3.4.1`, so lifting 4.2.1 is what removes the last v2 consumer. A fresh
+  # resolve without this entry brings unhead 2.1.17 back next to 3.4.x. That is why the
+  # separate `unhead` pin could go on 2026-10-07: it resolved the identical package set with
+  # or without it, its own drop condition ("once @nuxt/ui carries a v3 peer itself") was met,
+  # and as an exact pin it risked turning into a downgrade lock below nuxt's own `unhead`
+  # range. `tests/unit/unhead-single-major.test.ts` still guards the invariant on the
+  # lockfile. If this entry is ever dropped (bug.lt moving to a patched @nuxt/ui), re-check
+  # `pnpm why unhead` for a single major first. Verified 2026-10-07.
   '@nuxt/ui@<4.8.1': 4.11.3
   # esbuild dev-server advisories - transitive via vite tooling. The key covers both:
   #   - GHSA-g7r4-m6w7-qqqr (low): arbitrary file read via the dev server on Windows,
