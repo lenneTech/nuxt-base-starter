@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.31.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.30.0...v2.31.0) (2026-10-07)
+
+
+### Features
+
+* **template:** remove the dev-only component page and free /docs ([f71ec95](https://github.com/lenneTech/nuxt-base-starter/commit/f71ec95b78a25fecf2b61b6a88de695b4fbdda08))
+* update nuxt to 4.6.0 and refresh dependencies ([c7f6a7c](https://github.com/lenneTech/nuxt-base-starter/commit/c7f6a7ce5b88b31ba8c8af1b421f70bd213b549c))
+
 ## [2.30.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.29.1...v2.30.0) (2026-10-06)
 
 
