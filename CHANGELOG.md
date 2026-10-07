@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.0...v2.31.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **template:** pre-bundle qrcode and valibot to stop dev reloads after a cold start ([2bfbd1a](https://github.com/lenneTech/nuxt-base-starter/commit/2bfbd1a817074c76dcb2e7e3d7480e58c9844735))
+
 ## [2.31.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.30.0...v2.31.0) (2026-10-07)
 
 
