@@ -364,6 +364,24 @@ export default defineNuxtConfig({
     },
     optimizeDeps: {
       exclude: ['@tailwindcss/vite', 'lightningcss', '@vue/devtools-core', '@vue/devtools-kit', '@internationalized/date'],
+      // Pre-bundle dependencies that only lazily loaded pages import. Nuxt's dev warmup
+      // crawls the whole client graph in the background, but stops at the first browser
+      // navigation, so opening the app right after `nuxt dev` / `lt dev up` leaves these
+      // to be found when their page is first visited. Vite then re-bundles and, if that
+      // changes chunks the browser already holds, forces a full reload: in-flight requests
+      // for the old chunk URLs fail ("Failed to fetch dynamically imported module", 502
+      // behind the lt dev proxy) and with `ssr: false` the page can stay blank until
+      // reloaded by hand.
+      //
+      // Measured here with a cold cache (Nuxt 4.6, Vite 8.3): valibot (auth forms) arrives
+      // in a second pass during the first page load; qrcode (2FA setup on
+      // /app/settings/security) arrives on that page and reloads it.
+      //
+      // Watch for `dependency optimized: <name>` / `dependencies optimized: …` in the dev
+      // log and add project dependencies that show up there. That line is the only trace:
+      // Nuxt 4.6 hides Vite's "optimized dependencies changed. reloading", and its own
+      // replacement hint waits for a message Vite 8 no longer prints (nuxt/nuxt#36497).
+      include: ['qrcode', 'valibot'],
     },
     plugins: [tailwindcss() as any],
     server: {
