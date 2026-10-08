@@ -40,5 +40,17 @@ export default defineConfig({
     path: './app/api-client',
     postProcess: ['oxlint', 'oxfmt'],
   },
-  plugins: ['@hey-api/client-fetch', '@hey-api/sdk', '@hey-api/typescript', '@hey-api/transformers'],
+  // `@hey-api/transformers` is deliberately NOT in this list (DEV-2897). The
+  // plugin emits `transformers.gen.ts` and makes `types.gen.ts` declare every
+  // date-time field as `Date` — but the generated SDK never passes a
+  // `responseTransformer`, and nothing imported the transformers, so what
+  // actually arrives at runtime is the raw ISO string. The declaration did not
+  // protect, it misled: `goal.periodStart.getTime()` compiled cleanly and threw
+  // at runtime, and `as string` casts quietly bent the type back into shape.
+  //
+  // Re-adding it is a two-part change, never a one-liner: wire the transformers
+  // at the client AND audit every place that treats a date as a string
+  // (`.slice(0, 10)`, `new Date(value)`, template output).
+  // Pinned by `tests/unit/openapi-transformers-contract.test.ts`.
+  plugins: ['@hey-api/client-fetch', '@hey-api/sdk', '@hey-api/typescript'],
 });
