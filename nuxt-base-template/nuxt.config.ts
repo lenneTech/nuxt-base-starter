@@ -381,7 +381,11 @@ export default defineNuxtConfig({
       // log and add project dependencies that show up there. That line is the only trace:
       // Nuxt 4.6 hides Vite's "optimized dependencies changed. reloading", and its own
       // replacement hint waits for a message Vite 8 no longer prints (nuxt/nuxt#36497).
-      include: ['qrcode', 'valibot'],
+      // Everything `app/` imports is enforced by `tests/unit/optimize-deps-contract.test.ts`,
+      // and so is the nuxt-extensions runtime, which vendor mode moves into `app/core/`: that
+      // is where the better-auth entries come from. Other modules' runtime imports stay
+      // invisible to it.
+      include: ['@better-auth/passkey/client', 'better-auth/client/plugins', 'better-auth/vue', 'qrcode', 'valibot'],
     },
     plugins: [tailwindcss() as any],
     server: {
