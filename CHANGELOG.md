@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.2...v2.31.3) (2026-10-08)
+
+
+### Bug Fixes
+
+* **template:** stop declaring API date-time fields as Date ([1bc1120](https://github.com/lenneTech/nuxt-base-starter/commit/1bc112073f5dd1f188a9f496d68eeb43a013d66f))
+
 ### [2.31.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.1...v2.31.2) (2026-10-08)
 
 
