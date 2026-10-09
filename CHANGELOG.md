@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.5](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.4...v2.31.5) (2026-10-09)
+
+
+### Bug Fixes
+
+* **template:** measure the provisioned pnpm outside the project ([515c9ca](https://github.com/lenneTech/nuxt-base-starter/commit/515c9caa797d0f3e98fb98071224a7df1f78e006))
+* **template:** update [@lenne](https://github.com/lenne).tech/nuxt-extensions to 1.18.6 ([9154f63](https://github.com/lenneTech/nuxt-base-starter/commit/9154f63cfa5cf42ef4d43f9e885f91178b67a5da))
+
 ### [2.31.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.3...v2.31.4) (2026-10-09)
 
 
