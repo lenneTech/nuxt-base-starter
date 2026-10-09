@@ -188,7 +188,10 @@ describe.runIf(Boolean(process.env.CI || process.env.PIN_PROVISION_TEST))('pnpm 
     // one found on PATH. Same fix as @lenne.tech/nuxt-extensions' pin test.
     const launchers = [join(prefix, 'bin', 'pnpm'), join(prefix, 'pnpm.cmd')].filter((path) => existsSync(path));
     expect(launchers).toHaveLength(1);
-    const version = execSync(`"${launchers[0]}" --version`, { encoding: 'utf8' }).trim();
+    // Ask from the empty prefix, never from a project directory: pnpm 11 reports the
+    // `packageManager` pin of the directory it runs in, not its own version, so from here a
+    // wrongly installed pnpm@11.14.0 printed the template's 11.28.5 and the test passed.
+    const version = execSync(`"${launchers[0]}" --version`, { cwd: prefix, encoding: 'utf8' }).trim();
     expect(version).toBe(pinnedVersion);
   }, 180_000);
 });
