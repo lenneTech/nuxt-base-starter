@@ -13,7 +13,7 @@ State 2026-10-07 (maintenance before starter 2.31.0). After that run `ncu` showe
   is `typescript` aliased to `@typescript/typescript6` (then it loads `@typescript/old`),
   i.e. still TS 6 under another name — not an upgrade. Unblocks when a vue-tsc release
   drives the TS 7 native compiler; verify in a scratch copy with `pnpm run typecheck`.
-- **@playwright/test 1.63** (template, held at 1.62.1) — lt-monorepo pins
+- **@playwright/test 1.64** (template, held at 1.62.1) — lt-monorepo pins
   `mcr.microsoft.com/playwright:v1.62.1-noble` (`.gitlab-ci.yml` x2, `.github/workflows/test.yml`
   x1) and its `scripts/check-playwright-image.mjs` compares that tag with
   `projects/app/package.json` — i.e. this template. Bumping here alone turns every freshly
@@ -25,10 +25,12 @@ State 2026-10-07 (maintenance before starter 2.31.0). After that run `ncu` showe
   (shamefully-hoist) while auto-imports get 15. The template's own code uses no vueuse
   composable, so the bump buys nothing here. Unblocks when
   `npm view @nuxt/ui@latest dependencies.@vueuse/core` says `^15`; no code change needed then.
-- **pnpm / `packageManager`** (both, 11.14.0) — stack-wide SSOT pin (nest-server and
-  nest-server-starter on 11.13.1, nuxt-extensions and lt-monorepo on 11.14.0, contract tests
-  in each). 12.x is a major (engines `^11.0.0` coupling); even 11.28.x belongs to a
-  coordinated stack bump, not a single-repo maintenance run.
+- **pnpm 12** (both, on 11.28.5) — 12.x is a major: `engines.pnpm ^11.0.0` here and in
+  lt-monorepo turns it into `ERR_PNPM_UNSUPPORTED_ENGINE` in every generated project, so it
+  needs a coordinated stack bump. 11.x minors are NOT held: Kai decided 2026-10-09 to take
+  11.14.0 → 11.28.5 in 2.31.4 via `corepack up` in a single-repo maintenance run and asked
+  the other base repos to follow with their own maintain run. The lt CLI hoists the highest
+  sub-project pin to the monorepo root, so a temporary spread across repos is harmless.
 - **better-auth / @better-auth/passkey** — not a hold but a lock-step: see
   [[project-better-auth-tracks-nest-server]].
 
