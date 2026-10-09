@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.3...v2.31.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **template:** guard optimizeDeps.include and pre-bundle the better-auth client ([3059808](https://github.com/lenneTech/nuxt-base-starter/commit/3059808e21133b9dde44a46f3ff917a4d26d88b8))
+* **template:** let lint:fix cover tests/ like lint ([0ae4560](https://github.com/lenneTech/nuxt-base-starter/commit/0ae4560175ccb6c3c320f0c9cdcbdda72b9ce874))
+
 ### [2.31.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.2...v2.31.3) (2026-10-08)
 
 
