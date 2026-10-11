@@ -6,6 +6,12 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     environment: 'happy-dom',
+    // Several specs cold-import heavy modules on purpose (`openapi-ts.config` pulls in
+    // @hey-api/openapi-ts, config contracts re-import with `vi.resetModules()`). Alone that
+    // takes ~1 s; inside the monorepo `check`, where this suite runs in parallel with the
+    // API typecheck and the root script tests, it measured past the 5 s default and failed
+    // three green tests. Same headroom nest-server-starter gives its unit config.
+    testTimeout: 30000,
     include: ['tests/unit/**/*.{test,spec}.ts'],
     globals: true,
     // signal-guard: a test may only signal processes it spawned (see the file header).
