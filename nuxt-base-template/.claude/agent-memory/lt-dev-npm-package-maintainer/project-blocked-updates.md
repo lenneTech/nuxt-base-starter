@@ -7,8 +7,9 @@ metadata:
 
 Deliberate holds — re-check each condition per run, do not re-litigate the analysis.
 State 2026-10-07 (maintenance before starter 2.31.0). After that run `ncu` showed ONLY these.
+Re-measured 2026-10-11 (before 2.31.8): all four still held; 11.28.5 is still the newest pnpm 11.x.
 
-- **typescript 7.x** (template, held at 6.0.3) — vue-tsc 3.3.12 resolves
+- **typescript 7.x** (template, held at 6.0.3, TS 7.0.2 available) — vue-tsc 3.3.13 (same as 3.3.12) resolves
   `typescript/lib/tsc`, which TS 7's `exports` map does not provide. Its only "TS 7" path
   is `typescript` aliased to `@typescript/typescript6` (then it loads `@typescript/old`),
   i.e. still TS 6 under another name — not an upgrade. Unblocks when a vue-tsc release

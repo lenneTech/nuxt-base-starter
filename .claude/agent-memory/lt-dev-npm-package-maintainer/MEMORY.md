@@ -11,4 +11,4 @@
 - [CHANGELOG .prettierignore](project_changelog_format.md) — Root CHANGELOG.md is generated; excluded from oxfmt via .prettierignore
 - [pnpm 11 auto-exclude](feedback_pnpm11_auto_minimum_release_age.md) — Do NOT keep pnpm's auto-added third-party excludes; pick a gate-passing version. Includes the stale-lock deadlock escape.
 - [Deferred updates](project_deferred-updates.md) — TS 7, pnpm 12, @playwright/test (lt-monorepo image), @vueuse/nuxt 15: why held, what releases each
-- [check auto-fix + stale copies](feedback_check_autofix_and_stale_copies.md) — template `check` WRITES oxfmt/oxlint fixes; @nuxt/test-utils bump needs a fresh resolve
+- [check auto-fix + stale copies](feedback_check_autofix_and_stale_copies.md) — template `check` WRITES oxfmt/oxlint fixes; any nuxt or @nuxt/test-utils bump needs a fresh resolve

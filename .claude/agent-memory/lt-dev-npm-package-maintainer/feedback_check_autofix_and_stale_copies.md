@@ -1,6 +1,6 @@
 ---
 name: check-autofix-and-in-place-install-traps
-description: The template `check` WRITES formatter output over the whole template (protect foreign uncommitted files first), and an in-place install after a @nuxt/test-utils bump keeps a stale circular copy — fresh-resolve instead.
+description: The template `check` WRITES formatter output over the whole template (protect foreign uncommitted files first), and an in-place install after a @nuxt/test-utils or nuxt bump keeps stale duplicate copies — fresh-resolve instead.
 metadata:
   type: feedback
 ---
@@ -25,6 +25,10 @@ it. Fix: fresh resolve in scratch (package.json + pnpm-workspace.yaml + .npmrc, 
 node_modules, `pnpm install --lockfile-only --ignore-scripts`), copy that lockfile in,
 `pnpm install --frozen-lockfile`. Tell-tale: `grep -oE "^  '?vue@[0-9][^'(:]*" pnpm-lock.yaml | sort -u`
 shows two versions.
+Not specific to test-utils: on 2026-10-11 a plain `pnpm add -E nuxt@4.6.1` (+4 patches) kept
+`@nuxt/kit@4.6.0`/`@nuxt/schema@4.6.0` next to 4.6.1 plus the old `@types/node` and
+`@vitejs/plugin-vue`. After ANY framework bump, diff the package set against a fresh resolve
+and adopt the fresh lockfile (that is what `lt fullstack init` produces anyway).
 
 **3. `nuxt-base-template/.nuxtrc` changes with the bump** (`setups.@nuxt/test-utils="<ver>"`,
 written by `nuxt prepare`). It is a companion artifact — earlier dep-refresh commits carry it.
