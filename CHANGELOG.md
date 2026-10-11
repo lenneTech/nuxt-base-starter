@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.6](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.5...v2.31.6) (2026-10-11)
+
+
+### Bug Fixes
+
+* **template:** give unit tests headroom when check runs in parallel ([c237ca1](https://github.com/lenneTech/nuxt-base-starter/commit/c237ca18df9f3afbd97e1bef6c243a42cfb7f677))
+
 ### [2.31.5](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.4...v2.31.5) (2026-10-09)
 
 
