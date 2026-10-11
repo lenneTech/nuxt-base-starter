@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.8](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.7...v2.31.8) (2026-10-11)
+
+
+### Bug Fixes
+
+* **template:** update nuxt to 4.6.1 and refresh the template lockfile ([c3f2600](https://github.com/lenneTech/nuxt-base-starter/commit/c3f26006f7d0d8548e92e42b177ad299ef2f7c43))
+
 ### [2.31.7](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.6...v2.31.7) (2026-10-11)
 
 
