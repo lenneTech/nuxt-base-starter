@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.7](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.6...v2.31.7) (2026-10-11)
+
+
+### Bug Fixes
+
+* **template:** lint a fresh vendor-mode project without warnings ([49090f0](https://github.com/lenneTech/nuxt-base-starter/commit/49090f0f81abab1b6c5fa3f587c3d63a44da88d5))
+
 ### [2.31.6](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.5...v2.31.6) (2026-10-11)
 
 
