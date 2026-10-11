@@ -5,7 +5,7 @@
  */
 
 import { expect, test } from '@nuxt/test-utils/playwright';
-import type { BrowserContext, Page } from '@playwright/test';
+import type { BrowserContext, CDPSession, Page } from '@playwright/test';
 import {
   extractTOTPSecret,
   fillInput,
@@ -72,7 +72,7 @@ async function setupVirtualAuthenticator(context: BrowserContext, page: Page) {
   return { cdpSession, authenticatorId };
 }
 
-async function cleanupAuthenticator(cdpSession: any, authenticatorId: string): Promise<void> {
+async function cleanupAuthenticator(cdpSession: CDPSession, authenticatorId: string): Promise<void> {
   try {
     await cdpSession.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
     await cdpSession.send('WebAuthn.disable');

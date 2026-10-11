@@ -128,7 +128,7 @@ async function onPasskeyLogin(): Promise<void> {
 
     // Update auth state with user data if available
     if (result.user) {
-      setUser(result.user as any);
+      setUser(result.user);
     } else {
       // Passkey auth may return success without user - fetch user via session validation
       await validateSession();

@@ -2,6 +2,7 @@
 // ============================================================================
 // Imports
 // ============================================================================
+import type { LtUserInput } from '@lenne.tech/nuxt-extensions';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { InferOutput } from 'valibot';
 
@@ -57,6 +58,17 @@ const schema = v.object({
 
 type Schema = InferOutput<typeof schema>;
 
+/**
+ * The fields this page reads from `verifyTotp` / `verifyBackupCode`: the error, plus the token
+ * and the user, which `onSubmit` accepts both under `data` and at the top level.
+ */
+interface TwoFactorVerifyResult {
+  data?: null | { token?: string; user?: LtUserInput };
+  error?: null | { message?: string };
+  token?: string;
+  user?: LtUserInput;
+}
+
 // ============================================================================
 // Functions
 // ============================================================================
@@ -64,7 +76,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
   loading.value = true;
 
   try {
-    let result: any;
+    let result: TwoFactorVerifyResult;
 
     if (useBackupCode.value) {
       result = await authClient.twoFactor.verifyBackupCode({

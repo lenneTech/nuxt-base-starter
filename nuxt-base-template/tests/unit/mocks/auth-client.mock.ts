@@ -58,7 +58,7 @@ export function createMockAuthClient() {
 
     $fetch: vi.fn(),
     $store: {},
-    $Infer: {} as any,
+    $Infer: {},
 
     // Sign in methods
     signIn: {

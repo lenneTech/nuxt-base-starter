@@ -7,15 +7,22 @@
   },
   "rules": {
     "eqeqeq": "warn",
-    "no-console": "warn",
+    "no-console": ["warn", { "allow": ["warn", "error", "info", "debug", "trace", "time", "timeEnd", "group", "groupEnd"] }],
     "no-unused-vars": "warn",
     "@typescript-eslint/no-explicit-any": "warn"
   },
   "overrides": [
     {
-      "files": ["scripts/**"],
+      "files": ["scripts/**", "tests/unit/fixtures/**"],
       "rules": {
         "no-console": "off"
+      }
+    },
+    {
+      "files": ["app/core/**"],
+      "rules": {
+        "no-console": "off",
+        "@typescript-eslint/no-explicit-any": "off"
       }
     }
   ]

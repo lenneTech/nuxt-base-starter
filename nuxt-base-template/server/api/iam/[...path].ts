@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
 
   // Get request body for POST/PUT/PATCH requests
   const method = event.method;
-  let body: any;
+  let body: unknown;
   if (['POST', 'PUT', 'PATCH'].includes(method)) {
     body = await readBody(event);
   }
@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
 
   // Make the request to the API
   const response = await $fetch.raw(fullUrl, {
-    method: method as any,
+    method,
     body: body ? JSON.stringify(body) : undefined,
     headers: {
       'Content-Type': 'application/json',
