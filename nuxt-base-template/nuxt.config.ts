@@ -377,10 +377,11 @@ export default defineNuxtConfig({
       // in a second pass during the first page load; qrcode (2FA setup on
       // /app/settings/security) arrives on that page and reloads it.
       //
-      // Watch for `dependency optimized: <name>` / `dependencies optimized: …` in the dev
-      // log and add project dependencies that show up there. That line is the only trace:
-      // Nuxt 4.6 hides Vite's "optimized dependencies changed. reloading", and its own
-      // replacement hint waits for a message Vite 8 no longer prints (nuxt/nuxt#36497).
+      // Watch the dev log for Nuxt's "Vite discovered new dependencies at runtime" (on later
+      // finds: "New dependencies found: …") and add the project dependencies it names. Nuxt
+      // hides Vite's "optimized dependencies changed. reloading", so that hint is the only
+      // trace of the reload. Nuxt up to 4.6.0 never printed it under Vite 8; there the trace
+      // is Vite's own `dependency optimized: <name>` line, which 4.6.1 now swallows.
       // Everything `app/` imports is enforced by `tests/unit/optimize-deps-contract.test.ts`,
       // and so is the nuxt-extensions runtime, which vendor mode moves into `app/core/`: that
       // is where the better-auth entries come from. Other modules' runtime imports stay

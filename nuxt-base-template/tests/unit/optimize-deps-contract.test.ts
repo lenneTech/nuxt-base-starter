@@ -7,7 +7,8 @@
  * in-flight requests for the old chunk URLs fail ("Failed to fetch dynamically imported module")
  * and everything the page held is gone — typed text, a running save, the scroll position. Nuxt
  * hides Vite's "optimized dependencies changed. reloading", so the only trace in the dev log is
- * `dependency optimized: <name>`.
+ * its own hint "Vite discovered new dependencies at runtime" (Nuxt <= 4.6.0 under Vite 8:
+ * `dependency optimized: <name>`).
  *
  * In an E2E run that reload lands inside whichever step happens to be running, and a retry
  * passes because the second run finds the dependencies already bundled. Observed downstream
