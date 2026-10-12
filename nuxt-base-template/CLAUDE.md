@@ -103,7 +103,7 @@ pnpm test             # Run Playwright E2E tests
 pnpm run build        # Build for production
 pnpm run check        # Full quality check (audit + format + lint + types + test + build)
 pnpm run typecheck    # Types of the APP sources (app/ + server/) — nuxt typecheck / vue-tsc
-pnpm run typecheck:tests  # Types of the TEST suites (tests/) — tsc
+pnpm run typecheck:tests  # Types of the TEST suites (tests/) — vue-tsc
 pnpm run prepare:ide  # Refresh the IDE's .nuxt/ types
 pnpm run clean        # Remove every generated build/output dir
 ```
@@ -164,8 +164,9 @@ unseen before anything looked (lt-crm DEV-2726).
 
 - **`typecheck`** covers `app/` + `server/` and runs on `vue-tsc` — plain `tsc`
   cannot resolve the `.vue` SFCs this half is made of.
-- **`typecheck:tests`** covers `tests/` and runs on plain `tsc`, because the specs
-  here import only `.ts`.
+- **`typecheck:tests`** covers `tests/` and runs on `vue-tsc` too, because specs
+  may mount `.vue` components (`tests/unit/components/tus-file-upload.test.ts`).
+  The server tsconfig half of the script stays on plain `tsc`.
 
 Both are wired into `check:raw` / `check:fix` / `check:naf` **and** into the CI
 `typecheck` job. That second half is the one that matters: a gate reachable only

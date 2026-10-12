@@ -213,7 +213,12 @@ export default defineNuxtConfig({
       maxRestoreMs: 1500,
     },
     tus: {
-      defaultEndpoint: '/files/upload',
+      // nest-server's TUS route. Relative on purpose: since nuxt-extensions 1.19.0 it resolves
+      // against the API (`/api/tus` behind the dev proxy, `NUXT_PUBLIC_API_URL` + `/tus`
+      // otherwise). The former `'/files/upload'` went to the app origin and every upload answered
+      // 404 (DEV-3595); with 1.19.0 it would reach the API's multipart route instead. Pinned by
+      // `tests/unit/tus-endpoint-contract.test.ts`.
+      defaultEndpoint: '/tus',
       defaultChunkSize: 5 * 1024 * 1024,
     },
   },

@@ -4,7 +4,7 @@
   // `nuxt build` and `oxlint app/` never look at tests/, and vitest / Playwright
   // transpile without type-checking — so type errors in specs (wrong helper
   // arity, missing imports, stale API shapes) land unnoticed. `pnpm run
-  // typecheck:tests` (wired into `check` and CI) runs tsc over this config to
+  // typecheck:tests` (wired into `check` and CI) runs vue-tsc over this config to
   // close that gap.
   //
   // Shares every common knob (types, strictness relaxations, path aliases,
@@ -19,15 +19,13 @@
   // auto-imports via .nuxt ambient types). It needs a prior `nuxt prepare`; the
   // typecheck:tests script runs that first.
   //
-  // Tool choice — plain `tsc`, not `vue-tsc`: the starter's specs import only
-  // `.ts` (relative app utils, node, vitest, Playwright), so `tsc` covers them
-  // fully and starts faster. Once your project's specs start importing `.vue`
-  // components or via the `~` alias (which pulls SFCs through `#components`),
-  // plain `tsc` can no longer resolve `.vue` — switch this script to `vue-tsc`
-  // then. It is already a devDependency (`pnpm run typecheck`, the APP-source
-  // half of the gate, runs on it), so that switch costs nothing but the word.
-  // The pinned pair is vue-tsc 3.3.8 on TypeScript 6.0.3 — verified working;
-  // keep them in step when bumping either.
+  // Tool choice — `vue-tsc`, not plain `tsc`: specs may import `.vue` components
+  // (`tests/unit/components/tus-file-upload.test.ts` mounts one), and plain
+  // `tsc` cannot resolve `.vue` at all. The starter ran on `tsc` while its specs
+  // imported only `.ts`; the switch cost nothing but the word, since `vue-tsc`
+  // is already a devDependency (`pnpm run typecheck`, the APP-source half of the
+  // gate, runs on it). The pinned pair is vue-tsc 3.3.13 on TypeScript 6.0.3 —
+  // verified working; keep them in step when bumping either.
   "extends": "./tests/tsconfig.json",
   "compilerOptions": {
     "noEmit": true

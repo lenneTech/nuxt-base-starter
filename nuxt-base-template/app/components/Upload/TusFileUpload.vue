@@ -90,7 +90,8 @@ const { addFiles, cancelAll, cancelUpload, clearCompleted, isUploading, pauseAll
 // ============================================================================
 // State
 // ============================================================================
-const files = ref<File[]>([]);
+// UFileUpload liefert bei `multiple: false` eine einzelne File bzw. null statt File[]
+const files = ref<File | File[] | null>([]);
 
 // ============================================================================
 // Watchers
@@ -98,8 +99,10 @@ const files = ref<File[]>([]);
 // Neue Dateien zu TUS hinzufuegen
 watch(
   files,
-  (newFiles, oldFiles) => {
-    const addedFiles = newFiles.filter((f) => !oldFiles?.includes(f));
+  (newValue, oldValue) => {
+    const newFiles = toFileList(newValue);
+    const oldFiles = toFileList(oldValue);
+    const addedFiles = newFiles.filter((f) => !oldFiles.includes(f));
     if (addedFiles.length > 0) {
       // Validierung
       const validFiles = addedFiles.filter((file) => {

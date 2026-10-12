@@ -51,7 +51,8 @@ auditConfig:
     #
     # Delete when `pnpm audit` is clean without this entry, i.e. node-forge resolves to a
     # patched version or no longer resolves. Re-check on every dependency bump.
-    # Verified 2026-10-02.
+    # Verified 2026-10-02. Re-verified 2026-10-12: 1.4.0 is still the newest node-forge, and
+    # a fresh resolve without this entry still reports the advisory.
     - GHSA-86w9-cpqp-85rv
     # GHSA-vfj7-8cjw-p6xm (high since 2026-10-02): braces <=3.0.3 recurses without a depth
     # guard in its AST walkers, so a deeply nested brace pattern exhausts the call stack.
@@ -72,7 +73,8 @@ auditConfig:
     #
     # Delete when `pnpm audit` is clean without this entry, i.e. braces resolves to a
     # patched version or no longer resolves. Re-check on every dependency bump.
-    # Verified 2026-10-03.
+    # Verified 2026-10-03. Re-verified 2026-10-12: 3.0.3 is still the newest braces, and a
+    # fresh resolve without this entry still reports the advisory.
     - GHSA-vfj7-8cjw-p6xm
 
 # pnpm 11 renamed `onlyBuiltDependencies` to `allowBuilds` (map of pkg -> bool).
@@ -153,7 +155,8 @@ onlyBuiltDependencies:
 # reports @nuxt/ui, simple-git + @simple-git/argv-parser, esbuild, js-yaml (three highs)
 # and postcss-selector-parser. The `unhead` build-integrity pin was removed that day: it
 # resolved the identical tree with or without it (see the @nuxt/ui entry, which now
-# carries the single-unhead-major invariant).
+# carries the single-unhead-major invariant). Re-run 2026-10-12, same method: unchanged,
+# all five still load-bearing, every target is still the newest release in its major.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
