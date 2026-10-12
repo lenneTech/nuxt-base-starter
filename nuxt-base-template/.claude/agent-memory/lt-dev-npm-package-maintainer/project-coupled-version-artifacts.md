@@ -1,6 +1,6 @@
 ---
 name: project-coupled-version-artifacts
-description: nuxt-base-template/.nuxtrc pins the @nuxt/test-utils version and is rewritten on install
+description: in-repo companions of version bumps — .nuxtrc (@nuxt/test-utils) and the vue-tsc/TypeScript pair named in the tsconfig.tests.json comment
 metadata:
   type: project
 ---
@@ -18,3 +18,9 @@ in-repo companion. But `@playwright/test` IS coupled across repos: lt-monorepo p
 `mcr.microsoft.com/playwright:vX.Y.Z-noble` and its `check:playwright-image` guard compares
 it with `projects/app/package.json`, which is this template. A bump here without the
 lt-monorepo image bump turns every generated project red; see [[project-blocked-updates]].
+
+**Second companion (since 2.32.0): the `tsconfig.tests.json` comment** names the vue-tsc /
+TypeScript pair ("The pinned pair is vue-tsc X on TypeScript Y — keep them in step"). Nothing
+tests it, so it drifts silently: on 2026-10-12 it still said 3.3.8 while package.json had
+3.3.12 and the run took 3.3.13. Update the comment with every vue-tsc or typescript bump
+(that day the file was protected feature work, so the fix was handed back to the caller).

@@ -8,6 +8,12 @@ metadata:
 Deliberate holds — re-check each condition per run, do not re-litigate the analysis.
 State 2026-10-07 (maintenance before starter 2.31.0). After that run `ncu` showed ONLY these.
 Re-measured 2026-10-11 (before 2.31.8): all four still held; 11.28.5 is still the newest pnpm 11.x.
+Re-measured 2026-10-12 (before 2.32.0): all four still held (lt-monorepo image v1.62.1, @nuxt/ui 4.11.3
+on `@vueuse/core ^14.4.0`, vue-tsc 3.3.13 still resolves `typescript/lib/tsc`, 11.28.5 newest 11.x).
+Only vue-tsc 3.3.12 -> 3.3.13 was taken. Left at the release-age gate, NOT holds: `happy-dom` 21.0.x
+(a MAJOR, 7h old — evaluate it next run: changelog + full gate, it backs vitest's DOM env and
+@nuxt/test-utils' types, see the happy-dom note in the template CLAUDE.md) and
+`@iconify-json/lucide` 1.2.143 (1.5h old).
 
 - **typescript 7.x** (template, held at 6.0.3, TS 7.0.2 available) — vue-tsc 3.3.13 (same as 3.3.12) resolves
   `typescript/lib/tsc`, which TS 7's `exports` map does not provide. Its only "TS 7" path
