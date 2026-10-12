@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.32.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.8...v2.32.0) (2026-10-12)
+
+
+### Features
+
+* **template:** uploads through TusFileUpload arrive and report the stored file id ([1e4c6b6](https://github.com/lenneTech/nuxt-base-starter/commit/1e4c6b6d6ac48030a0b4720e82a47b909cdcb32a))
+
 ### [2.31.8](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.7...v2.31.8) (2026-10-11)
 
 
