@@ -26,8 +26,19 @@ interface AuthResponse {
 // Composables
 // ============================================================================
 const toast = useToast();
-const { signUp, signIn, registerPasskey, features, clearUser } = useLtAuth();
+const { signUp, signIn, registerPasskey, features, fetchFeatures, clearUser } = useLtAuth();
 const { translateError } = useLtErrorTranslation();
+
+// The form depends on the feature flags (`signUpChecks` adds the terms checkbox), but
+// useLtAuth() fetches them on the client only. The server therefore rendered the form
+// WITHOUT the checkbox and the client WITH it — in the production build the flags land
+// before hydration finishes, so every visit logged a hydration mismatch and the
+// checkbox popped in after load. Fetched during SSR, the flags travel in the payload
+// (`lt-auth-features` is useState, and `lt-auth-features-fetched` stops the client
+// from fetching again), so both sides render the same form.
+if (import.meta.server) {
+  await fetchFeatures();
+}
 
 // ============================================================================
 // Page Meta
@@ -47,10 +58,15 @@ const loading = ref<boolean>(false);
 const showPasskeyPrompt = ref<boolean>(false);
 const passkeyLoading = ref<boolean>(false);
 
-// Redirect if registration is disabled
+// Redirect if registration is disabled. Never on the server: the flags are known there now (see
+// above), but a server-side navigateTo answers with a bare 302 that carries no payload, so the
+// toast explaining the redirect would never reach the browser.
 watch(
   () => features.value.signUpEnabled,
   (val) => {
+    if (import.meta.server) {
+      return;
+    }
     if (val === false) {
       toast.add({
         color: 'warning',

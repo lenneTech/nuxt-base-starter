@@ -118,6 +118,16 @@ const COLLECTIONS = ['session', 'account', 'verification', 'passkey', 'twoFactor
 /** Loopback hosts — the only ones `resetTestData` will delete from without an explicit opt-in. */
 const LOOPBACK_URI = /^mongodb(\+srv)?:\/\/(?:[^@/]*@)?(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(\/|$)/;
 
+/** Refuse to write unless `MONGO_URI` is loopback, or `E2E_ALLOW_REMOTE_DB=true` opts in. */
+function assertLocalDatabase(): void {
+  if (process.env.E2E_ALLOW_REMOTE_DB !== 'true' && !LOOPBACK_URI.test(MONGO_URI)) {
+    throw new Error(
+      `Refusing to delete test data: MONGO_URI is not loopback (${MONGO_URI.replace(/\/\/[^@]*@/, '//***@')}). ` +
+        'Set E2E_ALLOW_REMOTE_DB=true only if you really mean to write to a remote database.',
+    );
+  }
+}
+
 /**
  * Refuse to delete unless both the target database and the account are unmistakably test-only.
  *
@@ -130,12 +140,7 @@ const LOOPBACK_URI = /^mongodb(\+srv)?:\/\/(?:[^@/]*@)?(localhost|127\.0\.0\.1|\
  * with the `API_BASE` the browser is actually driving.
  */
 function assertSafeToDelete(email: string): void {
-  if (process.env.E2E_ALLOW_REMOTE_DB !== 'true' && !LOOPBACK_URI.test(MONGO_URI)) {
-    throw new Error(
-      `Refusing to delete test data: MONGO_URI is not loopback (${MONGO_URI.replace(/\/\/[^@]*@/, '//***@')}). ` +
-        'Set E2E_ALLOW_REMOTE_DB=true only if you really mean to write to a remote database.',
-    );
-  }
+  assertLocalDatabase();
   if (!email.endsWith('@test.com')) {
     throw new Error(`Refusing to delete "${email}": resetTestData only handles @test.com addresses. Use generateTestUser().`);
   }
@@ -231,6 +236,35 @@ export async function resetTestData(email: string): Promise<void> {
         // Collection may not exist
       }
       await db.collection('users').deleteOne({ _id: user._id });
+    }
+  } finally {
+    await client.close();
+  }
+}
+
+/**
+ * Release the initial-admin claim that a successful `POST /system-setup/init` leaves behind.
+ *
+ * nest-server removes its `system-setup-locks` marker only when creating the admin FAILS. A spec
+ * that sets the system up and deletes that admin afterwards therefore leaves zero users AND a
+ * held claim: `needsSetup` reports true, init answers 403 until the claim goes stale after five
+ * minutes, and the spec fails its own re-run — as does `/auth/setup` for a developer in that
+ * window. Call it after {@link resetTestData} removed the admin the spec created.
+ *
+ * The marker is deleted only while no user exists, so this can never reopen the setup of an
+ * installation that has an admin.
+ *
+ * @throws When `MONGO_URI` is not loopback (unless `E2E_ALLOW_REMOTE_DB=true`).
+ */
+export async function releaseSystemSetupClaim(): Promise<void> {
+  assertLocalDatabase();
+
+  const client = new MongoClient(MONGO_URI);
+  try {
+    await client.connect();
+    const db = client.db();
+    if ((await db.collection('users').countDocuments({})) === 0) {
+      await db.collection<{ _id: string }>('system-setup-locks').deleteOne({ _id: 'initial-admin' });
     }
   } finally {
     await client.close();
