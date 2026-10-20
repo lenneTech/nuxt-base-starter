@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.32.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.32.0...v2.32.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* **auth:** render the register form's feature flags on the server ([fba9f7d](https://github.com/lenneTech/nuxt-base-starter/commit/fba9f7d9ff038373da6d16276ce42bcf95521c84))
+* **template:** drop the stale simple-git patch and raise nuxt-extensions to 1.19.1 ([0482d45](https://github.com/lenneTech/nuxt-base-starter/commit/0482d4536b6112eae58ff69b222dd213d08141b2))
+
 ## [2.32.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.31.8...v2.32.0) (2026-10-12)
 
 
