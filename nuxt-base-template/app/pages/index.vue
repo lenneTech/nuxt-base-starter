@@ -2,6 +2,10 @@
 // ============================================================================
 // Variables
 // ============================================================================
+// Shown as the hero subtitle AND used as the meta description, so the text search
+// engines and link previews show cannot drift from what the page says.
+const description = 'A modern Nuxt 4 starter template with TypeScript, Nuxt UI components, and production-ready tools. Start building your next application with confidence.';
+
 const features: Array<{
   color: 'info' | 'primary' | 'secondary' | 'success';
   description: string;
@@ -33,6 +37,16 @@ const features: Array<{
     title: 'Production Ready',
   },
 ];
+
+// ============================================================================
+// Head
+// ============================================================================
+// The only indexable page (`/app`, `/auth` and `/admin` are noindex), so its head is
+// what search results and link previews show for the whole project. og:description
+// is inferred from `description`; without one both rendered empty. No `title`: the
+// home page is titled with the site name alone, which app.vue's titleTemplate renders
+// without appending it a second time.
+useSeoMeta({ description });
 </script>
 
 <template>
@@ -50,7 +64,7 @@ const features: Array<{
             <span class="block text-primary mt-2">Base Template</span>
           </h1>
           <p class="mt-8 text-lg leading-8 text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-            A modern Nuxt 4 starter template with TypeScript, Nuxt UI components, and production-ready tools. Start building your next application with confidence.
+            {{ description }}
           </p>
           <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <UButton to="https://github.com/lenneTech/nuxt-base-starter" target="_blank" size="xl" icon="i-lucide-github" color="primary"> View on GitHub </UButton>
