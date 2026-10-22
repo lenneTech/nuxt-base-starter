@@ -239,6 +239,26 @@ export default defineNuxtConfig({
   ],
 
   // ============================================================================
+  // SEO: OG Images (nuxt-og-image, part of @nuxtjs/seo)
+  // ============================================================================
+  // Off until a page calls `defineOgImage()`. Enabled, the module registers a runtime
+  // image renderer under `/_og` and signs its URLs with a secret generated on every
+  // build, warning about that on every `nuxt dev` start. With no page defining an OG
+  // image it renders nothing: an unused endpoint plus a warning people learn to ignore.
+  // While off, `defineOgImage*()` resolve to no-op mocks, so a call compiles but does
+  // nothing.
+  //
+  // To switch it on: remove this block, call `defineOgImage()` in the pages that need
+  // a preview image, and set a fixed NUXT_OG_IMAGE_SECRET (`npx nuxt-og-image
+  // generate-secret`) in every environment, documented in .env.example. An
+  // auto-generated secret changes with each build, so signed URLs break as soon as two
+  // builds or instances serve the site. `tests/unit/og-image-contract.test.ts` holds
+  // both directions.
+  ogImage: {
+    enabled: false,
+  },
+
+  // ============================================================================
   // Analytics (Plausible)
   // ============================================================================
   plausible: {

@@ -195,7 +195,7 @@ mail usually means the mail service is not configured on the backend.
 
 - Sitemap generation (`@nuxtjs/seo`)
 - robots.txt configuration
-- OG image generation
+- OG image generation (off by default: switch it on together with `defineOgImage()` and a fixed `NUXT_OG_IMAGE_SECRET`, see `ogImage` in `nuxt.config.ts`)
 - Plausible Analytics integration
 
 ### File Upload
