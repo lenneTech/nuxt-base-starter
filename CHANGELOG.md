@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.32.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.32.1...v2.32.2) (2026-10-22)
+
+
+### Bug Fixes
+
+* **seo:** give the landing page a meta description ([30da1a1](https://github.com/lenneTech/nuxt-base-starter/commit/30da1a12521a2a792468696dd6b096633fe34ede))
+* **seo:** switch off nuxt-og-image until a page defines an OG image ([87bb7ad](https://github.com/lenneTech/nuxt-base-starter/commit/87bb7adf6a2cbbbc4f9a2317eaa7c4f0b233d7b1))
+
 ### [2.32.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.32.0...v2.32.1) (2026-10-20)
 
 
