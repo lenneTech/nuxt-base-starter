@@ -49,6 +49,26 @@ export default defineAppConfig({
       },
     },
 
+    // Placeholders. Nuxt UI draws them text-dimmed: neutral-400 on white, 2.56:1,
+    // and neutral-500 on neutral-900, 3.75:1, both below WCAG AA. text-muted passes
+    // in both modes. Lighthouse only ever caught the USelectMenu one, a real <span>;
+    // axe skips `::placeholder`, so the inputs never showed up in an audit. All ten
+    // components that draw a placeholder are listed, so one a project adds later is
+    // covered too. tests/unit/placeholder-contrast-contract.test.ts pins list and ratio.
+    input: { slots: { base: 'placeholder:text-muted' } },
+    inputDate: { slots: { segment: 'data-placeholder:text-muted' } },
+    inputMenu: {
+      slots: { tagsInput: 'placeholder:text-muted' },
+      variants: { multiple: { false: { base: 'placeholder:text-muted' } } },
+    },
+    inputNumber: { slots: { base: 'placeholder:text-muted' } },
+    inputTags: { slots: { input: 'placeholder:text-muted' } },
+    inputTime: { slots: { segment: 'data-placeholder:text-muted' } },
+    pinInput: { slots: { base: 'placeholder:text-muted' } },
+    select: { slots: { placeholder: 'text-muted' } },
+    selectMenu: { slots: { placeholder: 'text-muted' } },
+    textarea: { slots: { base: 'placeholder:text-muted' } },
+
     // Dark/Light mode icons
     icons: {
       dark: 'i-lucide-moon',
