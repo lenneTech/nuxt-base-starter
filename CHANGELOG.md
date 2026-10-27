@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.33.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.32.2...v2.33.0) (2026-10-27)
+
+
+### Features
+
+* **template:** better-auth 1.7.12, nuxt-extensions 1.20.0, @nuxtjs/seo 6 and type-aware lint ([8cc8483](https://github.com/lenneTech/nuxt-base-starter/commit/8cc84830747314c1b16adbe9f72ee2fab93510b9))
+
+
+### Bug Fixes
+
+* **a11y:** lift every form placeholder to WCAG AA contrast ([23f1742](https://github.com/lenneTech/nuxt-base-starter/commit/23f1742da8b74354950e53b3d684e69d77e44c73))
+* **dev:** keep the app's own Nitro routes out of the dev API proxy ([a69ae4a](https://github.com/lenneTech/nuxt-base-starter/commit/a69ae4ac23059392ce63e72e6f89282ef748583c))
+* **env:** stop the localhost site URL warning on every install ([f8eac28](https://github.com/lenneTech/nuxt-base-starter/commit/f8eac281f2fb9d1c7f62c929ecb99363e0ca7145))
+* **layout:** give the settings, AI and admin pages a side gutter ([e44cd7b](https://github.com/lenneTech/nuxt-base-starter/commit/e44cd7b010c77928afe8fe5bf2257cac2b856e43))
+
 ### [2.32.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.32.1...v2.32.2) (2026-10-22)
 
 
