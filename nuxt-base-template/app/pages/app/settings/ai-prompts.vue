@@ -102,7 +102,7 @@ const grouped = computed(() => ({
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl">
+  <div class="mx-auto px-4 max-w-7xl">
     <div class="mb-6">
       <h1 class="text-2xl font-bold">KI-Vorlagen</h1>
       <p class="text-muted">

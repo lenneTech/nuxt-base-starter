@@ -36,7 +36,7 @@ function shortCommit(commit: string): string {
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl space-y-6">
+  <div class="mx-auto px-4 max-w-4xl space-y-6">
     <div>
       <h1 class="text-2xl font-bold">System</h1>
       <p class="text-muted">Build-Informationen von App und API.</p>

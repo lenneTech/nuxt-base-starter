@@ -9,7 +9,7 @@ definePageMeta({ ssr: false });
 </script>
 
 <template>
-  <div class="mx-auto flex h-[calc(100vh-12rem)] max-w-3xl flex-col gap-4">
+  <div class="mx-auto px-4 flex h-[calc(100vh-12rem)] max-w-3xl flex-col gap-4">
     <div>
       <h1 class="text-2xl font-bold">KI-Assistent</h1>
       <p class="text-muted">Frage den Assistenten — er kann im Backend abgesicherte Aktionen ausführen.</p>

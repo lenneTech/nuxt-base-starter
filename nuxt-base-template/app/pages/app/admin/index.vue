@@ -16,7 +16,7 @@ const cards = [
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl space-y-6">
+  <div class="mx-auto px-4 max-w-4xl space-y-6">
     <div>
       <h1 class="text-2xl font-bold">Administration</h1>
       <p class="text-muted">Verwaltungsbereiche für Administratoren.</p>

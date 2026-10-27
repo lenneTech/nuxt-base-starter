@@ -74,7 +74,7 @@ async function remove(limit: LtAiBudgetLimit): Promise<void> {
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl space-y-6">
+  <div class="mx-auto px-4 max-w-4xl space-y-6">
     <div>
       <h1 class="text-2xl font-bold">KI-Budgets</h1>
       <p class="text-muted">Token- und Anfrage-Limits pro Nutzer oder Tenant (0/leer = unbegrenzt).</p>

@@ -28,7 +28,7 @@ function pct(used: number, max?: number): number {
 </script>
 
 <template>
-  <div class="mx-auto max-w-2xl space-y-8">
+  <div class="mx-auto px-4 max-w-2xl space-y-8">
     <div>
       <h1 class="text-2xl font-bold">KI-Einstellungen</h1>
       <p class="text-muted">Wähle deine bevorzugte KI-Verbindung und sieh deinen Verbrauch.</p>
