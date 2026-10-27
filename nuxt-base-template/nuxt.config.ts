@@ -436,7 +436,13 @@ export default defineNuxtConfig({
         //
         // Why: Frontend (localhost:3001) and backend (localhost:3000) run on different
         // ports. The proxy makes requests same-origin so cookies work correctly.
-        '/api': {
+        //
+        // The key is a RegExp (Vite reads a leading `^` that way) so the app's own Nitro
+        // routes under /api stay with Nitro: a plain '/api' prefix also forwarded
+        // server/api/build-identity.get.ts to the backend, and /app/admin/system logged a
+        // 404 on every visit. Add every new file under server/api/ to the lookahead;
+        // tests/unit/dev-proxy-nitro-routes.test.ts fails until you do.
+        '^/api/(?!build-identity(?:[/?]|$))': {
           target: process.env.NUXT_API_URL || 'http://localhost:3000',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
