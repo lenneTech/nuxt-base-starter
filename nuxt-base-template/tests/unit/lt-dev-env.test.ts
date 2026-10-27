@@ -7,7 +7,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const envFile = join(__dirname, '..', '..', '.env.example');
+const envFile = join(import.meta.dirname, '..', '..', '.env.example');
 
 describe('.env.example — lt dev keys', () => {
   it('exists', () => {
@@ -18,6 +18,15 @@ describe('.env.example — lt dev keys', () => {
 
   it('documents NUXT_PUBLIC_SITE_URL with localhost default', () => {
     expect(content).toMatch(/NUXT_PUBLIC_SITE_URL=http:\/\/localhost:3001/);
+  });
+
+  // `lt fullstack init` copies this file to `.env`. nuxt-site-config flags a localhost URL
+  // unless the site env is `development`, and outside `nuxt dev` that env comes from Nuxt's
+  // `envName` (= production), so every `nuxt prepare` (postinstall) warned
+  // "url ... from buildEnv should not be localhost". Docker strips `.env*`, so production
+  // builds keep `production` and stay indexable.
+  it('pairs the localhost site URL with NUXT_SITE_ENV=development', () => {
+    expect(content).toMatch(/^NUXT_SITE_ENV=development$/m);
   });
 
   it('documents NUXT_PUBLIC_API_URL with localhost default', () => {
