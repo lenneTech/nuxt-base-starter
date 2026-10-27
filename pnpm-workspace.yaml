@@ -1,4 +1,6 @@
-# pnpm settings for the create-nuxt-base scaffolder (single-package project).
+# pnpm settings for the repository root: release tooling only (standard-version, oxfmt).
+# The Nuxt template itself lives in nuxt-base-template/ with its own pnpm-workspace.yaml.
+# The former `create-nuxt-base` scaffolder (index.js) was retired on 2026-10-26.
 #
 # IMPORTANT: This file intentionally has NO `packages:` field. It carries
 # ONLY workspace-scoped settings. This is the pnpm-recommended home for these

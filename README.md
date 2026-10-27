@@ -1,16 +1,25 @@
-# create-nuxt-base
+# nuxt-base-starter
 
-A CLI tool to scaffold a production-ready **Nuxt 4** application with TypeScript, Tailwind CSS v4, NuxtUI v4, and modern tooling.
+A production-ready **Nuxt 4** starter template with TypeScript, Tailwind CSS v4, NuxtUI v4, Better Auth and modern tooling. The app lives in [`nuxt-base-template/`](./nuxt-base-template); this repository root only carries the release tooling.
 
 ## Quick Start
 
+New projects are scaffolded by the [lenne.Tech CLI](https://github.com/lenneTech/cli), which clones the current template from this repository:
+
 ```bash
-npx create-nuxt-base my-awesome-project
-cd my-awesome-project
-pnpm run dev
+npm install -g @lenne.tech/cli
+
+# Frontend only
+lt frontend nuxt --name my-awesome-project
+
+# Or a fullstack monorepo (API + this app)
+lt fullstack init
 ```
 
-The development server starts at **http://localhost:3001**
+Then `cd` into the project and run `pnpm run dev`. The development server starts at **http://localhost:3001**.
+
+> `npx create-nuxt-base` is retired. The npm package stopped receiving releases at 2.7.0 and still
+> ships that old template; use the lt CLI instead.
 
 ## What's Included
 
@@ -19,7 +28,7 @@ The development server starts at **http://localhost:3001**
 | Technology   | Version | Description                           |
 | ------------ | ------- | ------------------------------------- |
 | Nuxt         | 4.x     | Vue 3 meta-framework with SSR support |
-| TypeScript   | 5.9.x   | Strict type checking enabled          |
+| TypeScript   | 6.0.x   | Strict type checking enabled          |
 | Tailwind CSS | 4.x     | Utility-first CSS with Vite plugin    |
 | NuxtUI       | 4.x     | Component library with dark mode      |
 
@@ -50,9 +59,8 @@ Pre-built auth pages: login, register, forgot-password, reset-password, 2fa
 
 ### SEO & Analytics
 
-- **@nuxtjs/seo** - Sitemap, robots.txt, OG images
+- **@nuxtjs/seo** - Sitemap, robots.txt, Schema.org (OG images, AI Ready and Skew Protection are off by default)
 - **@nuxtjs/plausible** - Privacy-friendly analytics
-- **@nuxt/image** - Image optimization with IPX
 
 ### Developer Experience
 
@@ -155,8 +163,8 @@ the public form also populates `runtimeConfig.public.siteUrl` for the auth redir
 
 ## Requirements
 
-- Node.js >= 22
-- pnpm >= 9
+- Node.js ^22.22.3 or ^24.15.0 (the floor of Nuxt 4.6 and @nuxtjs/seo 6)
+- pnpm 11 (pinned through `packageManager`)
 
 ## License
 

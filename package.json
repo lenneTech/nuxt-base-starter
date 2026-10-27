@@ -2,16 +2,12 @@
   "name": "create-nuxt-base",
   "version": "2.32.2",
   "private": true,
-  "description": "Starter to generate a configured environment with VueJS, Nuxt, Tailwind, Linting, Unit Tests, Playwright etc.",
+  "description": "Nuxt 4 starter template (nuxt-base-template/) for lenne.Tech projects, scaffolded by the lt CLI (lt frontend nuxt / lt fullstack init).",
   "license": "MIT",
   "author": "lenne.Tech GmbH",
   "repository": {
     "url": "https://github.com/lenneTech/nuxt-base-starter"
   },
-  "bin": {
-    "create-nuxt-base": "./index.js"
-  },
-  "main": "index.js",
   "scripts": {
     "c": "pnpm run check",
     "check": "pnpm install --frozen-lockfile && pnpm audit && pnpm peers check && pnpm run check:ci-placement && pnpm run test:scripts && pnpm run format:check && cd nuxt-base-template && pnpm run check",
@@ -27,17 +23,13 @@
     "check:ci-placement": "node scripts/check-ci-placement.mjs",
     "test:scripts": "node --test scripts/check-ci-placement.test.mjs"
   },
-  "dependencies": {
-    "cross-spawn": "7.0.6",
-    "fs-extra": "11.4.1"
-  },
   "devDependencies": {
-    "oxfmt": "0.72.0",
+    "oxfmt": "0.74.0",
     "standard-version": "9.5.0"
   },
   "engines": {
     "node": ">= 22",
     "pnpm": "^11.0.0"
   },
-  "packageManager": "pnpm@11.28.5+sha512.484563d30b4c2ad27cb48aa94ff2b302dbcebc8ff6bf28816c2589886e146ce7f76f354f3bc1a438e6f5e9768c302aa0a6f7add8232903cd4cf81426cbc14d9e"
+  "packageManager": "pnpm@11.28.8+sha512.f6988a32046b9a3f78d7d7ee0747926bbe905ff9dff73bf19abb87bd7d1906a2ac90d93f73be32b5f9e14c2899569bcb0c9c5ec8a19e083f5d71bbab6dd9e0b8"
 }
