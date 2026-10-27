@@ -16,7 +16,7 @@ import { describe, expect, it } from 'vitest';
 
 import { buildGroups, parseOverridesSummary } from '../../scripts/check.mjs';
 
-const ROOT = join(__dirname, '..', '..');
+const ROOT = join(import.meta.dirname, '..', '..');
 const scripts = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scripts as Record<string, string>;
 
 describe('check-overrides in the check chain', () => {

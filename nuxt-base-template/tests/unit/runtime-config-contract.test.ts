@@ -18,7 +18,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const templateRoot = join(__dirname, '..', '..');
+const templateRoot = join(import.meta.dirname, '..', '..');
 const envFile = join(templateRoot, '.env.example');
 const configFile = join(templateRoot, 'nuxt.config.ts');
 

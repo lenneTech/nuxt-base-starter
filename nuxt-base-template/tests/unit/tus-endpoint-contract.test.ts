@@ -18,7 +18,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const templateRoot = join(__dirname, '..', '..');
+const templateRoot = join(import.meta.dirname, '..', '..');
 const configSource = readFileSync(join(templateRoot, 'nuxt.config.ts'), 'utf8');
 const pkg = JSON.parse(readFileSync(join(templateRoot, 'package.json'), 'utf8'));
 const vendorFile = join(templateRoot, 'app', 'core', 'VENDOR.md');

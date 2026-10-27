@@ -303,7 +303,9 @@ test.describe('Test 3: Error Translations', () => {
     // it and surfaces it as a NuxtUI toast in the Notifications region. Assert on
     // the translated text (role-agnostic — NuxtUI toast markup is not `li[role=alert]`
     // and the toast title/heading text is not stable across versions).
-    const notifications = page.getByRole('region', { name: /Notifications/i });
+    // The region label follows the app locale since @nuxt/ui 4.12 (`toaster.viewport`:
+    // "Benachrichtigungen (F8)" under `de`); 4.11 hard-coded "Notifications (F8)".
+    const notifications = page.getByRole('region', { name: /Benachrichtigungen|Notifications/i });
     await expect(notifications.getByText('Ungültige Anmeldedaten')).toBeVisible({ timeout: 10000 });
   });
 

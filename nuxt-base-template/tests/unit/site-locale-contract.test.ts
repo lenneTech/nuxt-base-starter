@@ -15,7 +15,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const source = readFileSync(join(__dirname, '..', '..', 'nuxt.config.ts'), 'utf8');
+const source = readFileSync(join(import.meta.dirname, '..', '..', 'nuxt.config.ts'), 'utf8');
 
 /** The quoted value of `key:` inside the first `<block>: {` object, or undefined. */
 function valueIn(block: string, key: string): string | undefined {

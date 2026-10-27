@@ -17,7 +17,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const ROOT = join(__dirname, '..', '..');
+const ROOT = join(import.meta.dirname, '..', '..');
 
 function vueFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

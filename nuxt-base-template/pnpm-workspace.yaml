@@ -1,8 +1,8 @@
 # pnpm settings for the nuxt-base-template (single-package project).
 #
 # IMPORTANT: This file intentionally has NO `packages:` field. It carries
-# ONLY workspace-scoped settings (overrides, ignoredOptionalDependencies,
-# allowBuilds / onlyBuiltDependencies). This is the pnpm-recommended home for
+# ONLY workspace-scoped settings (overrides, auditConfig, allowBuilds /
+# onlyBuiltDependencies, minimumReleaseAgeExclude). This is the pnpm-recommended home for
 # these keys and is read by pnpm 10 AND pnpm 11. (pnpm 11 silently ignores the
 # same keys when they live in package.json's `pnpm` block.)
 #
@@ -51,73 +51,31 @@ auditConfig:
     #
     # Delete when `pnpm audit` is clean without this entry, i.e. node-forge resolves to a
     # patched version or no longer resolves. Re-check on every dependency bump.
-    # Verified 2026-10-02. Re-verified 2026-10-12: 1.4.0 is still the newest node-forge, and
-    # a fresh resolve without this entry still reports the advisory.
+    # Verified 2026-10-02. Re-verified 2026-10-12 and 2026-10-24: 1.4.0 is still the newest
+    # node-forge, and a fresh resolve without this entry still reports the advisory.
     - GHSA-86w9-cpqp-85rv
-    # GHSA-vfj7-8cjw-p6xm (high since 2026-10-02): braces <=3.0.3 recurses without a depth
-    # guard in its AST walkers, so a deeply nested brace pattern exhausts the call stack.
-    #
-    # Path: nuxt > @nuxt/nitro-server > nitropack > globby > fast-glob | micromatch >
-    # braces 3.0.3. A project that adds @nuxtjs/i18n gets a second path through
-    # @intlify/unplugin-vue-i18n > fast-glob.
-    #
-    # Not fixable: there is no patched release. npm audit names ">=3.0.4", which does not
-    # exist (latest is 3.0.3, GitHub lists no first patched version), and every link of the
-    # chain is already its newest release (micromatch 4.0.8, fast-glob 3.3.3). An override
-    # has nothing to point at; a patchedDependencies entry would mean writing the security
-    # fix ourselves.
-    #
-    # Residual risk, none reachable: the chain globs files at BUILD time (Nitro's and the
-    # i18n plugin's own scans) with patterns from the project's config, never with outside
-    # input. braces, micromatch and fast-glob are not traced into `.output/`.
-    #
-    # Delete when `pnpm audit` is clean without this entry, i.e. braces resolves to a
-    # patched version or no longer resolves. Re-check on every dependency bump.
-    # Verified 2026-10-03. Re-verified 2026-10-12: 3.0.3 is still the newest braces, and a
-    # fresh resolve without this entry still reports the advisory.
-    - GHSA-vfj7-8cjw-p6xm
+    # The braces entry (GHSA-vfj7-8cjw-p6xm, braces 3.0.3 via nitropack > globby) was removed
+    # on 2026-10-24: GitHub withdrew the advisory on 2026-10-23, `check-suppressions.mjs`
+    # reported it WITHDRAWN, and `pnpm audit` stays clean without the entry.
 
 # pnpm 11 renamed `onlyBuiltDependencies` to `allowBuilds` (map of pkg -> bool).
 # We keep BOTH keys so the file works across pnpm 10 (reads onlyBuiltDependencies)
 # and pnpm 11 (reads allowBuilds); each version ignores the key it doesn't know.
 allowBuilds:
+  # Not in the template's own tree: an optional peer of nuxt and listhen (the faster file
+  # watcher). Kept so a project that adds it does not stop with ERR_PNPM_IGNORED_BUILDS,
+  # which pnpm 11 raises for every unapproved build script (measured 2026-10-24).
   '@parcel/watcher': true
   esbuild: true
-  sharp: true
   simple-git-hooks: true
   vue-demi: true
 
-ignoredOptionalDependencies:
-  - '@img/sharp-linux-arm'
-  - '@img/sharp-linux-arm64'
-  - '@img/sharp-linux-ppc64'
-  - '@img/sharp-linux-riscv64'
-  - '@img/sharp-linux-s390x'
-  - '@img/sharp-linux-x64'
-  - '@img/sharp-linuxmusl-arm64'
-  - '@img/sharp-linuxmusl-x64'
-  - '@img/sharp-win32-arm64'
-  - '@img/sharp-win32-ia32'
-  - '@img/sharp-win32-x64'
-  - '@img/sharp-wasm32'
-  - '@img/sharp-libvips-linux-arm'
-  - '@img/sharp-libvips-linux-arm64'
-  - '@img/sharp-libvips-linux-ppc64'
-  - '@img/sharp-libvips-linux-riscv64'
-  - '@img/sharp-libvips-linux-s390x'
-  - '@img/sharp-libvips-linux-x64'
-  - '@img/sharp-libvips-linuxmusl-arm64'
-  - '@img/sharp-libvips-linuxmusl-x64'
-  - '@resvg/resvg-js-android-arm-eabi'
-  - '@resvg/resvg-js-android-arm64'
-  - '@resvg/resvg-js-linux-arm-gnueabihf'
-  - '@resvg/resvg-js-linux-arm64-gnu'
-  - '@resvg/resvg-js-linux-arm64-musl'
-  - '@resvg/resvg-js-linux-x64-gnu'
-  - '@resvg/resvg-js-linux-x64-musl'
-  - '@resvg/resvg-js-win32-arm64-msvc'
-  - '@resvg/resvg-js-win32-ia32-msvc'
-  - '@resvg/resvg-js-win32-x64-msvc'
+# No `ignoredOptionalDependencies` and no build approval for sharp any more (removed
+# 2026-10-24 together with @nuxt/image, the only package that pulled sharp in hard, via ipx).
+# The list skipped every Linux and Windows binary of sharp and resvg; in the node:24-alpine
+# image that left sharp without a binary, so `/_ipx` could not have processed a raster image.
+# A fresh resolve now contains neither package, and sharp 0.35 needs no build script.
+# A project that adds @nuxt/image back must NOT ignore the `@img/sharp-linuxmusl-*` binaries.
 
 minimumReleaseAgeExclude:
   # ONLY our own first-party scope. The glob exempts every @lenne.tech package and
@@ -134,7 +92,6 @@ minimumReleaseAgeExclude:
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - esbuild
-  - sharp
   - simple-git-hooks
   - vue-demi
 
@@ -161,6 +118,10 @@ onlyBuiltDependencies:
 # @nuxt/devtools 3.4.3+ no longer depends on simple-git, so a fresh resolve produced none,
 # the patch went unused and every install stopped with ERR_PNPM_UNUSED_PATCH. The four
 # remaining entries are still load-bearing.
+# Re-run 2026-10-24 (better-auth 1.7.12 round, same method): all four still load-bearing,
+# none holds a package below what the unrestricted resolve picks. A fifth entry was added for
+# zod via bug.lt; without the overrides, `pnpm audit` reports esbuild, js-yaml (three highs),
+# @nuxt/ui, postcss-selector-parser and zod.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -175,6 +136,15 @@ onlyBuiltDependencies:
 # and pins the OLD version, silently re-introducing the patched CVEs. hono is owned
 # by nest-server's overrides. Do not add it back.
 overrides:
+  # zod <4.6.6 (GHSA-mrhx-c7xc-m3w5, high, first patched 4.6.6); via @lenne.tech/bug.lt, whose
+  # newest release (1.6.9) hard-pins zod EXACTLY at 4.1.13, so no bump can fix it. Every other
+  # zod consumer (better-auth, @nuxt/ui, the @nuxtjs/seo modules) already resolves 4.6.7 on its
+  # own, which is why the key is scoped to bug.lt: a bare `zod@<4.6.6` key would also intersect
+  # their `^4.x` ranges and pin them (see the selector note above), and inside an lt-monorepo
+  # it would reach the api's zod too. Same major, so no export-shape change. 4.6.7 is the
+  # newest zod. Drop once bug.lt requests >=4.6.6 itself; the `@<4.6.6` on the child makes the
+  # entry inert then, and `check-overrides.mjs` reports it. Verified 2026-10-24.
+  '@lenne.tech/bug.lt>zod@<4.6.6': 4.6.7
   # @nuxt/ui UAuthForm/UForm SSR markup omits the form `method`, leaking credentials via
   # GET when submitted before hydration (GHSA-gj2h-2fpw-fhv9); via @lenne.tech/bug.lt,
   # which hard-pins @nuxt/ui@4.2.1. Target == the app's own @nuxt/ui version, so this
@@ -187,6 +157,10 @@ overrides:
   # Raised 4.11.2 -> 4.11.3 together with the app's own @nuxt/ui dependency. Key re-checked
   # against the advisory database 2026-10-03: GHSA-gj2h-2fpw-fhv9 is still the only @nuxt/ui
   # advisory and still `<4.8.1`.
+  #
+  # Raised 4.11.3 -> 4.12.0 (key unchanged) together with the app's own @nuxt/ui dependency.
+  # Re-checked 2026-10-24: GHSA-gj2h-2fpw-fhv9 is still the only @nuxt/ui advisory, still
+  # `<4.8.1`, and bug.lt 1.6.9 is still the newest release with its 4.2.1 pin.
   #
   # This entry ALSO keeps the tree on exactly one unhead major (build integrity). bug.lt's
   # hard-pinned @nuxt/ui@4.2.1 carries `@unhead/vue@2` / `unhead@2`; with two unhead majors,
@@ -201,7 +175,7 @@ overrides:
   # range. `tests/unit/unhead-single-major.test.ts` still guards the invariant on the
   # lockfile. If this entry is ever dropped (bug.lt moving to a patched @nuxt/ui), re-check
   # `pnpm why unhead` for a single major first. Verified 2026-10-07.
-  '@nuxt/ui@<4.8.1': 4.11.3
+  '@nuxt/ui@<4.8.1': 4.12.0
   # esbuild dev-server advisories - transitive via vite tooling. The key covers both:
   #   - GHSA-g7r4-m6w7-qqqr (low): arbitrary file read via the dev server on Windows,
   #     >=0.27.3 <0.28.1, first patched 0.28.1. This is the one the `<0.28.1` bound encodes.
@@ -237,7 +211,12 @@ overrides:
   # out byte-identical (69,798 bytes). The parser is pure build tooling here and is not traced
   # into `.output/`. offers and lt-crm already run typography on 7.1.6.
   #
-  # The key stays below the first patched version (see the selector note above): cssnano's
-  # postcss-calc asks for ^7.0.0 and already resolves 7.1.6 on its own. Drop this entry once
-  # @tailwindcss/typography requests >=7.1.6 itself. Verified 2026-10-06.
-  'postcss-selector-parser@<7.1.6': 7.1.6
+  # The key stays below the first patched version (see the selector note above). Drop this
+  # entry once @tailwindcss/typography requests >=7.1.6 itself. Verified 2026-10-06.
+  #
+  # Raised 7.1.6 -> 7.1.7 (target only, the newest 7.x) on 2026-10-24. 7.1.7 is a bug-fix
+  # release (combinator raws, parent links on insertBefore/insertAfter, attribute namespace
+  # parsing). Measured the same way as above: Tailwind 4.3.3 compiled the typography plugin
+  # with each version, and the CSS came out byte-identical (85,146 bytes). typography is now
+  # the only consumer; the cssnano chain that also asked for ^7.0.0 left the tree.
+  'postcss-selector-parser@<7.1.6': 7.1.7

@@ -611,7 +611,7 @@ async function main() {
       liveCount = 0; // the failure line must survive — nothing may overwrite it
       const summary = audit.counts ? `${audit.total} vuln (${renderVulnLine(audit.counts)})` : 'failed';
       console.log(`${C.red('✗')} audit  ${C.red(summary)} ${C.dim(`(${fmtDuration(dur)})`)}`);
-      return fail(`audit (${auditCmd})`, audit.counts ? renderVulnLine(audit.counts) : audit.reason, started);
+      return fail(`audit (${String(auditCmd)})`, audit.counts ? renderVulnLine(audit.counts) : audit.reason, started);
     }
     if (!TTY) {
       process.stdout.write(`  ${C.green('✓')} audit  ${audit.counts ? renderVulnLine(audit.counts) : C.dim('0')} ${C.dim(`(${fmtDuration(dur)})`)}\n`);

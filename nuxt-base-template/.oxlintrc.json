@@ -9,7 +9,13 @@
     "eqeqeq": "warn",
     "no-console": ["warn", { "allow": ["warn", "error", "info", "debug", "trace", "time", "timeEnd", "group", "groupEnd"] }],
     "no-unused-vars": "warn",
-    "@typescript-eslint/no-explicit-any": "warn"
+    "@typescript-eslint/no-explicit-any": "warn",
+    // Type-aware (`oxlint --type-aware`, needs the oxlint-tsgolint devDependency), as in nest-server and the
+    // NestJS 12 template. An un-awaited promise is the one defect no other gate sees: its rejection goes
+    // unhandled. Deliberate fire-and-forget gets `void`. LIMIT: tsgolint only reads .ts/.mts files, so
+    // `navigateTo()` / `router.push()` inside a .vue SFC is NOT checked (verified with a probe 2026-10-26);
+    // move async logic into composables to get it covered.
+    "typescript/no-floating-promises": "error"
   },
   "overrides": [
     {
@@ -19,10 +25,18 @@
       }
     },
     {
+      // Vendor mode: app/core/ is @lenne.tech/nuxt-extensions copied in by `lt fullstack init` (or a
+      // convert-mode run) and is linted by its own repository's rules. The type-aware rules stay off here:
+      // the core vendored from nuxt-extensions <= 1.19.1 has 8 un-awaited promises, so `lint` (pre-commit
+      // and CI) failed in every newly generated vendor-mode project, and newer cores still raise
+      // no-base-to-string / unbound-method warnings on every run (measured 2026-10-26).
       "files": ["app/core/**"],
       "rules": {
         "no-console": "off",
-        "@typescript-eslint/no-explicit-any": "off"
+        "@typescript-eslint/no-explicit-any": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-base-to-string": "off",
+        "typescript/unbound-method": "off"
       }
     }
   ]

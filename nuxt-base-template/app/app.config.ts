@@ -5,10 +5,11 @@ export default defineAppConfig({
   toaster: {
     duration: 5000,
     expand: false,
-    // What a screen reader says before every toast it announces. Reka UI owns
-    // that word, outside Nuxt UI's locale, and says "Notification" otherwise.
-    // The toast REGION keeps its English name "Notifications (F8)": that is
-    // ToastViewport's label, which Nuxt UI (4.11.3) does not pass through.
+    // What a screen reader says before every toast it announces. Since @nuxt/ui
+    // 4.12 the `de` locale supplies the same word (`toaster.label`) and also names
+    // the toast REGION "Benachrichtigungen (F8)" (`toaster.viewport`); up to 4.11
+    // Reka's English "Notification" / "Notifications (F8)" came through instead.
+    // Kept explicit so the announcement stays German if the UApp locale changes.
     label: 'Benachrichtigung',
     position: 'bottom-right' as const,
   },

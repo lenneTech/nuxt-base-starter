@@ -542,7 +542,7 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
       await resetTestData(testUser.email);
       console.info(`  Cleanup: test user ${testUser.email} removed from database`);
     } catch (error) {
-      console.error(`  Cleanup failed: ${error}`);
+      console.error(`  Cleanup failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   });
 });

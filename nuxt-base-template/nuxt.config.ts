@@ -129,16 +129,6 @@ export default defineNuxtConfig({
   },
 
   // ============================================================================
-  // Image Optimization
-  // ============================================================================
-  image: {
-    ipx: {
-      maxAge: 2592000, // 30 days
-    },
-    provider: 'ipx',
-  },
-
-  // ============================================================================
   // Icon Configuration
   // ============================================================================
   icon: {
@@ -231,7 +221,6 @@ export default defineNuxtConfig({
     '@nuxt/test-utils/module', // E2E testing with Playwright
     '@lenne.tech/bug.lt', // Bug reporting to Linear
     '@vueuse/nuxt', // Vue composition utilities
-    '@nuxt/image', // Image optimization
     '@nuxt/ui', // NuxtUI component library
     '@nuxtjs/plausible', // Privacy-friendly analytics
     '@nuxtjs/seo', // SEO optimization (sitemap, robots, og-image)
@@ -249,14 +238,36 @@ export default defineNuxtConfig({
   // nothing.
   //
   // To switch it on: remove this block, call `defineOgImage()` in the pages that need
-  // a preview image, and set a fixed NUXT_OG_IMAGE_SECRET (`npx nuxt-og-image
-  // generate-secret`) in every environment, documented in .env.example. An
+  // a preview image, and set a fixed NUXT_APP_SECRET of at least 32 characters (`npx
+  // nuxt-og-image generate-secret`; nuxt-og-image 7 renamed it from NUXT_OG_IMAGE_SECRET)
+  // in every environment, documented in .env.example. An
   // auto-generated secret changes with each build, so signed URLs break as soon as two
   // builds or instances serve the site. `tests/unit/og-image-contract.test.ts` holds
   // both directions.
   ogImage: {
     enabled: false,
   },
+
+  // ============================================================================
+  // SEO: modules @nuxtjs/seo 6 bundles and enables by default
+  // ============================================================================
+  // Both off, measured 2026-10-24; `tests/unit/seo-bundled-modules-contract.test.ts` keeps
+  // each one an explicit decision (a missing key means ON).
+  //
+  // Skew Protection keeps old build assets only while its storage survives between builds.
+  // Every deploy builds a fresh Docker image, so it never restores a chunk, and the rest
+  // (hourly manifest polling, reload on a chunk error) is Nuxt core already. It would still
+  // register a service worker at scope `/` for every visitor, one that stays in their
+  // browsers after the module is switched off. To use it, configure `skewProtection.storage`
+  // with a store that outlives the build (S3, Redis), never the default `node_modules/.cache`.
+  skewProtection: false,
+  // AI Ready serves /llms.txt and Markdown versions of every page (`Accept: text/markdown`
+  // or `<path>.md`). It hooks into every request, redirects some API-style `Accept` headers
+  // to `.md`, writes `Content-Signal: ai-input=yes` into robots.txt on the customer's behalf,
+  // and warns on every build without a build-time site URL. Worth it on a marketing or docs
+  // site: then set `contentSignal` deliberately and a build-time `site.url`, or just add a
+  // static `public/llms.txt`, which needs no module at all.
+  aiReady: false,
 
   // ============================================================================
   // Analytics (Plausible)

@@ -16,7 +16,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const ROOT = join(__dirname, '..', '..');
+const ROOT = join(import.meta.dirname, '..', '..');
 const ROOTS = ['app/app.vue', 'app/error.vue'] as const;
 
 function read(path: string): string {
@@ -38,7 +38,7 @@ describe('UApp root contract', () => {
     const tag = uAppTag(path);
     expect(tag, `${path} renders a UApp`).toBeDefined();
     expect(tag, `${path}: UApp without :locale renders Nuxt UI's texts in English`).toMatch(/:locale="/);
-    expect(tag, `${path}: UApp without :toaster falls back to Reka's English toast label`).toMatch(/:toaster="appConfig\.toaster"/);
+    expect(tag, `${path}: UApp without :toaster drops the app's toast settings (duration, position, label)`).toMatch(/:toaster="appConfig\.toaster"/);
   });
 
   it('uses the same locale in both roots', () => {

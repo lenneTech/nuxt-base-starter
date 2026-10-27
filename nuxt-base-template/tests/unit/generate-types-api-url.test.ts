@@ -32,7 +32,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { redactUrl, runGenerateTypes } from '../../scripts/generate-types.mjs';
 import { findLtDevEnvFile, findOwnRegistration, OPENAPI_PATH, parseEnvFile, readLtDevRegistrations, resolveApiInput, withOpenApiPath } from '../../scripts/resolve-api-url.mjs';
 
-const APP_DIR = join(__dirname, '..', '..');
+const APP_DIR = join(import.meta.dirname, '..', '..');
 const ROOT = '/Users/dev/code/my-app-2';
 const CWD = `${ROOT}/projects/app`;
 const HOME = '/Users/dev';

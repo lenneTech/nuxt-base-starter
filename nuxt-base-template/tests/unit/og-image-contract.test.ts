@@ -10,8 +10,10 @@
  *
  * So the template ships it disabled, and the contract runs both ways: no OG image in the app means
  * the module is off; switching it on means there is a `defineOgImage*()` call and `.env.example`
- * documents a fixed `NUXT_OG_IMAGE_SECRET` (an auto-generated one breaks signed URLs as soon as two
- * instances or two builds serve the same site).
+ * documents a fixed `NUXT_APP_SECRET` (an auto-generated one breaks signed URLs as soon as two
+ * instances or two builds serve the same site). nuxt-og-image 7 (@nuxtjs/seo 6) renamed it from
+ * `NUXT_OG_IMAGE_SECRET`, which still works but logs a deprecation warning, and requires at least
+ * 32 characters.
  *
  * Read as text, like the other contract tests: the question is structural, and importing would
  * execute the whole Nuxt config.
@@ -20,7 +22,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-const ROOT = join(__dirname, '..', '..');
+const ROOT = join(import.meta.dirname, '..', '..');
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -44,6 +46,6 @@ describe('OG image contract', () => {
   it('documents a fixed signing secret once the module is enabled', () => {
     if (disabled) return;
     expect(usesOgImage, 'nuxt-og-image is enabled but no page calls defineOgImage()').toBe(true);
-    expect(envExample, '.env.example must document NUXT_OG_IMAGE_SECRET (npx nuxt-og-image generate-secret)').toMatch(/NUXT_OG_IMAGE_SECRET/);
+    expect(envExample, '.env.example must document NUXT_APP_SECRET (npx nuxt-og-image generate-secret)').toMatch(/^#?\s*NUXT_APP_SECRET=/m);
   });
 });

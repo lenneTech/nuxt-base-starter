@@ -562,7 +562,7 @@ the only signal that tells them apart.
 
 ## Security Overrides (pnpm)
 
-All workspace-scoped pnpm settings — `overrides` (CVE patches for vulnerable transitive deps), `minimumReleaseAgeExclude`, build-script approvals (`allowBuilds` / `onlyBuiltDependencies`), and `ignoredOptionalDependencies` — live in **`pnpm-workspace.yaml`**, each with an inline comment stating its reason (CVE/advisory). The detailed advisory list is therefore the file itself, not duplicated here.
+All workspace-scoped pnpm settings — `overrides` (CVE patches for vulnerable transitive deps), `minimumReleaseAgeExclude`, and build-script approvals (`allowBuilds` / `onlyBuiltDependencies`) — live in **`pnpm-workspace.yaml`**, each with an inline comment stating its reason (CVE/advisory). The detailed advisory list is therefore the file itself, not duplicated here.
 
 Rules that matter when touching them:
 
@@ -578,4 +578,4 @@ Rules that matter when touching them:
 ## Notable Version Changes (v2.5.x)
 
 - **TypeScript 5.9 -> 6.0:** Changes `erasableSyntaxOnly` default and tightens module resolution. Run `pnpm run build` to verify no type regressions after upgrading existing projects.
-- **@nuxtjs/seo 3.4 -> 5.1:** Major rewrite (v4 was skipped). The OG image engine switched to `@shikijs/*` for syntax highlighting (SSR/build-time only). `nuxt.config.ts` SEO options are backwards-compatible. The 30 `ignoredOptionalDependencies` entries are required for clean installs.
+- **@nuxtjs/seo 3.4 -> 5.1:** Major rewrite (v4 was skipped). The OG image engine switched to `@shikijs/*` for syntax highlighting (SSR/build-time only). `nuxt.config.ts` SEO options are backwards-compatible. The 30 `ignoredOptionalDependencies` entries it needed for clean installs were removed on 2026-10-24 together with @nuxt/image: a fresh resolve contains neither sharp nor resvg any more.

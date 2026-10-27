@@ -44,7 +44,7 @@ const IMAGE_TAG_RE = /mcr\.microsoft\.com\/playwright:v(\d+\.\d+\.\d+)-/g;
 const enabled = process.env.CHECK_CROSS_REPO === '1';
 
 function localPlaywrightVersion(): string {
-  const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf8'));
+  const pkg = JSON.parse(readFileSync(join(import.meta.dirname, '..', '..', 'package.json'), 'utf8'));
   const raw = pkg.devDependencies?.['@playwright/test'] ?? pkg.dependencies?.['@playwright/test'];
   // Project policy is exact pins, but strip a range char defensively rather than
   // failing on something this test does not own.

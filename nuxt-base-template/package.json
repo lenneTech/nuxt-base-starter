@@ -49,51 +49,51 @@
     "test:all": "pnpm run test:unit && pnpm run test:e2e",
     "typecheck": "cross-env NUXT_BUILD_DIR=.nuxt-check nuxt prepare && vue-tsc --noEmit -p tsconfig.check.json",
     "typecheck:tests": "cross-env NUXT_BUILD_DIR=.nuxt-check nuxt prepare && vue-tsc --noEmit -p tsconfig.tests.check.json && tsc --noEmit -p .nuxt-check/tsconfig.server.json",
-    "lint": "oxlint app/ scripts/ server/ tests/",
-    "lint:fix": "oxlint --fix app/ scripts/ server/ tests/",
+    "lint": "oxlint --type-aware app/ scripts/ server/ tests/",
+    "lint:fix": "oxlint --type-aware --fix app/ scripts/ server/ tests/",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "fix": "pnpm run lint:fix && pnpm run format"
   },
   "dependencies": {
-    "@better-auth/passkey": "1.7.7",
+    "@better-auth/passkey": "1.7.12",
     "@lenne.tech/bug.lt": "1.6.9",
-    "@lenne.tech/nuxt-extensions": "1.19.1",
-    "@nuxt/image": "2.1.0",
-    "@nuxt/ui": "4.11.3",
-    "@pinia/nuxt": "1.0.2",
+    "@lenne.tech/nuxt-extensions": "1.20.0",
+    "@nuxt/ui": "4.12.0",
+    "@pinia/nuxt": "1.0.3",
     "@vueuse/nuxt": "14.4.0",
-    "better-auth": "1.7.7",
-    "pinia": "4.0.3",
+    "better-auth": "1.7.12",
+    "pinia": "4.1.0",
     "qrcode": "1.5.4",
     "tus-js-client": "4.3.1",
     "valibot": "1.5.0"
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.99.0",
-    "@iconify-json/lucide": "1.2.142",
-    "@nuxt/test-utils": "4.3.3",
+    "@iconify-json/lucide": "1.2.147",
+    "@nuxt/test-utils": "4.3.4",
     "@nuxtjs/plausible": "4.0.0",
-    "@nuxtjs/seo": "5.3.16",
-    "@playwright/test": "1.62.1",
+    "@nuxtjs/seo": "6.0.1",
+    "@playwright/test": "1.64.1",
     "@tailwindcss/typography": "0.5.20",
     "@tailwindcss/vite": "4.3.3",
     "@types/node": "26.6.5",
     "@types/qrcode": "1.5.6",
     "@vitejs/plugin-vue": "6.0.10",
     "cross-env": "10.1.0",
-    "happy-dom": "20.14.6",
+    "happy-dom": "21.0.4",
     "lint-staged": "17.6.0",
     "mongodb": "7.7.0",
-    "nuxt": "4.6.1",
-    "oxfmt": "0.72.0",
-    "oxlint": "1.87.0",
+    "nuxt": "4.6.2",
+    "oxfmt": "0.74.0",
+    "oxlint": "1.89.0",
+    "oxlint-tsgolint": "7.0.2005",
     "rimraf": "6.1.3",
     "simple-git-hooks": "2.14.0",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
-    "vitest": "5.0.3",
-    "vue": "3.5.43",
+    "vitest": "5.0.5",
+    "vue": "3.5.44",
     "vue-tsc": "3.3.13"
   },
   "simple-git-hooks": {
@@ -102,14 +102,14 @@
   },
   "lint-staged": {
     "app/**/*.{ts,vue}": [
-      "oxlint --fix",
+      "oxlint --type-aware --fix",
       "oxfmt"
     ],
     "tests/**/*.ts": [
-      "oxlint --fix"
+      "oxlint --type-aware --fix"
     ],
     "scripts/**/*.mjs": [
-      "oxlint --fix",
+      "oxlint --type-aware --fix",
       "oxfmt"
     ]
   },
@@ -117,5 +117,5 @@
     "node": ">=22",
     "pnpm": "^11.0.0"
   },
-  "packageManager": "pnpm@11.28.5+sha512.484563d30b4c2ad27cb48aa94ff2b302dbcebc8ff6bf28816c2589886e146ce7f76f354f3bc1a438e6f5e9768c302aa0a6f7add8232903cd4cf81426cbc14d9e"
+  "packageManager": "pnpm@11.28.8+sha512.f6988a32046b9a3f78d7d7ee0747926bbe905ff9dff73bf19abb87bd7d1906a2ac90d93f73be32b5f9e14c2899569bcb0c9c5ec8a19e083f5d71bbab6dd9e0b8"
 }

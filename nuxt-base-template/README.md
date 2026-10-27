@@ -142,16 +142,16 @@ generating from a foreign contract used to succeed silently (DEV-2802).
 
 | Technology          | Version | Description                      |
 | ------------------- | ------- | -------------------------------- |
-| Nuxt                | 4.4.x   | Vue 3 meta-framework with SSR    |
+| Nuxt                | 4.6.x   | Vue 3 meta-framework with SSR    |
 | TypeScript          | 6.0.x   | Strict type checking             |
-| Tailwind CSS        | 4.2.x   | Utility-first CSS (Vite plugin)  |
-| NuxtUI              | 4.6.x   | Component library with dark mode |
-| Pinia               | 0.11.x  | State management                 |
-| Better Auth         | 1.5.x   | Authentication framework         |
-| @nuxtjs/seo         | 5.1.x   | SEO, sitemap, robots, OG images  |
-| Playwright          | 1.59.x  | E2E testing                      |
-| @hey-api/openapi-ts | 0.95.x  | API client code generation (dev) |
-| Valibot             | 1.3.x   | Schema validation                |
+| Tailwind CSS        | 4.3.x   | Utility-first CSS (Vite plugin)  |
+| NuxtUI              | 4.12.x  | Component library with dark mode |
+| Pinia               | 4.1.x   | State management                 |
+| Better Auth         | 1.7.x   | Authentication framework         |
+| @nuxtjs/seo         | 6.0.x   | SEO, sitemap, robots, Schema.org |
+| Playwright          | 1.64.x  | E2E testing                      |
+| @hey-api/openapi-ts | 0.99.x  | API client code generation (dev) |
+| Valibot             | 1.5.x   | Schema validation                |
 
 ## Key Features
 
@@ -195,7 +195,8 @@ mail usually means the mail service is not configured on the backend.
 
 - Sitemap generation (`@nuxtjs/seo`)
 - robots.txt configuration
-- OG image generation (off by default: switch it on together with `defineOgImage()` and a fixed `NUXT_OG_IMAGE_SECRET`, see `ogImage` in `nuxt.config.ts`)
+- OG image generation (off by default: switch it on together with `defineOgImage()` and a fixed `NUXT_APP_SECRET`, see `ogImage` in `nuxt.config.ts`)
+- AI Ready (`/llms.txt`, Markdown pages) and Skew Protection (service worker), both bundled with @nuxtjs/seo 6: off by default, see `aiReady` / `skewProtection` in `nuxt.config.ts` for why and how to switch them on
 - Plausible Analytics integration
 
 ### File Upload
