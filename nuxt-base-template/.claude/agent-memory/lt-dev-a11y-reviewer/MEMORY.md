@@ -1,0 +1,2 @@
+- [Placeholder contrast](project-placeholder-contrast.md): Nuxt UI's text-dimmed placeholders failed AA. Fixed 2026-10-27 via app.config.ts for all ten components, guarded by a contract test.
+- [Lighthouse snapshot + mobile via MCP](reference-lighthouse-snapshot-mobile.md): keeps the session and emulates 412px. Screenshots cannot be saved to the scratchpad, key presses are not available.

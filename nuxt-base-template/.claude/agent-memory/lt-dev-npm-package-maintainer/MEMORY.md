@@ -8,7 +8,7 @@
 
 ## Version policy
 
-- [Blocked updates](project-blocked-updates.md) — TS 7, @playwright/test, @vueuse/nuxt 15, pnpm 12; happy-dom 21 waits at the gate (2026-10-12)
+- [Blocked updates](project-blocked-updates.md) — TS 7, @vueuse/nuxt 15, pnpm 12 (re-measured 2026-10-24); Playwright is a cross-repo lock-step with lt-monorepo
 - [better-auth tracks nest-server](project-better-auth-tracks-nest-server.md) — client-only here; pin the version the two frameworks agree on, never npm latest
 - [nuxt 4.6 Node floor](project-nuxt-46-node-floor.md) — nuxt needs Node ^24.15; dev machine is 24.12 (silent), Docker 24.18 / CI fine
 - [minimumReleaseAge gate](feedback-minimum-release-age-gate.md) — skip sub-24h releases, never add a third-party exclude

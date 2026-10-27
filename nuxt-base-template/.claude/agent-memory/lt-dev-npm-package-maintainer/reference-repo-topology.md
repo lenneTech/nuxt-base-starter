@@ -8,8 +8,9 @@ metadata:
 `nuxt-base-starter` is NOT a monorepo and has no `projects/api` or `projects/app`.
 Two independent pnpm projects, each maintained separately:
 
-- repo root — the `create-nuxt-base` scaffolder (`index.js`, `fs-extra`, `cross-spawn`,
-  `standard-version`, `oxfmt`)
+- repo root — release tooling only (`standard-version`, `oxfmt`). The former `create-nuxt-base`
+  scaffolder (`index.js`, `fs-extra`, `cross-spawn`) was retired on 2026-10-26: npm had stopped at
+  2.7.0 and the lt CLI (`lt frontend nuxt`, `lt fullstack init`) clones the template from GitHub.
 - `nuxt-base-template/` — the actual Nuxt 4 template that gets scaffolded out
 
 Each has its own `package.json`, `pnpm-lock.yaml` **and** `pnpm-workspace.yaml`.

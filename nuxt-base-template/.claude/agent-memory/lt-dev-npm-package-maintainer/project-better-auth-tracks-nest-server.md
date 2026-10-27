@@ -33,3 +33,10 @@ Both must print the same range; pin the version nest-server-starter pins. A newe
 better-auth inside the range is a lock-step bump across all four repos (nest-server,
 nuxt-extensions, both starters) in one release round, never a maintenance-run bump here.
 `pnpm outdated` showing a newer "latest" is expected, not a backlog item.
+
+**2026-10-24: 1.7.7 -> 1.7.12** (Kai's decision, lock-step round with nest-server 12.0.0, which
+raises its peer floor to `>=1.7.12 <1.8.0`; nuxt-extensions 1.20.0 does the same). 1.7.12 verifies
+JWTs with the algorithm of the stored key. Verified before the release: the full Playwright suite
+against a nest-server-starter@main clone lifted to better-auth 1.7.12 (register, email
+verification, 2FA/TOTP, passkey, password reset) passed; the one red test was a stale locator
+(@nuxt/ui 4.12 localizes the toast region label), not the protocol.
