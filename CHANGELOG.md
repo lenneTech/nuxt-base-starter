@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.33.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.0...v2.33.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **a11y:** let screen readers announce toasts again ([a725d2b](https://github.com/lenneTech/nuxt-base-starter/commit/a725d2b5ca452781d12a148c2c8d0d48c38dafd7))
+* **auth:** stop the login and register error toasts repeating their title ([597fdab](https://github.com/lenneTech/nuxt-base-starter/commit/597fdabb7765787a5781f7dc47f1b4d1bfc9e6ed))
+* **deps:** take nuxt 4.6.3 and node-forge 1.4.2, suppress the deepmerge advisory ([c604758](https://github.com/lenneTech/nuxt-base-starter/commit/c6047588d8505d41cf5d3815d6dd173ff3e45d79))
+* **seo:** end the three unhead warnings nuxt dev printed on almost every page ([5371aa5](https://github.com/lenneTech/nuxt-base-starter/commit/5371aa5ce82ded4fd6724a9bb6e39119085c9bdc))
+
 ## [2.33.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.32.2...v2.33.0) (2026-10-27)
 
 
