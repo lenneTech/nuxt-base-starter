@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.33.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.1...v2.33.2) (2026-10-28)
+
+
+### Bug Fixes
+
+* **test:** read page routes with forward slashes on Windows ([7af1e7d](https://github.com/lenneTech/nuxt-base-starter/commit/7af1e7d50896e3abadb078cf3a15286a95593fc2))
+
 ### [2.33.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.0...v2.33.1) (2026-10-28)
 
 
