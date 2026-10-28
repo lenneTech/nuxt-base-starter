@@ -350,6 +350,18 @@ export default defineNuxtConfig({
   },
 
   // ============================================================================
+  // SEO: Meta inference (nuxt-seo-utils, part of @nuxtjs/seo)
+  // ============================================================================
+  // Keeps the og:title / og:description inference but drops the `twitter:card` it would add:
+  // unhead's own dev validator flags that tag as deprecated on every page (unjs/unhead#842),
+  // and X renders cards from Open Graph. `ogImage.includeTwitter` follows this key, so a
+  // project that turns OG images on gets no twitter tags either.
+  // `tests/unit/seo-dev-console-contract.test.ts` keeps this and `site.description` in place.
+  seo: {
+    automaticTwitterTags: false,
+  },
+
+  // ============================================================================
   // SEO: Site Metadata
   // ============================================================================
   site: {
@@ -358,6 +370,13 @@ export default defineNuxtConfig({
     // set above — og:locale, canonical casing and Schema.org follow it. Since 8.5 the
     // module warns about the mismatch at startup; the override itself is older.
     defaultLocale: 'de',
+    // Fallback for every page without its own description: the noindex pages under /app,
+    // /auth and /admin, link previews and Schema.org's WebSite. Without it the dev validator
+    // warned on each of those pages that the description was missing and og:description
+    // empty. Public pages still set their own `useSeoMeta({ description })`; the contract
+    // test enforces that, so the fallback cannot hide a forgotten one. Replace it per project,
+    // like `name`.
+    description: 'Nuxt-4-Anwendung auf Basis des lenne.Tech-Stacks.',
     name: 'Nuxt Base Starter',
     // No `url` here on purpose. nuxt-site-config's own `initSiteConfig()` already
     // reads NUXT_SITE_URL / NUXT_PUBLIC_SITE_URL — at build time with priority
