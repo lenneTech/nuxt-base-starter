@@ -33,27 +33,34 @@
 # ----------------------------------------------------------------------------------
 auditConfig:
   ignoreGhsas:
-    # GHSA-86w9-cpqp-85rv (high): node-forge <=1.4.0 accepts extra nested DigestAlgorithm
-    # elements when VERIFYING an RSA PKCS#1 v1.5 signature, so a forged signature can pass.
+    # GHSA-gcqx-w48m-w2h4 (low): deepmerge <=4.3.1, mergeObject() does not validate the keys it
+    # writes, so a crafted SOURCE object can poison the prototype of the returned object.
     #
-    # Path: nuxt > @nuxt/cli | @nuxt/nitro-server > nitropack > listhen > node-forge 1.4.0.
+    # Path: nuxt > @nuxt/nitro-server > nitropack > @rollup/plugin-node-resolve 16.0.3 >
+    # deepmerge 4.3.1, the only consumer in the tree.
     #
-    # Not fixable: there is no patched release. npm audit names ">=1.4.1", but that version
-    # does not exist (registry.npmjs.org/node-forge/1.4.1 answers 404, latest is 1.4.0) and
-    # GitHub lists no first patched version. An override has nothing to point at, and a
-    # patchedDependencies entry would mean writing our own fix to a crypto library.
+    # Not fixable: (1) no override target. 4.3.1 (2023-03-16) is the newest deepmerge on npm, and
+    # GitHub lists no first patched version. Raising the consumer does not help: 16.0.3 is the
+    # newest @rollup/plugin-node-resolve and still requests ^4.2.2. (2) No patch: there is no
+    # patched release whose shape a consumer would need adapting to, and writing our own fix into
+    # the library is not what step 2 is for.
     #
-    # Residual risk, none reachable: listhen uses node-forge only for the dev certificate of
-    # `nuxt dev --https`: createCertificate, generateKeyPair, signing it with sha256, PEM/ASN.1
-    # conversion, and reading a developer-supplied PFX file (HMAC-checked, not RSA-verified).
-    # It never calls verify or a chain check. node-forge is not traced into `.output/`, so a
-    # generated app's production server does not contain it at all.
+    # Residual risk, none reachable: plugin-node-resolve calls deepmerge exactly once, at module
+    # load, as `deepMerge({}, defaults)`, where `defaults` is its own hard-coded options constant.
+    # No input, from a developer or anyone else, ever reaches the merge. It runs only inside
+    # `nuxt build` / `nuxt dev`, and `.output/` contains no deepmerge.
     #
-    # Delete when `pnpm audit` is clean without this entry, i.e. node-forge resolves to a
-    # patched version or no longer resolves. Re-check on every dependency bump.
-    # Verified 2026-10-02. Re-verified 2026-10-12 and 2026-10-24: 1.4.0 is still the newest
-    # node-forge, and a fresh resolve without this entry still reports the advisory.
-    - GHSA-86w9-cpqp-85rv
+    # Delete when `pnpm audit` is clean without this entry, i.e. a patched deepmerge resolves or
+    # plugin-node-resolve drops it; `check-suppressions.mjs` reports both. First reported by
+    # `pnpm audit` on 2026-10-28 (advisory published 2026-09-18). Verified 2026-10-28.
+    - GHSA-gcqx-w48m-w2h4
+    # The node-forge entry (GHSA-86w9-cpqp-85rv, node-forge <=1.4.0 via nitropack > listhen) was
+    # removed on 2026-10-28. node-forge 1.4.1 (published 2026-10-27) fixes it, its changelog lists
+    # the "ASN.1 extra field in DigestAlgorithm" forgery, and it cleared the one-day release-age
+    # gate that morning. A fresh resolve got 1.4.1 and `check-suppressions.mjs` reported the entry
+    # NOT IN TREE, although GitHub still names no first patched version. The lockfile resolves
+    # 1.4.2 since that afternoon (listhen asks for ^1.4.0), which also fixes a `pem.decode()`
+    # regression of 1.4.1 for Buffer input; listhen hands forge only strings either way.
     # The braces entry (GHSA-vfj7-8cjw-p6xm, braces 3.0.3 via nitropack > globby) was removed
     # on 2026-10-24: GitHub withdrew the advisory on 2026-10-23, `check-suppressions.mjs`
     # reported it WITHDRAWN, and `pnpm audit` stays clean without the entry.
@@ -122,6 +129,9 @@ onlyBuiltDependencies:
 # none holds a package below what the unrestricted resolve picks. A fifth entry was added for
 # zod via bug.lt; without the overrides, `pnpm audit` reports esbuild, js-yaml (three highs),
 # @nuxt/ui, postcss-selector-parser and zod.
+# Re-run 2026-10-28 (nuxt 4.6.3 round), same method plus one fresh resolve per entry with only
+# that entry removed: each of the five reopens its own advisory on its own, none holds a package
+# below what the unrestricted resolve picks, and every target is still the newest in its major.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -201,22 +211,21 @@ overrides:
   # tree does not resolve.
   'js-yaml@>=4.0.0 <4.3.2': 4.3.2
   # postcss-selector-parser, quadratic complexity when parsing flat selectors
-  # (GHSA-rj75-hqrm-r3gf, moderate, <7.1.6, first patched 7.1.6). Transitive via
-  # @tailwindcss/typography, whose newest release (0.5.20) pins it EXACTLY at 6.0.10, so no
-  # bump can fix it, and the 6.x line has no patched release.
+  # (GHSA-rj75-hqrm-r3gf, moderate). Two vulnerable lines: `<6.1.5` (first patched 6.1.5) and
+  # `>=7.0.0 <7.1.6` (first patched 7.1.6). Transitive via @tailwindcss/typography, whose newest
+  # release (0.5.20) pins it EXACTLY at 6.0.10, so no bump can fix it. typography is the only
+  # consumer.
   #
-  # MAJOR jump 6.0.10 -> 7.1.6. Measured before setting it: Tailwind 4.3.3 compiled the
-  # typography plugin once against each version (prose, every size and gray scale, invert,
-  # not-prose, element and pseudo-element variants such as prose-li:marker), and the CSS came
-  # out byte-identical (69,798 bytes). The parser is pure build tooling here and is not traced
-  # into `.output/`. offers and lt-crm already run typography on 7.1.6.
+  # Same major on purpose: 6.0.10 -> 6.1.5, the patched release in typography's own line. Until
+  # 2026-10-26 the advisory named no 6.x fix, so this entry jumped to 7.x (`<7.1.6`: 7.1.7, CSS
+  # measured byte-identical). With 6.1.5 out that jump was no longer needed, and its key spanned
+  # the already-patched 6.1.5+ releases, so in an lt-monorepo it would have forced any `^6`
+  # consumer onto 7.x. Measured 2026-10-28 before switching: Tailwind 4.3.3 compiled the
+  # typography plugin (prose, every size and gray scale, invert, not-prose, element and
+  # pseudo-element variants such as prose-li:marker) against 6.0.10, 6.1.5 and 7.1.7, and the
+  # CSS came out byte-identical (74,277 bytes, one SHA-256). The parser is pure build tooling
+  # here and is not traced into `.output/`.
   #
   # The key stays below the first patched version (see the selector note above). Drop this
-  # entry once @tailwindcss/typography requests >=7.1.6 itself. Verified 2026-10-06.
-  #
-  # Raised 7.1.6 -> 7.1.7 (target only, the newest 7.x) on 2026-10-24. 7.1.7 is a bug-fix
-  # release (combinator raws, parent links on insertBefore/insertAfter, attribute namespace
-  # parsing). Measured the same way as above: Tailwind 4.3.3 compiled the typography plugin
-  # with each version, and the CSS came out byte-identical (85,146 bytes). typography is now
-  # the only consumer; the cssnano chain that also asked for ^7.0.0 left the tree.
-  'postcss-selector-parser@<7.1.6': 7.1.7
+  # entry once @tailwindcss/typography requests >=6.1.5 itself.
+  'postcss-selector-parser@<6.1.5': 6.1.5

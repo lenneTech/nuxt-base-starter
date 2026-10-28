@@ -150,8 +150,16 @@ describe('lockfile and range reading', () => {
     expect(resolvedVersions(LOCK, 'absent')).toEqual([]);
   });
 
-  it("finds node-forge 1.4.0 in the template's real lockfile", () => {
-    expect(resolvedVersions(readFileSync(join(WORKSPACE, 'pnpm-lock.yaml'), 'utf8'), 'node-forge')).toContain('1.4.0');
+  it("reads the template's real lockfile", () => {
+    // nuxt resolves in every project made from this template, so this holds after any bump and
+    // whatever the app's package.json declares (most generated apps declare no vue at all). The
+    // full-match pattern fails when the parser leaves a peer suffix such as `(vue@…)` on the
+    // version. This used to check node-forge 1.4.0, which went stale with node-forge 1.4.1.
+    const versions = resolvedVersions(readFileSync(join(WORKSPACE, 'pnpm-lock.yaml'), 'utf8'), 'nuxt');
+    expect(versions.length).toBeGreaterThan(0);
+    for (const version of versions) {
+      expect(version).toMatch(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/);
+    }
   });
 
   it('honours every operator at its boundary, and says when it cannot tell', () => {
@@ -180,8 +188,12 @@ describe('where the entries are read from', () => {
     expect(listSuppressions('packages: []\n')).toEqual([]);
   });
 
-  it("lists this template's own entry", () => {
-    expect(listSuppressions(readFileSync(join(WORKSPACE, 'pnpm-workspace.yaml'), 'utf8'))).toContain(ID);
+  it('lists exactly the entries the real pnpm-workspace.yaml declares', () => {
+    const text = readFileSync(join(WORKSPACE, 'pnpm-workspace.yaml'), 'utf8');
+    // Independent oracle: every uncommented `- GHSA-…` list item. Naming one advisory here broke
+    // the day that suppression was retired, in this template and in every generated project.
+    const declared = [...text.matchAll(/^\s+- (GHSA-[0-9a-z-]+)\s*$/gm)].map((match) => match[1]);
+    expect(listSuppressions(text)).toEqual(declared);
   });
 
   it('walks up to the nearest pnpm-workspace.yaml, as pnpm does', () => {
