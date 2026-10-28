@@ -22,7 +22,7 @@
  * Read as text, like the other contract tests: importing would execute the whole Nuxt config.
  */
 import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const ROOT = join(import.meta.dirname, '..', '..');
@@ -55,9 +55,15 @@ function pageFiles(dir: string): string[] {
   });
 }
 
-/** `app/pages/foo/index.vue` → `/foo/`, `app/pages/index.vue` → `/`. */
+/**
+ * `app/pages/foo/index.vue` → `/foo/`, `app/pages/index.vue` → `/`. `relative` answers with
+ * backslashes on Windows, where `app\settings` never starts with `/app/` and every page would
+ * count as public (seen in the Windows CI job on 2026-10-28).
+ */
 function routeOf(file: string): string {
   const route = `/${relative(PAGES, file)
+    .split(sep)
+    .join('/')
     .replace(/\.vue$/, '')
     .replace(/(^|\/)index$/, '$1')}`;
   return route.endsWith('/') ? route : `${route}/`;
