@@ -202,6 +202,19 @@ export default defineNuxtConfig({
       enabled: true,
       maxRestoreMs: 1500,
     },
+    securityTxt: {
+      // Serves /.well-known/security.txt (RFC 9116): where security researchers report a
+      // vulnerability. OFF by default — only turn it on where somebody reads the contact address;
+      // a published address nobody answers is worse than none. For a customer project, decide
+      // first whether reports go to lenne.tech or to the customer.
+      // `Expires` is computed per request and never runs out between deployments; `Canonical`
+      // comes from NUXT_PUBLIC_SITE_URL. Values can be overridden per stage via
+      // NUXT_LT_EXTENSIONS_SECURITY_TXT_CONTACT / …_HOSTS / …_VALID_DAYS (needs nuxt-extensions 1.21.0).
+      enabled: false,
+      contact: 'mailto:security@lenne.tech',
+      // Hostnames served without a redirect (apex and www) — each gets its own Canonical line.
+      // hosts: ['example.com', 'www.example.com'],
+    },
     tus: {
       // nest-server's TUS route. Relative on purpose: since nuxt-extensions 1.19.0 it resolves
       // against the API (`/api/tus` behind the dev proxy, `NUXT_PUBLIC_API_URL` + `/tus`
