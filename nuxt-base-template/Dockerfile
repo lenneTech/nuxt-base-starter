@@ -17,10 +17,10 @@ WORKDIR /app
 # mode. Copying everything then installing is the simplest cross-mode approach —
 # mirrors projects/api/Dockerfile.
 # `patches/` carries the files `patchedDependencies` in `pnpm-workspace.yaml` points
-# at. The template ships none right now (the last one, `simple-git@4.0.2.patch`, was
-# removed 2026-10-20), but a project that adds one needs it here: without it
-# `pnpm install` stops on `ENOENT: … patches/<pkg>.patch` inside the Docker build,
-# long after every test reported green.
+# at. The template ships `reka-ui@2.11.0.patch` (toast announcements for screen
+# readers, see `pnpm-workspace.yaml`): without this copy `pnpm install` stops on
+# `ENOENT: … patches/<pkg>.patch` inside the Docker build, long after every test
+# reported green.
 #
 # Note the failure mode being guarded: absent is fine, present-but-uncopyable is
 # not. A plain `|| true` would swallow a real copy failure and still run the `rm`

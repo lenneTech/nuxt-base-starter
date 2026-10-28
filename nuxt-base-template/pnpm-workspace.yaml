@@ -229,3 +229,28 @@ overrides:
   # The key stays below the first patched version (see the selector note above). Drop this
   # entry once @tailwindcss/typography requests >=6.1.5 itself.
   'postcss-selector-parser@<6.1.5': 6.1.5
+
+patchedDependencies:
+  # reka-ui 2.10.0+ hides every toast from screen readers. ToastAnnounce wraps the
+  # role="alert" / aria-live region in `VisuallyHidden feature="fully-hidden"`, and since 2.10.0
+  # that feature also sets aria-hidden="true". The live region then sits in an aria-hidden
+  # subtree and is never announced, while the toast still renders visibly
+  # (unovue/reka-ui#3049). The patch drops that one prop in `dist/Toast/ToastAnnounce.{js,cjs}`,
+  # so the announcer falls back to the default `focusable` feature, which in 2.11.0 is visually
+  # hidden only, and screen readers reach it again as in 2.9.x. Only 2.11.0: in 2.10.x `focusable`
+  # is aria-hidden as well, so the same edit would change nothing there. It is a backport, not our
+  # own fix: byte for byte the change upstream merged in unovue/reka-ui#3050 on 2026-10-26, which
+  # no release carries yet (newest: 2.11.0).
+  # @nuxt/ui 4.12.0 pins reka-ui EXACTLY at 2.11.0, so the exact key cannot drift while @nuxt/ui
+  # stays put. `tests/unit/toast-live-region.test.ts` checks the behaviour, not the patch, and
+  # stays after the patch is gone.
+  #
+  # Delete this entry and `patches/reka-ui@2.11.0.patch` together once @nuxt/ui resolves a
+  # reka-ui release that contains #3050. pnpm forces the issue: as soon as reka-ui moves off
+  # 2.11.0, every install stops with ERR_PNPM_UNUSED_PATCH until both are gone. Verified
+  # 2026-10-28.
+  #
+  # pnpm reads `patchedDependencies` only from the workspace root. In an `lt fullstack` monorepo
+  # the lt CLI (from 1.50.4; older versions drop the entry) hoists it and moves the patch file to
+  # `<root>/patches/`, and the Dockerfile copies the context-root `patches/` before installing.
+  reka-ui@2.11.0: patches/reka-ui@2.11.0.patch
