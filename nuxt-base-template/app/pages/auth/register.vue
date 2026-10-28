@@ -194,10 +194,12 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     })) as AuthResponse;
 
     if (signUpResult.error) {
-      const errorMessage = signUpResult.error.message || 'Registrierung fehlgeschlagen';
+      const errorMessage = signUpResult.error.message;
       toast.add({
         color: 'error',
-        description: translateError(errorMessage),
+        // No message means the request itself failed (API down, proxy 5xx). Falling back to the
+        // title text made the toast, and a screen reader, say the same line twice.
+        description: errorMessage ? translateError(errorMessage) : 'Die Registrierung ist gerade nicht möglich. Bitte versuche es später erneut.',
         title: 'Registrierung fehlgeschlagen',
       });
       return;

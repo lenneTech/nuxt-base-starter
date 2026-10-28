@@ -91,7 +91,8 @@ describe('auth pages route errors through translateError', () => {
     //
     // Scoped to the display field, and both halves of that scoping were learned by getting
     // it wrong. `const msg = error.message || 'Fallback'` followed by `translateError(msg)`
-    // is CORRECT and appears in login.vue and register.vue; so is
+    // is CORRECT as far as this guard goes (login.vue and register.vue used it until the
+    // fallback turned out to repeat the toast title, see below); so is
     // `description: err.message ? translateError(err.message) : …` in 2fa.vue, where the raw
     // value is only the condition. Earlier versions of this guard flagged all three, which
     // would have taught people to work around the test. What matters is not how the string
@@ -101,6 +102,20 @@ describe('auth pages route errors through translateError', () => {
     // backtracks `\s*` to zero, the lookahead then sees a space, succeeds, and the guard
     // fires on exactly the correct code it was meant to allow.
     expect(code(page), `${page} shows a raw error message. Wrap it in translateError first.`).not.toMatch(/description:\s*[\w.]*error\.message(?!\s*[?\w])/);
+  });
+});
+
+describe('an error toast says more than its title', () => {
+  it.each(authPages())('%s never falls back to a description that repeats the title', (page) => {
+    const source = code(page);
+
+    // Seen on the login page with the API unreachable: the error carried no message, the
+    // description fell back to "Anmeldung fehlgeschlagen", which was also the title, and the
+    // toast read the same line twice. A screen reader announces it twice too. Without a
+    // message the request itself failed, so the description should say what to do instead.
+    const titles = new Set([...source.matchAll(/title:\s*'([^']+)'/g)].map((match) => match[1]));
+    const repeated = [...source.matchAll(/(?:\|\||\?\?)\s*'([^']+)'/g)].map((match) => match[1]).filter((text) => titles.has(text));
+    expect(repeated, `${page} falls back to a toast description identical to a toast title.`).toEqual([]);
   });
 });
 

@@ -187,10 +187,10 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
     // Check for error in response
     if (result.error) {
-      const errorMessage = result.error.message || 'Anmeldung fehlgeschlagen';
+      const errorMessage = result.error.message;
 
       // Check if email verification is required → redirect to verify-email page
-      if (errorMessage.includes('LTNS_0023') || errorMessage.toLowerCase().includes('email verification required')) {
+      if (errorMessage && (errorMessage.includes('LTNS_0023') || errorMessage.toLowerCase().includes('email verification required'))) {
         toast.add({
           color: 'warning',
           description: 'Bitte bestätige zuerst deine E-Mail-Adresse.',
@@ -203,7 +203,9 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
       toast.add({
         color: 'error',
-        description: translateError(errorMessage),
+        // No message means the request itself failed (API down, proxy 5xx). Falling back to the
+        // title text made the toast, and a screen reader, say the same line twice.
+        description: errorMessage ? translateError(errorMessage) : 'Die Anmeldung ist gerade nicht möglich. Bitte versuche es später erneut.',
         title: 'Anmeldung fehlgeschlagen',
       });
       return;
