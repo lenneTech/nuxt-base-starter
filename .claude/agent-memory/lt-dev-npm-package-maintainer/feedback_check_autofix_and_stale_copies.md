@@ -29,6 +29,9 @@ Not specific to test-utils: on 2026-10-11 a plain `pnpm add -E nuxt@4.6.1` (+4 p
 `@nuxt/kit@4.6.0`/`@nuxt/schema@4.6.0` next to 4.6.1 plus the old `@types/node` and
 `@vitejs/plugin-vue`. After ANY framework bump, diff the package set against a fresh resolve
 and adopt the fresh lockfile (that is what `lt fullstack init` produces anyway).
+Seen again 2026-10-28: the orchestrator's in-place nuxt 4.6.2 -> 4.6.3 bump left `@nuxt/kit`/
+`@nuxt/schema` 4.6.2 under @nuxt/fonts, @nuxt/icon, devtools-kit and the unplugin family, with
+typecheck, build and audit all green. The fresh lockfile removed them (plus ~50 patch lifts).
 
 **3. `nuxt-base-template/.nuxtrc` changes with the bump** (`setups.@nuxt/test-utils="<ver>"`,
 written by `nuxt prepare`). It is a companion artifact — earlier dep-refresh commits carry it.

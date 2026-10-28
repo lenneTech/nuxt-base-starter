@@ -19,6 +19,11 @@ newest), @vueuse/nuxt 15 still held (@nuxt/ui 4.12.0 still requests `@vueuse/cor
 still held. @playwright/test CLEARED (see below). happy-dom 21.0.4 taken: its only breaking change
 is CSS/iframe loading off by default (SSRF), 21.0.2-21.0.4 are security fixes, the unit suite
 (581 tests) passed unchanged. pnpm 11.28.5 -> 11.28.8 in both package.json files.
+Re-measured 2026-10-28 (nuxt 4.6.3 round): TS 7, @vueuse/nuxt 15 (@nuxt/ui 4.12.0 still `^14.4.0`),
+pnpm 12 still held. better-auth 1.7.13/1.7.14 exist but stay at 1.7.12 (lock-step, passkey 1.7.13+
+needs better-auth at its own version). pnpm 11.28.8 -> 11.28.9 (fixes GHSA-xjj6-f33q-929c in pnpm's
+own undici). The `+sha512.` value needs no corepack: it is the registry `dist.integrity` decoded from
+base64 to hex (`Buffer.from(b64,'base64').toString('hex')`); verified byte-identical on 11.28.8.
 
 - **typescript 7.x** (template, held at 6.0.3, TS 7.0.2 available) — vue-tsc 3.3.13 (same as 3.3.12) resolves
   `typescript/lib/tsc`, which TS 7's `exports` map does not provide. Its only "TS 7" path
