@@ -1,6 +1,6 @@
 {
   "name": "create-nuxt-base",
-  "version": "2.33.2",
+  "version": "2.33.3",
   "private": true,
   "description": "Nuxt 4 starter template (nuxt-base-template/) for lenne.Tech projects, scaffolded by the lt CLI (lt frontend nuxt / lt fullstack init).",
   "license": "MIT",

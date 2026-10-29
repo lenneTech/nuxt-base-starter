@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.33.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.2...v2.33.3) (2026-10-29)
+
+
+### Bug Fixes
+
+* **audit:** catch a fix the advisory does not name in check-suppressions ([72ceac3](https://github.com/lenneTech/nuxt-base-starter/commit/72ceac388c067a66ce2662a705e6a83dcefd1366))
+* **audit:** port nest-server's registry lookup to check-overrides ([56f07e7](https://github.com/lenneTech/nuxt-base-starter/commit/56f07e7764dc18ce615542433da2debe79429c4c))
+
 ### [2.33.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.1...v2.33.2) (2026-10-28)
 
 
