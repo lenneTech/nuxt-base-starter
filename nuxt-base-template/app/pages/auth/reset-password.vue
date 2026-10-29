@@ -145,8 +145,12 @@ onMounted(() => {
    * It stays valid until used or expired, and until now it survived in browser history and
    * travelled with the URL whenever somebody pasted it asking for help. `replaceState` keeps
    * the entry rather than adding one, so Back still behaves.
+   *
+   * `current` has to be rewritten too: vue-router keeps the entry's full path there, and its
+   * next `push` writes that back into the entry it leaves. Passing the state through unchanged
+   * put the token straight back into the URL and history on the first in-app navigation.
    */
-  window.history.replaceState(window.history.state, '', window.location.pathname);
+  window.history.replaceState({ ...window.history.state, current: route.path }, '', window.location.pathname);
 });
 
 // ============================================================================
