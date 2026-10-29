@@ -40,6 +40,16 @@ useHead({
  */
 const token = ref<string>(typeof route.query.token === 'string' ? route.query.token : '');
 
+/**
+ * Where the token waits while the form is open (DEV-3871).
+ *
+ * Stripping it from the URL means a second load of this page — a reload, Back/Forward, a
+ * restored tab — finds no token and would declare a perfectly valid link dead, without a single
+ * request. `sessionStorage` survives exactly those, stays per tab, and never reaches history
+ * or a pasted URL, so the reason for stripping it still holds.
+ */
+const TOKEN_STORAGE_KEY = 'reset-password-token';
+
 const isTokenValid = computed<boolean>(() => token.value.length > 0);
 const loading = ref<boolean>(false);
 const resetSuccess = ref<boolean>(false);
@@ -133,6 +143,17 @@ const LINK_DEAD_MESSAGE = 'Dieser Link ist nicht (mehr) gültig. Bitte fordere e
 // Lifecycle Hooks
 // ============================================================================
 onMounted(() => {
+  // A token in the URL is the newest link and wins over a stored one from an earlier link.
+  if (isTokenValid.value) {
+    storeToken(token.value);
+  } else if (isRepeatedLoad()) {
+    token.value = readStoredToken();
+  } else {
+    // Any other way here (a typed URL, an in-app link) is not the person who opened the mail
+    // continuing — on a shared device it may be somebody else, who must not inherit the token.
+    forgetToken();
+  }
+
   if (!isTokenValid.value) {
     submitError.value = 'Der Link zum Zurücksetzen des Passworts ist ungültig oder fehlt.';
     submitErrorKind.value = 'link';
@@ -145,8 +166,18 @@ onMounted(() => {
    * It stays valid until used or expired, and until now it survived in browser history and
    * travelled with the URL whenever somebody pasted it asking for help. `replaceState` keeps
    * the entry rather than adding one, so Back still behaves.
+   *
+   * `current` has to be rewritten too: vue-router keeps the entry's full path there, and its
+   * next `push` writes that back into the entry it leaves. Passing the state through unchanged
+   * put the token straight back into the URL and history on the first in-app navigation.
    */
-  window.history.replaceState(window.history.state, '', window.location.pathname);
+  window.history.replaceState({ ...window.history.state, current: route.path }, '', window.location.pathname);
+});
+
+// Leaving the form inside the app ends the flow. A reload or Back/Forward is a full document
+// load and never runs this, so the DEV-3871 case keeps its token.
+onBeforeRouteLeave(() => {
+  forgetToken();
 });
 
 // ============================================================================
@@ -169,6 +200,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       return;
     }
 
+    // Used up: a reload must not offer a form that can only fail.
+    forgetToken();
     resetSuccess.value = true;
     // The form unmounts on success. Without moving focus it lands on <body>, so a keyboard
     // or screen-reader user loses their place entirely.
@@ -200,6 +233,9 @@ function applyError(error: { code?: string; message?: string }): void {
   submitErrorKind.value = LINK_ERROR_CODES.has(code) ? 'link' : 'system';
 
   if (LINK_ERROR_CODES.has(code)) {
+    // The server has declared this token dead. Input and system errors keep it: they say
+    // nothing about the link, and the retry needs it.
+    forgetToken();
     // `USER_NOT_FOUND` deliberately carries no translation from nest-server — translating it
     // would make an account-enumeration oracle easier to read. Our own wording covers it, and
     // it says the same thing a dead link says, which is what it is from here.
@@ -210,6 +246,38 @@ function applyError(error: { code?: string; message?: string }): void {
   // Rate limits, 5xx, anything unrecognised. Never "request a new link" — that returns the
   // user to the same overloaded path and produces the same failure.
   submitError.value = translated || 'Das Zurücksetzen ist gerade nicht möglich. Bitte versuche es später erneut.';
+}
+
+/** Whether this document came from a reload or Back/Forward — the only loads that may restore a stored token. */
+function isRepeatedLoad(): boolean {
+  const entry = window.performance?.getEntriesByType?.('navigation')[0] as PerformanceNavigationTiming | undefined;
+  return entry?.type === 'reload' || entry?.type === 'back_forward';
+}
+
+// `sessionStorage` throws when storage is blocked (private modes, site-data settings). The page
+// then behaves as it did before DEV-3871 — a reload loses the token — rather than breaking.
+function readStoredToken(): string {
+  try {
+    return window.sessionStorage.getItem(TOKEN_STORAGE_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function storeToken(value: string): void {
+  try {
+    window.sessionStorage.setItem(TOKEN_STORAGE_KEY, value);
+  } catch {
+    // See above: without storage only the reload case is lost.
+  }
+}
+
+function forgetToken(): void {
+  try {
+    window.sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+  } catch {
+    // See above.
+  }
 }
 </script>
 

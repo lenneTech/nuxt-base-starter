@@ -21,7 +21,8 @@
     "release:minor": "standard-version --release-as minor && git push --follow-tags origin main",
     "release:major": "standard-version --release-as major && git push --follow-tags origin main",
     "check:ci-placement": "node scripts/check-ci-placement.mjs",
-    "test:scripts": "node --test scripts/check-ci-placement.test.mjs"
+    "test:scripts": "node --test scripts/check-ci-placement.test.mjs",
+    "test:unit": "cd nuxt-base-template && pnpm run test:unit"
   },
   "devDependencies": {
     "oxfmt": "0.75.0",

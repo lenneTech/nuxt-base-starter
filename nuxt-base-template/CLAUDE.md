@@ -551,7 +551,15 @@ it would reject passwords the server accepts.
 
 **The reset token is stripped from the URL** on mount via `history.replaceState`. It stays
 valid until used or expired, and otherwise survives in browser history and travels with
-the URL whenever somebody pastes it asking for help.
+the URL whenever somebody pastes it asking for help. While the form is open the token waits
+in `sessionStorage` (per tab), so a reload, Back/Forward or a restored tab still finds it —
+without that, every second load of the page reported a valid link as dead, with no request
+and no console error (DEV-3871). It is read back only on a reload or Back/Forward (Navigation
+Timing type), and dropped on any other arrival and when the form is left inside the app: on a
+shared device the next person in that tab must not inherit a live token. It is also removed
+once the password is set or the server rejects the link; input and system errors keep it for
+the retry.
+`tests/e2e/auth-reset-password-token.spec.ts` pins both halves.
 
 `tests/unit/auth/error-translation-contract.spec.ts` guards the layer underneath: it runs
 against the `ERROR_CODE_REGEX` **shipped by the installed package** rather than a copy,
