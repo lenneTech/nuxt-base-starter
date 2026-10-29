@@ -8,7 +8,10 @@
  * `package.{ ecosystem, name }`, `vulnerable_version_range` and `first_patched_version` as a
  * string or null. The node-forge advisory GHSA-86w9-cpqp-85rv returned exactly that on
  * 2026-10-02, with `first_patched_version: null`, while `pnpm audit` named ">=1.4.1" and the
- * registry answered 404 for 1.4.1.
+ * registry answered 404 for 1.4.1. On 2026-10-28 it still read null, a day after 1.4.1 and 1.4.2
+ * were published: the case the registry-derived fix exists for. The registry shape is the full
+ * packument's (`GET registry.npmjs.org/{name}`): `versions` with an optional `deprecated`, and
+ * `time` with ISO publish dates.
  *
  * Nothing here reads outside the template: these tests ship into generated projects.
  */
@@ -21,11 +24,12 @@ import { parseSuppressionSummary } from '../../scripts/check.mjs';
 import {
   assessSuppression,
   createAdvisoryFetcher,
-  createNpmVersionProbe,
+  createNpmPackumentFetcher,
   exitCodeFor,
   findWorkspaceRoot,
   inVulnerableRange,
   listSuppressions,
+  minimumReleaseAgeOf,
   patchedVersionOf,
   resolvedVersions,
   run,
@@ -43,29 +47,65 @@ function npm(name: string, firstPatched: unknown, range = '<= 1.4.0') {
   return { first_patched_version: firstPatched, package: { ecosystem: 'npm', name }, vulnerable_version_range: range };
 }
 
-function deps({ advisory, fetchFails, locked = ['1.4.0'], published = false }: { advisory?: unknown; fetchFails?: string; locked?: string[] | null; published?: boolean | null }) {
+/** When the suite pretends to run: 2026-10-28 12:00 UTC, the day GHSA-86w9 still named no fix. */
+const NOW = Date.parse('2026-10-28T12:00:00Z');
+
+/** node-forge's real publish times, read from registry.npmjs.org/node-forge on 2026-10-28. */
+const FORGE_TIME = {
+  '1.4.0': '2026-03-24T21:44:34.668Z',
+  '1.4.1': '2026-10-27T04:44:07.718Z',
+  '1.4.2': '2026-10-27T14:09:15.471Z',
+};
+
+/** A packument with `versions`, each published in 2020 unless `time` says otherwise. */
+function registry(versions: string[], { deprecated = [], time = {} }: { deprecated?: string[]; time?: Record<string, string> } = {}) {
+  return {
+    time: Object.fromEntries(versions.map((v) => [v, time[v] ?? '2020-01-01T00:00:00Z'])),
+    versions: Object.fromEntries(versions.map((v) => [v, deprecated.includes(v) ? { deprecated: 'do not use' } : {}])),
+  };
+}
+
+function deps({
+  advisory,
+  fetchFails,
+  gate = 1440,
+  locked = ['1.4.0'],
+  now = NOW,
+  packument = registry(['1.4.0']),
+}: {
+  advisory?: unknown;
+  fetchFails?: string;
+  gate?: number;
+  locked?: string[] | null;
+  now?: number;
+  packument?: ReturnType<typeof registry> | null;
+}) {
   return {
     fetchAdvisory: vi.fn(async () => (fetchFails ? { ok: false as const, reason: fetchFails } : { advisory, ok: true as const })),
     lockedVersions: vi.fn(() => locked),
-    npmHasVersion: vi.fn(async () => published),
+    minimumReleaseAgeMinutes: gate,
+    now,
+    npmPackument: vi.fn(async (_name: string) => packument),
   };
 }
 
 const result = (status: SuppressionStatus): SuppressionResult => ({ detail: '', id: ID, status });
 
 describe('assessSuppression', () => {
-  it('still holds while no patched version is named', async () => {
-    expect((await assessSuppression(ID, deps({ advisory: { vulnerabilities: [npm('node-forge', null)], withdrawn_at: null } }))).status).toBe('unfixable');
+  it('still holds while no release on the registry lies outside the vulnerable range', async () => {
+    const d = deps({ advisory: { vulnerabilities: [npm('node-forge', null)], withdrawn_at: null }, packument: registry(['1.3.3', '1.4.0']) });
+    expect((await assessSuppression(ID, d)).status).toBe('unfixable');
   });
 
   it('still holds while the named fix is not on the registry (the node-forge 1.4.1 case)', async () => {
-    const d = deps({ advisory: { vulnerabilities: [npm('node-forge', '1.4.1')] }, published: false });
-    expect((await assessSuppression(ID, d)).status).toBe('fix-unpublished');
-    expect(d.npmHasVersion).toHaveBeenCalledWith('node-forge', '1.4.1');
+    const d = deps({ advisory: { vulnerabilities: [npm('node-forge', '1.4.1')] } });
+    expect(await assessSuppression(ID, d)).toMatchObject({ detail: expect.stringContaining('node-forge@1.4.1'), status: 'fix-unpublished' });
+    expect(d.npmPackument).toHaveBeenCalledWith('node-forge');
   });
 
   it('fails once the named fix is published', async () => {
-    expect((await assessSuppression(ID, deps({ advisory: { vulnerabilities: [npm('node-forge', '1.4.1')] }, published: true }))).status).toBe('fix-available');
+    const d = deps({ advisory: { vulnerabilities: [npm('node-forge', '1.4.1')] }, packument: registry(['1.4.0', '1.4.1']) });
+    expect(await assessSuppression(ID, d)).toMatchObject({ detail: 'node-forge@1.4.1 is published', status: 'fix-available' });
   });
 
   it('fails when the advisory was withdrawn', async () => {
@@ -82,15 +122,91 @@ describe('assessSuppression', () => {
     expect((await assessSuppression(ID, deps({ fetchFails: 'GitHub Advisory API unreachable (ENOTFOUND)' }))).status).toBe('unverified');
     expect((await assessSuppression(ID, deps({ advisory: { vulnerabilities: [npm('node-forge', null)] }, locked: null }))).status).toBe('unverified');
     expect((await assessSuppression(ID, deps({ advisory: { vulnerabilities: [npm('node-forge', null, 'some day')] } }))).status).toBe('unverified');
-    expect((await assessSuppression(ID, deps({ advisory: { vulnerabilities: [npm('node-forge', '1.4.1')] }, published: null }))).status).toBe('unverified');
+    expect(await assessSuppression(ID, deps({ advisory: { vulnerabilities: [npm('node-forge', '1.4.1')] }, packument: null }))).toMatchObject({
+      detail: expect.stringContaining('node-forge'),
+      status: 'unverified',
+    });
   });
 
   it('ignores other ecosystems, and is unverified when no npm package is named', async () => {
     const pip = { first_patched_version: '9.9.9', package: { ecosystem: 'pip', name: 'forge' }, vulnerable_version_range: '< 9.9.9' };
-    const d = deps({ advisory: { vulnerabilities: [pip, npm('node-forge', null)] }, published: true });
+    const d = deps({ advisory: { vulnerabilities: [pip, npm('node-forge', null)] } });
     expect((await assessSuppression(ID, d)).status).toBe('unfixable');
-    expect(d.npmHasVersion).not.toHaveBeenCalled();
+    expect(d.npmPackument.mock.calls).toEqual([['node-forge']]);
     expect((await assessSuppression(ID, deps({ advisory: { vulnerabilities: [pip] } }))).status).toBe('unverified');
+  });
+});
+
+describe('assessSuppression: a fix the advisory does not name, and the release-age gate', () => {
+  const forge = { vulnerabilities: [npm('node-forge', null)] };
+
+  it('fails on a published fix although first_patched_version is null (GHSA-86w9, 2026-10-28)', async () => {
+    const r = await assessSuppression(ID, deps({ advisory: forge, packument: registry(['1.4.0', '1.4.1', '1.4.2'], { time: FORGE_TIME }) }));
+    expect(r).toMatchObject({ detail: expect.stringContaining('node-forge@1.4.1'), status: 'fix-available' });
+    expect(r.detail).toContain('names no patched version');
+  });
+
+  it('still holds while the fix is younger than the gate, and says when it clears', async () => {
+    // 2026-10-27 10:00 UTC: 1.4.1 was five hours old and 1.4.2 not yet published.
+    const d = deps({ advisory: forge, now: Date.parse('2026-10-27T10:00:00Z'), packument: registry(['1.4.0', '1.4.1'], { time: FORGE_TIME }) });
+    const r = await assessSuppression(ID, d);
+    expect(r).toMatchObject({ detail: expect.stringContaining('until 2026-10-28 04:44 UTC'), status: 'fix-in-quarantine' });
+    expect(r.detail).toContain('24h minimumReleaseAge gate');
+    expect(exitCodeFor([r], { ci: true, token: true })).toBe(0);
+  });
+
+  it('honours the configured gate in both directions', async () => {
+    const packument = registry(['1.4.0', '1.4.1', '1.4.2'], { time: FORGE_TIME });
+    expect(await assessSuppression(ID, deps({ advisory: forge, gate: 10_080, packument }))).toMatchObject({ detail: expect.stringContaining('7d'), status: 'fix-in-quarantine' });
+    expect((await assessSuppression(ID, deps({ advisory: forge, gate: 0, now: Date.parse('2026-10-27T05:00:00Z'), packument }))).status).toBe('fix-available');
+  });
+
+  it('holds a named fix to the same gate', async () => {
+    const d = deps({
+      advisory: { vulnerabilities: [npm('node-forge', '1.4.1')] },
+      now: Date.parse('2026-10-27T10:00:00Z'),
+      packument: registry(['1.4.0', '1.4.1'], { time: FORGE_TIME }),
+    });
+    expect((await assessSuppression(ID, d)).status).toBe('fix-in-quarantine');
+  });
+
+  it('skips pre-releases and deprecated releases', async () => {
+    const packument = registry(['1.4.0', '1.4.1-rc.1', '1.4.1', '1.4.2'], { deprecated: ['1.4.1'] });
+    expect(await assessSuppression(ID, deps({ advisory: forge, packument }))).toMatchObject({ detail: expect.stringContaining('node-forge@1.4.2'), status: 'fix-available' });
+  });
+
+  it('still fails when only deprecated releases leave the range (a retired package)', async () => {
+    // node-sass: all 132 stable releases are deprecated, the named fix 7.0.0 included. pnpm installs a
+    // deprecated release all the same, so calling the entry "unfixable" kept a fixable copy in the
+    // tree with check green, where the named-fix probe before 2.33.3 had gone red.
+    const allDeprecated = registry(['1.4.0', '1.4.1', '1.4.2'], { deprecated: ['1.4.0', '1.4.1', '1.4.2'] });
+    const named = await assessSuppression(ID, deps({ advisory: { vulnerabilities: [npm('node-forge', '1.4.1')] }, packument: allDeprecated }));
+    expect(named).toMatchObject({ detail: expect.stringContaining('node-forge@1.4.1 is published'), status: 'fix-available' });
+    expect(named.detail).toContain('deprecated');
+    expect(await assessSuppression(ID, deps({ advisory: forge, packument: allDeprecated }))).toMatchObject({
+      detail: expect.stringContaining('node-forge@1.4.1'),
+      status: 'fix-available',
+    });
+  });
+
+  it('takes only a release outside EVERY range of the package', async () => {
+    const twoLines = { vulnerabilities: [npm('node-forge', null, '< 1.4.2'), npm('node-forge', null, '>= 1.5.0, < 1.5.3')] };
+    expect(await assessSuppression(ID, deps({ advisory: twoLines, packument: registry(['1.4.0', '1.5.0', '1.5.3']) }))).toMatchObject({
+      detail: expect.stringContaining('node-forge@1.5.3'),
+      status: 'fix-available',
+    });
+  });
+
+  it('never goes below a named first patched version', async () => {
+    const d = deps({ advisory: { vulnerabilities: [npm('node-forge', '1.4.2')] }, packument: registry(['1.4.0', '1.4.1', '1.4.2']) });
+    expect(await assessSuppression(ID, d)).toMatchObject({ detail: 'node-forge@1.4.2 is published', status: 'fix-available' });
+  });
+
+  it('keeps the entry while one vulnerable copy has no fix, even when another has', async () => {
+    const twoLines = { vulnerabilities: [npm('node-forge', null), npm('node-forge', null, '>= 2.0.0, < 2.0.5')] };
+    const d = deps({ advisory: twoLines, locked: ['1.4.0', '2.0.1'], packument: registry(['1.4.0', '1.4.1', '2.0.1']) });
+    expect(await assessSuppression(ID, d)).toMatchObject({ detail: expect.stringContaining('above 2.0.1'), status: 'unfixable' });
+    expect(d.npmPackument).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -109,8 +225,9 @@ describe('exitCodeFor', () => {
     expect(exitCodeFor([result('unverified')], { ci: false, token: true })).toBe(0);
   });
 
-  it('passes entries that still hold', () => {
+  it('passes entries that still hold, including an unpublished or a maturing fix', () => {
     expect(exitCodeFor([result('unfixable'), result('fix-unpublished')], { ci: true, token: true })).toBe(0);
+    expect(exitCodeFor([result('unfixable'), result('fix-in-quarantine')], { ci: true, token: true })).toBe(0);
   });
 });
 
@@ -118,6 +235,7 @@ describe('summary line: producer (check-suppressions.mjs) and reader (check.mjs)
   it('round-trips every state', () => {
     expect(parseSuppressionSummary(summaryLine([]))).toEqual({ count: 0, state: 'none', total: 0 });
     expect(parseSuppressionSummary(summaryLine([result('unfixable'), result('fix-unpublished')]))).toEqual({ count: 2, state: 'verified', total: 2 });
+    expect(parseSuppressionSummary(summaryLine([result('fix-in-quarantine')]))).toEqual({ count: 1, state: 'verified', total: 1 });
     expect(parseSuppressionSummary(summaryLine([result('unfixable'), result('unverified')]))).toEqual({ count: 1, state: 'unverified', total: 2 });
     expect(parseSuppressionSummary(summaryLine([result('unverified'), result('not-present')]))).toEqual({ count: 1, state: 'obsolete', total: 2 });
   });
@@ -258,14 +376,39 @@ describe('network lookups', () => {
     expect(await createAdvisoryFetcher({ fetchImpl: offlineFetch })(ID)).toEqual({ ok: false, reason: expect.stringContaining('ENOTFOUND') });
   });
 
-  it('asks the version endpoint and maps its answers', async () => {
-    expect(await createNpmVersionProbe({ fetchImpl: fakeFetch(200).impl })('node-forge', '1.4.0')).toBe(true);
-    expect(await createNpmVersionProbe({ fetchImpl: fakeFetch(404).impl })('node-forge', '1.4.1')).toBe(false);
-    expect(await createNpmVersionProbe({ fetchImpl: fakeFetch(503).impl })('node-forge', '1.4.1')).toBeNull();
-    expect(await createNpmVersionProbe({ fetchImpl: offlineFetch })('node-forge', '1.4.1')).toBeNull();
-    const f = fakeFetch(200);
-    await createNpmVersionProbe({ fetchImpl: f.impl })('@scope/pkg', '2.0.0');
-    expect(f.calls[0]?.[0]).toBe('https://registry.npmjs.org/@scope%2Fpkg/2.0.0');
+  it('reads the packument: versions and publish times on 200, nothing published on 404, null otherwise', async () => {
+    const body = { name: 'node-forge', time: FORGE_TIME, versions: { '1.4.0': {}, '1.4.1': {} } };
+    expect(await createNpmPackumentFetcher({ fetchImpl: fakeFetch(200, body).impl })('node-forge')).toEqual({ time: FORGE_TIME, versions: body.versions });
+    expect(await createNpmPackumentFetcher({ fetchImpl: fakeFetch(404).impl })('node-forge')).toEqual({ time: {}, versions: {} });
+    expect(await createNpmPackumentFetcher({ fetchImpl: fakeFetch(503).impl })('node-forge')).toBeNull();
+    expect(await createNpmPackumentFetcher({ fetchImpl: fakeFetch(200, { error: 'not a packument' }).impl })('node-forge')).toBeNull();
+    expect(await createNpmPackumentFetcher({ fetchImpl: offlineFetch })('node-forge')).toBeNull();
+  });
+
+  it('asks for the full packument, the one that carries `time`, with the scope slash encoded', async () => {
+    const f = fakeFetch(200, { versions: {} });
+    await createNpmPackumentFetcher({ fetchImpl: f.impl })('@scope/pkg');
+    expect(f.calls[0]?.[0]).toBe('https://registry.npmjs.org/@scope%2Fpkg');
+    // The abbreviated install document (application/vnd.npm.install-v1+json) has no `time`.
+    expect(f.calls[0]?.[1].headers.Accept).toBe('application/json');
+  });
+});
+
+describe('minimumReleaseAgeOf', () => {
+  it("reads a top-level minimumReleaseAge and falls back to pnpm 11's 24h default", () => {
+    expect(minimumReleaseAgeOf('minimumReleaseAge: 10080')).toBe(10_080);
+    expect(minimumReleaseAgeOf('packages:\n  - .\nminimumReleaseAge: 0 # off\n')).toBe(0);
+    expect(minimumReleaseAgeOf('')).toBe(1440);
+    expect(minimumReleaseAgeOf('# minimumReleaseAge: 5')).toBe(1440);
+    expect(minimumReleaseAgeOf('nested:\n  minimumReleaseAge: 5')).toBe(1440);
+  });
+
+  it('reads the real workspace file the way pnpm does', () => {
+    const text = readFileSync(join(WORKSPACE, 'pnpm-workspace.yaml'), 'utf8');
+    // Independent oracle rather than a pinned 1440: a project that sets its own gate must not
+    // turn this red. `minimumReleaseAgeExclude:` is a different key and must not be read as one.
+    const line = text.split('\n').find((l) => l.startsWith('minimumReleaseAge:'));
+    expect(minimumReleaseAgeOf(text)).toBe(line ? Number.parseInt(line.slice('minimumReleaseAge:'.length), 10) : 1440);
   });
 });
 

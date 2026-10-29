@@ -14,13 +14,22 @@
  *   not-present      no package of the advisory resolves to a vulnerable version any more (read
  *                    from pnpm-lock.yaml), so the entry hides nothing — FAIL.
  *   withdrawn        the advisory was withdrawn — FAIL.
- *   fix-available    a patched version is installable from npm — FAIL: take the fix.
+ *   fix-available    every vulnerable copy has a fix past the release-age gate — FAIL: take it.
+ *   fix-in-quarantine  a fix is on the registry but younger than `minimumReleaseAge` (pnpm 11
+ *                    default: 24h). Still holds until the gate clears; the detail says when.
  *   fix-unpublished  a patched version is NAMED but not on the registry (node-forge, 2026-10:
  *                    `pnpm audit` named ">=1.4.1" while registry.npmjs.org/node-forge/1.4.1 was a
  *                    404). Still holds: there is nothing to install.
- *   unfixable        no patched version is named. Still holds.
+ *   unfixable        no release on the registry would take a vulnerable copy out of the
+ *                    advisory's ranges. Still holds.
  *   unverified       the lookup could not be made: offline, rate-limited, unknown id, lockfile or
  *                    registry unreadable, a range it cannot parse. NEVER reported as verified.
+ *
+ * A fix does not have to be NAMED. GitHub leaves `first_patched_version` null on some advisories
+ * long after a release outside the vulnerable range shipped: GHSA-86w9-cpqp-85rv still read
+ * `<= 1.4.0` / null on 2026-10-28, a day after node-forge 1.4.1 and 1.4.2 were published. Reading
+ * only the named field kept such an entry "unfixable" for good, so the fix is read from the
+ * registry's version list.
  *
  * Where the entries live: the nearest `pnpm-workspace.yaml` above this script — the same file
  * pnpm itself reads. Standalone that is this app's own file. In a generated monorepo `lt` hoists
@@ -47,6 +56,20 @@ const TIMEOUT_MS = 20_000;
 
 /** Verdicts that make the check fail: the suppression is obsolete. */
 export const OBSOLETE = new Set(['fix-available', 'not-present', 'withdrawn']);
+
+/** pnpm 11's built-in `minimumReleaseAge` when the workspace sets none: 1440 minutes, 24h. */
+export const DEFAULT_MINIMUM_RELEASE_AGE_MINUTES = 1440;
+
+/**
+ * The `minimumReleaseAge` gate in minutes a pnpm-workspace.yaml sets, or pnpm 11's 24h default.
+ * A fix younger than the gate is not one the project takes yet: pnpm refuses it, or installs it
+ * only through a `minimumReleaseAgeExclude` entry nobody decided on. Failing on it would order
+ * exactly that entry.
+ */
+export function minimumReleaseAgeOf(workspaceText) {
+  const m = String(workspaceText ?? '').match(/^minimumReleaseAge\s*:\s*(\d+)\s*(?:#.*)?$/m);
+  return m ? Number(m[1]) : DEFAULT_MINIMUM_RELEASE_AGE_MINUTES;
+}
 
 /**
  * The nearest directory at or above `start` that holds a `pnpm-workspace.yaml` — pnpm's own
@@ -138,8 +161,62 @@ export function patchedVersionOf(vulnerability) {
   return null;
 }
 
-/** Decide whether one suppression still holds. Network and lockfile access are injected. */
-export async function assessSuppression(id, { fetchAdvisory, lockedVersions, npmHasVersion }) {
+/** Sort order of two versions; NaN when either cannot be read, so every comparison with it fails. */
+function compareVersions(a, b) {
+  const x = parseVersion(a);
+  const y = parseVersion(b);
+  if (!x || !y) return Number.NaN;
+  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return Math.sign(x[i] - y[i]);
+  return 0;
+}
+
+/**
+ * The fix one vulnerable copy in the tree could move to, read from the registry's packument. A
+ * candidate is a stable release above the copy that lies outside EVERY range the advisory lists
+ * for the package (a later line can be vulnerable too) and, when the advisory names a first patched
+ * version, not below it. The smallest candidate past the release-age gate wins.
+ *
+ * A deprecated release is passed over, not ruled out: it counts only when every candidate is
+ * deprecated. node-sass deprecated all 132 of its stable releases, so excluding them turned a fix
+ * that pnpm installs with a warning into "unfixable" — and kept the entry for good.
+ */
+function fixFor(copy, entries, packument, { gateMs, now }) {
+  const floor =
+    entries
+      .filter((e) => inVulnerableRange(copy, e.vulnerable_version_range))
+      .map(patchedVersionOf)
+      .find(Boolean) ?? null;
+  const outside = Object.keys(packument.versions)
+    .filter((v) => /^\d+\.\d+\.\d+$/.test(v))
+    .filter((v) => compareVersions(v, copy) > 0 && (floor === null || compareVersions(v, floor) >= 0))
+    .filter((v) => entries.every((e) => inVulnerableRange(v, e.vulnerable_version_range) === false));
+  const current = outside.filter((v) => !packument.versions[v]?.deprecated);
+  const deprecated = outside.length > 0 && current.length === 0;
+  const candidates = (deprecated ? outside : current).sort(compareVersions).map((version) => ({ published: Date.parse(packument.time?.[version] ?? ''), version }));
+
+  const mature = candidates.find((c) => now - c.published >= gateMs);
+  if (mature) return { deprecated, fix: mature.version, kind: 'available', named: floor !== null };
+  if (candidates.length) return { clears: candidates[0].published + gateMs, fix: candidates[0].version, kind: 'quarantine' };
+  if (floor !== null && !Object.hasOwn(packument.versions, floor)) return { fix: floor, kind: 'unpublished' };
+  return { kind: 'none' };
+}
+
+function formatGate(minutes) {
+  if (minutes >= 2880 && minutes % 1440 === 0) return `${minutes / 1440}d`;
+  if (minutes % 60 === 0) return `${minutes / 60}h`;
+  return `${minutes}min`;
+}
+
+function formatTime(ms) {
+  return `${new Date(ms).toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+}
+
+/**
+ * Decide whether one suppression still holds. Network and file access are injected
+ * (`fetchAdvisory`, `npmPackument`, `lockedVersions`, plus `now` and `minimumReleaseAgeMinutes`),
+ * so every verdict is testable offline.
+ */
+export async function assessSuppression(id, { fetchAdvisory, lockedVersions, minimumReleaseAgeMinutes = DEFAULT_MINIMUM_RELEASE_AGE_MINUTES, now = Date.now(), npmPackument }) {
   const answer = await fetchAdvisory(id);
   if (!answer.ok) return { detail: answer.reason, id, status: 'unverified' };
 
@@ -151,8 +228,8 @@ export async function assessSuppression(id, { fetchAdvisory, lockedVersions, npm
 
   // Still in the tree? Checked before the fix: an entry whose package left the tree is obsolete
   // whether or not a fix exists — the image-size case a fix check alone never reports.
-  let stillVulnerable = false;
   const locked = [];
+  const vulnerableCopies = new Map();
   for (const vulnerability of npmVulnerabilities) {
     const name = vulnerability.package.name;
     const versions = lockedVersions(name);
@@ -160,28 +237,52 @@ export async function assessSuppression(id, { fetchAdvisory, lockedVersions, npm
     for (const version of versions) {
       const hit = inVulnerableRange(version, vulnerability.vulnerable_version_range);
       if (hit === null) return { detail: `cannot compare ${name}@${version} with the range "${vulnerability.vulnerable_version_range}"`, id, status: 'unverified' };
-      if (hit) stillVulnerable = true;
+      if (hit) vulnerableCopies.set(`${name}@${version}`, { name, version });
       locked.push(`${name}@${version}`);
     }
   }
-  if (!stillVulnerable) {
+  if (vulnerableCopies.size === 0) {
     const where = locked.length ? `the lockfile resolves only ${locked.join(', ')}` : 'the package no longer resolves at all';
     return { detail: `nothing vulnerable left in the tree: ${where}`, id, status: 'not-present' };
   }
 
-  const namedButUnpublished = [];
-  for (const vulnerability of npmVulnerabilities) {
-    const version = patchedVersionOf(vulnerability);
-    if (!version) continue;
-    const name = vulnerability.package.name;
-    const published = await npmHasVersion(name, version);
-    if (published === true) return { detail: `${name}@${version} is published`, id, status: 'fix-available' };
-    if (published !== false) return { detail: `could not ask the npm registry whether ${name}@${version} exists`, id, status: 'unverified' };
-    namedButUnpublished.push(`${name}@${version}`);
+  // One answer per vulnerable copy. The entry is obsolete only when EVERY copy can move off the
+  // vulnerable ranges: a single copy that cannot still needs the suppression.
+  const gateMs = minimumReleaseAgeMinutes * 60_000;
+  const packuments = new Map();
+  const answers = [];
+  for (const { name, version } of vulnerableCopies.values()) {
+    if (!packuments.has(name)) packuments.set(name, await npmPackument(name));
+    const packument = packuments.get(name);
+    if (!packument) return { detail: `could not read the npm registry entry of ${name}`, id, status: 'unverified' };
+    const entries = npmVulnerabilities.filter((v) => v.package.name === name);
+    answers.push({ name, version, ...fixFor(version, entries, packument, { gateMs, now }) });
   }
-  if (namedButUnpublished.length) return { detail: `${namedButUnpublished.join(', ')} named, but not on the npm registry`, id, status: 'fix-unpublished' };
-  const names = [...new Set(npmVulnerabilities.map((v) => v.package.name))].join(', ');
-  return { detail: `still no patched version of ${names}`, id, status: 'unfixable' };
+
+  const stuck = answers.find((a) => a.kind === 'none');
+  if (stuck)
+    return { detail: `still no patched version of ${stuck.name}: nothing above ${stuck.version} on the registry is outside the vulnerable range`, id, status: 'unfixable' };
+  const unpublished = answers.filter((a) => a.kind === 'unpublished');
+  if (unpublished.length) return { detail: `${unpublished.map((a) => `${a.name}@${a.fix}`).join(', ')} named, but not on the npm registry`, id, status: 'fix-unpublished' };
+  const gate = formatGate(minimumReleaseAgeMinutes);
+  const maturing = answers.filter((a) => a.kind === 'quarantine');
+  if (maturing.length) {
+    const detail = maturing
+      .map((a) =>
+        Number.isNaN(a.clears)
+          ? `${a.name}@${a.fix} is published, but the registry gives no publish time to hold against the ${gate} minimumReleaseAge gate`
+          : `${a.name}@${a.fix} is published, but inside the ${gate} minimumReleaseAge gate until ${formatTime(a.clears)}`,
+      )
+      .join('; ');
+    return { detail, id, status: 'fix-in-quarantine' };
+  }
+  const detail = answers
+    .map((a) => {
+      const published = a.named ? `${a.name}@${a.fix} is published` : `${a.name}@${a.fix} is published and outside the vulnerable range (the advisory names no patched version)`;
+      return a.deprecated ? `${published}, deprecated like every release outside the vulnerable range` : published;
+    })
+    .join('; ');
+  return { detail, id, status: 'fix-available' };
 }
 
 /**
@@ -238,20 +339,26 @@ export function createAdvisoryFetcher({ fetchImpl = globalThis.fetch, token } = 
 }
 
 /**
- * Real npm lookup: true when `name@version` resolves, false when the registry says it does not
- * exist, null when it could not be asked. The version-specific endpoint answers the moment a
- * version is published, unlike the CDN-cached packument `npm view` reads.
+ * Real npm lookup of a package's full packument: every version with its `deprecated` notice, and
+ * the `time` map the release-age gate needs. The abbreviated install document
+ * (`application/vnd.npm.install-v1+json`) carries no `time`, so it is not asked for. Resolves to
+ * `{ time, versions }`, to an empty one when the package does not exist, and to null when the
+ * registry could not be asked or answered something that is not a packument. The packument is
+ * CDN-cached and can lag a publish by minutes; harmless here, since a version that young is still
+ * inside the gate.
  */
-export function createNpmVersionProbe({ fetchImpl = globalThis.fetch } = {}) {
-  return async (name, version) => {
+export function createNpmPackumentFetcher({ fetchImpl = globalThis.fetch } = {}) {
+  return async (name) => {
     try {
-      const response = await fetchImpl(`${NPM_REGISTRY}${name.replace('/', '%2F')}/${encodeURIComponent(version)}`, {
+      const response = await fetchImpl(`${NPM_REGISTRY}${name.replace('/', '%2F')}`, {
         headers: { Accept: 'application/json' },
         signal: AbortSignal.timeout(TIMEOUT_MS),
       });
-      if (response.status === 200) return true;
-      if (response.status === 404) return false;
-      return null;
+      if (response.status === 404) return { time: {}, versions: {} };
+      if (response.status !== 200) return null;
+      const body = await response.json();
+      if (!body?.versions || typeof body.versions !== 'object') return null;
+      return { time: body.time && typeof body.time === 'object' ? body.time : {}, versions: body.versions };
     } catch {
       return null;
     }
@@ -260,6 +367,7 @@ export function createNpmVersionProbe({ fetchImpl = globalThis.fetch } = {}) {
 
 const LABEL = {
   'fix-available': '✗ FIX AVAILABLE',
+  'fix-in-quarantine': '✓ fix maturing  ',
   'fix-unpublished': '✓ still holds   ',
   'not-present': '✗ NOT IN TREE   ',
   unfixable: '✓ still holds   ',
@@ -270,7 +378,8 @@ const LABEL = {
 /** The CLI: find the workspace, assess every entry, print one line each plus the summary. */
 export async function run({ cwd = dirname(dirname(fileURLToPath(import.meta.url))), env = process.env, log = console.log } = {}) {
   const root = findWorkspaceRoot(cwd);
-  const ids = root ? listSuppressions(readFileSync(join(root, 'pnpm-workspace.yaml'), 'utf8')) : [];
+  const workspaceText = root ? readFileSync(join(root, 'pnpm-workspace.yaml'), 'utf8') : '';
+  const ids = listSuppressions(workspaceText);
   if (ids.length === 0) {
     log(summaryLine([]));
     return 0;
@@ -286,7 +395,8 @@ export async function run({ cwd = dirname(dirname(fileURLToPath(import.meta.url)
   const deps = {
     fetchAdvisory: createAdvisoryFetcher({ token }),
     lockedVersions: (name) => (lockText === null ? null : resolvedVersions(lockText, name)),
-    npmHasVersion: createNpmVersionProbe(),
+    minimumReleaseAgeMinutes: minimumReleaseAgeOf(workspaceText),
+    npmPackument: createNpmPackumentFetcher(),
   };
   const results = await Promise.all(ids.map((id) => assessSuppression(id, deps)));
 

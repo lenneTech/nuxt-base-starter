@@ -3,7 +3,14 @@
  * under `strict`. Everything not declared here is internal.
  */
 
-export type SuppressionStatus = 'fix-available' | 'fix-unpublished' | 'not-present' | 'unfixable' | 'unverified' | 'withdrawn';
+export type SuppressionStatus = 'fix-available' | 'fix-in-quarantine' | 'fix-unpublished' | 'not-present' | 'unfixable' | 'unverified' | 'withdrawn';
+
+/** The parts of a full npm packument (`GET registry.npmjs.org/{name}`) the check reads. */
+export interface Packument {
+  /** ISO publish date per version. */
+  time: Record<string, string>;
+  versions: Record<string, { deprecated?: string }>;
+}
 
 export interface SuppressionResult {
   /** Why the entry got its verdict, for the report line. */
@@ -17,15 +24,22 @@ export interface SuppressionDeps {
   fetchAdvisory: (id: string) => Promise<{ advisory: unknown; ok: true } | { ok: false; reason: string }>;
   /** Versions the lockfile resolves for a package; null when the lockfile cannot be read. */
   lockedVersions: (name: string) => string[] | null;
-  /** true: published · false: the registry says it does not exist · null: could not ask. */
-  npmHasVersion: (name: string, version: string) => Promise<boolean | null>;
+  /** The release-age gate a fix must clear; defaults to pnpm 11's 1440 minutes. */
+  minimumReleaseAgeMinutes?: number;
+  /** Current time in ms; defaults to `Date.now()`. */
+  now?: number;
+  /** The package's packument; empty when it does not exist, null when the registry could not be asked. */
+  npmPackument: (name: string) => Promise<Packument | null>;
 }
 
 /** Verdicts that make the check fail. */
 export const OBSOLETE: ReadonlySet<SuppressionStatus>;
+export const DEFAULT_MINIMUM_RELEASE_AGE_MINUTES: number;
 export function assessSuppression(id: string, deps: SuppressionDeps): Promise<SuppressionResult>;
 export function createAdvisoryFetcher(options?: { fetchImpl?: typeof fetch; token?: string }): SuppressionDeps['fetchAdvisory'];
-export function createNpmVersionProbe(options?: { fetchImpl?: typeof fetch }): SuppressionDeps['npmHasVersion'];
+export function createNpmPackumentFetcher(options?: { fetchImpl?: typeof fetch }): SuppressionDeps['npmPackument'];
+/** The `minimumReleaseAge` a pnpm-workspace.yaml sets at the top level, else 1440. */
+export function minimumReleaseAgeOf(workspaceText: string | null | undefined): number;
 export function exitCodeFor(results: SuppressionResult[], context: { ci: boolean; token: boolean }): 0 | 1;
 /** Nearest directory at or above `start` holding a pnpm-workspace.yaml; null when none. */
 export function findWorkspaceRoot(start: string, exists?: (path: string) => boolean): string | null;
