@@ -38,7 +38,8 @@ nuxt.config.ts        # Nuxt configuration
 ```bash
 pnpm dev              # Start dev server (port 3001)
 pnpm run generate-types  # Generate API types (API must be running on port 3000)
-pnpm test             # Run Playwright E2E tests
+pnpm test             # Run Vitest unit tests
+pnpm run test:e2e     # Run Playwright E2E tests
 pnpm run build        # Build for production
 pnpm run check        # Full quality check (audit + format + lint + types + test + build)
 ```

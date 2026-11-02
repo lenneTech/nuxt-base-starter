@@ -113,7 +113,8 @@ my-project/
 | `pnpm run build`          | Build for production                   |
 | `pnpm run preview`        | Preview production build               |
 | `pnpm run generate-types` | Generate TypeScript types from OpenAPI |
-| `pnpm run test`           | Run Playwright E2E tests               |
+| `pnpm run test`           | Run Vitest unit tests                  |
+| `pnpm run test:e2e`       | Run Playwright E2E tests               |
 | `pnpm run lint`           | Run OxLint                             |
 | `pnpm run format`         | Run OxFmt                              |
 | `pnpm run check`          | Run lint + format check                |
