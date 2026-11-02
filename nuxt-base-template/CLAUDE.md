@@ -45,17 +45,17 @@ pnpm run check        # Full quality check (audit + format + lint + types + test
 
 ## Standards
 
-| Rule             | Value                                                              |
-| ---------------- | ------------------------------------------------------------------ |
-| UI Labels        | German (`Speichern`, `Abbrechen`)                                  |
-| Code/Comments    | English                                                            |
-| Styling          | TailwindCSS only, no `<style>` blocks                              |
-| Colors           | Semantic only (`primary`, `error`, `success`)                      |
-| Types            | Explicit, no implicit `any`                                        |
-| Backend Types    | Generated only (`types.gen.ts`) — never manual interfaces for DTOs |
-| Forms            | Valibot (not Zod)                                                  |
-| Modals           | `useOverlay()` (programmatic)                                      |
-| Auth             | `useBetterAuth()` from `@lenne.tech/nuxt-extensions`               |
+| Rule             | Value                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| UI Labels        | German (`Speichern`, `Abbrechen`)                                                                          |
+| Code/Comments    | English                                                                                                    |
+| Styling          | TailwindCSS only, no `<style>` blocks                                                                      |
+| Colors           | Semantic only (`primary`, `error`, `success`)                                                              |
+| Types            | Explicit, no implicit `any`                                                                                |
+| Backend Types    | Generated only (`types.gen.ts`) — never manual interfaces for DTOs                                         |
+| Forms            | Valibot (not Zod)                                                                                          |
+| Modals           | `useOverlay()` (programmatic)                                                                              |
+| Auth             | `useBetterAuth()` from `@lenne.tech/nuxt-extensions`                                                       |
 | Protected Routes | `/app/*` pages are automatically protected by `app/middleware/auth.global.ts` — no `definePageMeta` needed |
 
 ## Framework: @lenne.tech/nuxt-extensions
@@ -166,13 +166,13 @@ Always bind a reactive state object and `v-model` inputs to it:
 ```vue
 <!-- Without :state, form validation runs against {} and submit is swallowed. -->
 <script setup lang="ts">
-import { object, string, minLength } from 'valibot'
+import { object, string, minLength } from 'valibot';
 
-const schema = object({ title: string([minLength(1)]) })
-const state = reactive({ title: '' })
+const schema = object({ title: string([minLength(1)]) });
+const state = reactive({ title: '' });
 
 async function onSubmit() {
-  await $fetch('/api/todos', { method: 'POST', body: state })
+  await $fetch('/api/todos', { method: 'POST', body: state });
 }
 </script>
 
