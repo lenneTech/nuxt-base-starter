@@ -1,6 +1,11 @@
-# pnpm settings for the repository root: release tooling only (standard-version, oxfmt).
+# pnpm settings for the repository root: repository tooling only (oxfmt).
 # The Nuxt template itself lives in nuxt-base-template/ with its own pnpm-workspace.yaml.
 # The former `create-nuxt-base` scaffolder (index.js) was retired on 2026-10-26.
+# standard-version was removed on 2026-11-02 (owner decision, for every base repo): /lt-dev:publish
+# raises the version, writes the CHANGELOG section and tags the release itself. It had become the
+# last source of a vulnerable dependency here, `standard-version > dotgitignore > minimatch@3.1.5`
+# (GHSA-g3hv-75wg-m249), which no override can lift, because dotgitignore calls
+# `minimatch.makeRe()` and minimatch 11 removed it.
 #
 # IMPORTANT: This file intentionally has NO `packages:` field. It carries
 # ONLY workspace-scoped settings. This is the pnpm-recommended home for these
@@ -11,11 +16,12 @@
 # plus `patches/minimatch@3.1.5.patch`, was removed on 2026-10-06. brace-expansion now
 # backports its fixes per major (1.1.21 closes GHSA-mh99-v99m-4gvg, GHSA-3jxr-9vmj-r5cp,
 # GHSA-rgw5-rvv9-x895, GHSA-6j4f-fj2g-mc7p, GHSA-qhr7-859c-m2p7 and GHSA-q2hr-2g5m-vwhr on the
-# 1.x line), and a fresh resolve WITHOUT either (no pnpm-lock.yaml, no node_modules) gives
+# 1.x line), and a fresh resolve WITHOUT either (no pnpm-lock.yaml, no node_modules) gave
 # brace-expansion 1.1.21 under standard-version > dotgitignore > minimatch@3.1.5 with
 # `pnpm audit` clean. The override had stopped closing anything: it only lifted that one dev
 # path across a major, and the patch existed solely to make that lift work. The handlebars,
-# lodash and minimatch overrides went the same way earlier.
+# lodash and minimatch overrides went the same way earlier. Since standard-version left, none
+# of these packages resolves here at all.
 #
 # When you add one: prove it is needed first (scratch copy of package.json + this file, no
 # pnpm-lock.yaml, no node_modules, `pnpm install --lockfile-only`, `pnpm audit`). The
