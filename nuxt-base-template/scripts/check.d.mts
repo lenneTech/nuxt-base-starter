@@ -14,9 +14,9 @@
 
 /** What `parseSuppressionSummary` reads from the `check-suppressions` step's output. */
 export interface SuppressionSummary {
-  /** Obsolete or unverified entries, depending on `state`; 0 for `none`. */
+  /** Obsolete, re-test or unverified entries, depending on `state`; 0 for `none`. */
   count: number;
-  state: 'none' | 'obsolete' | 'unverified' | 'verified';
+  state: 'none' | 'obsolete' | 'retest' | 'unverified' | 'verified';
   total: number;
 }
 

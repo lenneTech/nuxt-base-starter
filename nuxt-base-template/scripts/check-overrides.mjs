@@ -286,6 +286,11 @@ const suppressed = [...new Set([...(pkg.pnpm?.auditConfig?.ignoreGhsas ?? []), .
  *   auditConfig:
  *     unusableFixConsumers:
  *       GHSA-x6jw-m9v5-85vh: '@nuxt/devtools@3.4.1 cannot use 4.0.1'
+ *       GHSA-g3hv-75wg-m249: '@nestjs/cli@12.0.11 + nodemon@3.1.14 cannot use 11.0.1'
+ *
+ * Several consumers are joined with ` + `, each at the version it was assessed
+ * against: one vulnerable package often sits under several dev tools at once, and
+ * every one of them is held to the same checks as a single consumer.
  *
  * ## Why this exists
  *
@@ -331,14 +336,18 @@ const residualDeclarations = {
   ...workspaceMap(['auditConfig', 'unusableFixConsumers']),
 };
 
-/** Splits `'<consumer>@<version> cannot use <v1>, <v2>'` into its three parts. */
+/** Splits `'<consumer>@<version> + <consumer>@<version> cannot use <v1>, <v2>'` into its parts. */
 function parseResidual(raw) {
   const [left, right] = String(raw).split(/\s+cannot use\s+/);
-  // The consumer may be scoped (`@nuxt/devtools@3.4.1`), so the LAST `@` separates.
-  const at = left.lastIndexOf('@');
   return {
-    assessedAt: at > 0 ? left.slice(at + 1).trim() : '',
-    consumer: (at > 0 ? left.slice(0, at) : left).trim(),
+    consumers: left.split(/\s+\+\s+/).map((entry) => {
+      // The consumer may be scoped (`@nuxt/devtools@3.4.1`), so the LAST `@` separates.
+      const at = entry.lastIndexOf('@');
+      return {
+        assessedAt: at > 0 ? entry.slice(at + 1).trim() : '',
+        consumer: (at > 0 ? entry.slice(0, at) : entry).trim(),
+      };
+    }),
     // Several, because one advisory can carry a fix per affected package line.
     rejected: (right ?? '')
       .split(',')
@@ -999,9 +1008,20 @@ function resolvedVersions(name) {
  * this over-counts rather than under-counts, and the error lands on the safe
  * side: an extra RE-TEST asks for a second look at a suppression, where a missed
  * edge would hide a consumer nobody assessed.
+ *
+ * ## Only edges to an AFFECTED version count (12.2.x)
+ *
+ * `ranges` are the advisory's `vulnerable_version_range`s for `name`. An edge whose
+ * resolved version lies outside every one of them pulls the FIXED package and is no
+ * consumer of the vulnerability. Counting it made a correct declaration fail for
+ * good the moment one subtree was lifted to the fixed major (glob 14.0.3 pulling
+ * minimatch 11.0.3 beside the declared consumers still on minimatch 10): the
+ * declaration could never become true again, short of lifting every consumer.
+ * An edge counts unless its version is READ and lies outside every range — an
+ * alias, a `link:` or a range nobody can parse counts, as does any edge when the
+ * advisory lists no range for the package (fail-closed, as above).
  */
-function dependentsOf(name) {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function dependentsOf(name, ranges = []) {
   const DEPENDENCY_SECTIONS = new Set(['dependencies', 'devDependencies', 'optionalDependencies']);
   const halves = [
     { edge: 6, header: /^importers:\s*$/m, key: 2, section: 4, workspace: true },
@@ -1019,13 +1039,14 @@ function dependentsOf(name) {
     scanned = true;
     const keyRe = new RegExp(`^ {${half.key}}('[^']+'|[^\\s:][^:]*):\\s*(\\{\\})?\\s*$`);
     const sectionRe = new RegExp(`^ {${half.section}}([a-zA-Z]+):\\s*$`);
-    // `(\s|$)` — an importer's package line ends at the colon, a snapshot's
-    // carries the version after it.
-    const edgeRe = new RegExp(`^ {${half.edge}}'?${escaped}'?:(\\s|$)`);
+    // Any edge; which package it pulls is decided from its value below. `(\s|$)` — an importer's package
+    // line ends at the colon, a snapshot's carries the version after it.
+    const edgeRe = new RegExp(`^ {${half.edge}}('[^']+'|[^\\s:'][^:]*):(\\s|$)`);
     let current = null;
     let section = null;
 
-    for (const line of lockText.slice(at).split('\n')) {
+    const lines = lockText.slice(at).split('\n');
+    for (const [index, line] of lines.entries()) {
       // A later top-level section ends this half.
       if (/^[a-zA-Z]/.test(line) && !half.header.test(line)) {
         if (current !== null || section !== null) {
@@ -1044,7 +1065,17 @@ function dependentsOf(name) {
         section = sub[1];
         continue;
       }
-      if (current && section && DEPENDENCY_SECTIONS.has(section) && edgeRe.test(line)) {
+      const edge = current && section && DEPENDENCY_SECTIONS.has(section) ? line.match(edgeRe) : null;
+      if (edge) {
+        // An npm alias is keyed by the alias (`mm-cjs: minimatch@5.1.9`); the edge belongs to the package it
+        // pulls. Matched by its key, such a parent was invisible, and a key naming the package can pull another.
+        const target = edgeTarget(edge[1].replace(/^'|'$/g, ''), edgeValue(half, line, lines.slice(index + 1)));
+        if (target.name !== name) {
+          continue;
+        }
+        if (!pullsAffectedVersion(target.version, ranges)) {
+          continue;
+        }
         parents.add(
           half.workspace
             ? // The workspace package itself, named by its path as the lockfile spells it.
@@ -1061,6 +1092,50 @@ function dependentsOf(name) {
   }
 
   return { parents: [...parents], scanned };
+}
+
+/**
+ * What an edge resolves to, as the lockfile spells it. A snapshot carries it on the edge line
+ * (`minimatch: 11.0.3(peer@1.0.0)`, an alias as `mm-cjs: minimatch@5.1.9`); an importer on a `version:` line
+ * underneath (`version: 11.0.3(peer@1.0.0)`, an alias as `version: minimatch@5.1.9`).
+ */
+function edgeValue(half, line, following) {
+  if (!half.workspace) {
+    return line.slice(line.indexOf(':') + 1);
+  }
+  for (const next of following) {
+    const deeper = next.match(new RegExp(`^ {${half.edge + 2}}([a-zA-Z]+):\\s*(.*)$`));
+    if (!deeper) {
+      return undefined;
+    }
+    if (deeper[1] === 'version') {
+      return deeper[2];
+    }
+  }
+  return undefined;
+}
+
+/**
+ * The package an edge pulls and its version: the alias target when the value names one (`minimatch@5.1.9`,
+ * `npm:@s/glob@13.0.6`), otherwise the edge's key. The version is null when it cannot be read as one (`link:`,
+ * `file:`).
+ */
+function edgeTarget(key, value) {
+  const resolved = String(value ?? '')
+    .trim()
+    .replace(/^'|'$/g, '')
+    .replace(/\(.*$/, '');
+  const alias = resolved.match(/^(?:npm:)?(@?[^@\s:]+)@(\d\S*)$/);
+  const version = alias ? alias[2] : resolved;
+  return { name: alias ? alias[1] : key, version: parseVersion(version) ? version : null };
+}
+
+/** Whether an edge to `version` counts: everything but a READ version outside every range. */
+function pullsAffectedVersion(version, ranges) {
+  if (version === null || ranges.length === 0) {
+    return true;
+  }
+  return ranges.some((range) => inVulnerableRange(version, range) !== false);
 }
 
 // ---------------------------------------------------------------------------
@@ -1333,20 +1408,30 @@ if (suppressed.length > 0) {
       obsoleteSuppressions.push({ id, ...info });
       continue;
     }
-    const { assessedAt, consumer, rejected } = parseResidual(raw);
-    const present = resolvedVersions(consumer);
-    const note = (reason) => staleResiduals.push({ consumer, id, reason, versions: info.patchedVersions });
+    const { consumers, rejected } = parseResidual(raw);
+    const expected = consumers.map(({ assessedAt, consumer }) => `${consumer}@${assessedAt}`);
+    const note = (reason) => staleResiduals.push({ id, reason, versions: info.patchedVersions });
 
-    if (present.length === 0) {
-      note(`no ${consumer} in the tree any more, so the suppression is moot`);
-      continue;
-    }
-    // Only the ABSENCE of the assessed version is a move. A second version
-    // sitting next to it is not news by itself — whether it matters depends on
-    // whether it pulls the affected package, which the consumer-set check below
-    // decides from the edges rather than from the package list.
-    if (!present.includes(assessedAt)) {
-      note(`${consumer} moved from ${assessedAt} to ${present.join(', ')}`);
+    // Every declared consumer is checked on its own; the first one that no longer
+    // holds decides the message.
+    const consumerProblem = consumers
+      .map(({ assessedAt, consumer }) => {
+        const present = resolvedVersions(consumer);
+        if (present.length === 0) {
+          return `no ${consumer} in the tree any more, so the suppression is moot`;
+        }
+        // Only the ABSENCE of the assessed version is a move. A second version
+        // sitting next to it is not news by itself — whether it matters depends on
+        // whether it pulls the affected package, which the consumer-set check below
+        // decides from the edges rather than from the package list.
+        if (!present.includes(assessedAt)) {
+          return `${consumer} moved from ${assessedAt} to ${present.join(', ')}`;
+        }
+        return undefined;
+      })
+      .find(Boolean);
+    if (consumerProblem) {
+      note(consumerProblem);
       continue;
     }
     // THE BACKPORT CHECK. A fix in a line the consumer CAN use leaves the
@@ -1360,14 +1445,21 @@ if (suppressed.length > 0) {
     // new way the vulnerable package enters the tree would otherwise be silent.
     //
     // The invariant is deliberately strict: EVERY parent of an affected package
-    // must be exactly the declared consumer AT THE ASSESSED VERSION. Anything
+    // must be one of the declared consumers AT ITS ASSESSED VERSION. Anything
     // else — a different package, a workspace package depending on it directly,
     // or the SAME consumer at another version — is a path nobody assessed, and
-    // the declaration's entire argument is "only this one". Comparing by name
+    // the declaration's entire argument is "only these". Comparing by name
     // alone let `@nuxt/devtools@3.5.0` ride along on a declaration written for
     // 3.4.1, with the winner decided by the order the lockfile listed them in.
-    const expected = `${consumer}@${assessedAt}`;
-    const scans = info.affectedPackages.map((affected) => ({ affected, ...dependentsOf(affected) }));
+    // Only edges to an affected VERSION: a subtree lifted to the fixed release is no consumer of the
+    // vulnerability, and counting it would fail a correct declaration for good.
+    const scans = info.affectedPackages.map((affected) => ({
+      affected,
+      ...dependentsOf(
+        affected,
+        info.vulnerabilities.filter((v) => v.name === affected).map((v) => v.range),
+      ),
+    }));
     if (info.affectedPackages.length === 0 || scans.some((scan) => !scan.scanned)) {
       // Fail-closed. "I could not check" must never read like "there is nothing
       // to find" — an empty answer used to pass here in silence.
@@ -1376,15 +1468,22 @@ if (suppressed.length > 0) {
     }
     const allParents = [...new Set(scans.flatMap((scan) => scan.parents))];
     if (allParents.length === 0) {
-      note(`nothing pulls ${info.affectedPackages.join(', ')} any more, so the suppression is moot`);
+      note(`nothing pulls an affected version of ${info.affectedPackages.join(', ')} any more, so the suppression is moot`);
       continue;
     }
-    const others = allParents.filter((parent) => parent !== expected);
+    const others = allParents.filter((parent) => !expected.includes(parent));
     if (others.length > 0) {
-      note(`${others.join(', ')} also pull${others.length === 1 ? 's' : ''} an affected package, so "only ${expected}" no longer holds`);
+      note(`${others.join(', ')} also pull${others.length === 1 ? 's' : ''} an affected package, so "only ${expected.join(' + ')}" no longer holds`);
       continue;
     }
-    trackedResiduals.push({ consumer, id, rejected, version: assessedAt });
+    // The other direction: a declared consumer that pulls nothing affected is a
+    // claim nobody can check any more, and it would keep covering a path that is gone.
+    const idle = expected.filter((entry) => !allParents.includes(entry));
+    if (idle.length > 0) {
+      note(`${idle.join(', ')} pull${idle.length === 1 ? 's' : ''} no affected package any more, so the declaration names a path that is gone`);
+      continue;
+    }
+    trackedResiduals.push({ consumers: expected.join(' + '), id, rejected });
   }
 }
 
@@ -1562,8 +1661,8 @@ const verifiedSuppressions = suppressed.length - uncheckedSuppressions.length;
 for (const entry of trackedResiduals) {
   console.log(
     `${TAG} residual ${entry.id} — ${entry.rejected.join(' / ')} exists but ` +
-      `${entry.consumer}@${entry.version} cannot use it; re-checked every run ` +
-      `(consumer version, newly published fixes, second consumer).`,
+      `${entry.consumers} cannot use it; re-checked every run ` +
+      `(consumer versions, newly published fixes, an undeclared consumer).`,
   );
 }
 // Named for the same reason: this entry turns red by itself once the gate clears.

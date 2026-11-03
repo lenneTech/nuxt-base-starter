@@ -22,6 +22,11 @@
  *                    404). Still holds: there is nothing to install.
  *   unfixable        no release on the registry would take a vulnerable copy out of the
  *                    advisory's ranges. Still holds.
+ *   unusable-fix     a fix is available, but `auditConfig.unusableFixConsumers` declares that the
+ *                    consumers pulling the vulnerable copies cannot use it, and the declaration
+ *                    still matches the tree (see below). Still holds.
+ *   re-test          the entry is declared that way, but something it was assessed against has
+ *                    moved — FAIL.
  *   unverified       the lookup could not be made: offline, rate-limited, unknown id, lockfile or
  *                    registry unreadable, a range it cannot parse. NEVER reported as verified.
  *
@@ -30,6 +35,18 @@
  * `<= 1.4.0` / null on 2026-10-28, a day after node-forge 1.4.1 and 1.4.2 were published. Reading
  * only the named field kept such an entry "unfixable" for good, so the fix is read from the
  * registry's version list.
+ *
+ * A fix that exists is not always one the tree can take. minimatch 11.0.1 fixes GHSA-g3hv-75wg-m249
+ * and glob 14.0.2 fixes GHSA-3g3m-2fjr-6pw4, but on 2026-11-01 every consumer, each on its newest
+ * release, still required the old major. nest-server-starter declares such an entry next to its
+ * `ignoreGhsas` item, as `'<consumer>@<version> + <consumer>@<version> cannot use <fix>'`, and
+ * `lt fullstack init` hoists both into the monorepo root this script reads. Without reading the
+ * declaration, both entries counted as "fix available" there and failed every generated project.
+ * A declaration is no exemption. It holds only while every declared consumer resolves at its
+ * assessed version, every parent of an affected package is a declared consumer at that version,
+ * every declared consumer still pulls one, and every fix found here is one it rejected. Anything
+ * else is RE-TEST. These are the rules of nest-server's `check-overrides.mjs`, in the same order,
+ * so both guards judge one declaration the same way.
  *
  * Where the entries live: the nearest `pnpm-workspace.yaml` above this script — the same file
  * pnpm itself reads. Standalone that is this app's own file. In a generated monorepo `lt` hoists
@@ -42,7 +59,9 @@
  * shared by every project — a busy day must not turn pipelines red with nothing wrong in them.
  *
  * Same file as @lenne.tech/nuxt-extensions' `scripts/check-suppressions.mjs` + `lib/
- * suppression-check.mjs`, folded into one so it has no sibling imports and can be copied alone.
+ * suppression-check.mjs`, folded into one so it has no sibling imports and can be copied alone. The
+ * `unusableFixConsumers` reading came here first (2026-11-01), because only a hoisted monorepo root
+ * carried such declarations, and was ported back to nuxt-extensions the same day.
  */
 
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
@@ -107,6 +126,50 @@ export function listSuppressions(workspaceYaml) {
 }
 
 /**
+ * The `auditConfig.unusableFixConsumers` declarations, GHSA id → raw value. Block form only, the
+ * one pnpm and `lt` write; a commented-out entry is retired. A flow mapping is not read, so its
+ * entries count as undeclared, which is the strict direction: they fail as "fix available".
+ */
+export function listUnusableFixConsumers(workspaceYaml) {
+  const lines = String(workspaceYaml).split('\n');
+  const keyIdx = lines.findIndex((l) => /^\s*"?unusableFixConsumers"?\s*:\s*(?:#.*)?$/.test(l));
+  if (keyIdx === -1) return {};
+  const indent = lines[keyIdx].search(/\S/);
+  const declarations = {};
+  for (const line of lines.slice(keyIdx + 1)) {
+    if (/^\s*#/.test(line) || !line.trim()) continue;
+    if (line.search(/\S/) <= indent) break;
+    const entry = line.match(/^\s*['"]?(GHSA-[0-9a-z]+(?:-[0-9a-z]+)*)['"]?\s*:\s*(\S.*)$/i);
+    if (entry)
+      declarations[entry[1]] = entry[2]
+        .replace(/\s+#.*$/, '')
+        .trim()
+        .replace(/^['"]|['"]$/g, '');
+  }
+  return declarations;
+}
+
+/**
+ * Splits a declaration, `'<consumer>@<version> + <consumer>@<version> cannot use <v1>, <v2>'`, into
+ * the consumers with the version each was assessed at, and the fix versions they rejected.
+ */
+export function parseResidual(raw) {
+  const [left, right] = String(raw).split(/\s+cannot use\s+/);
+  return {
+    consumers: left.split(/\s+\+\s+/).map((entry) => {
+      // The consumer may be scoped (`@nuxt/devtools@3.4.1`), so the LAST `@` separates.
+      const at = entry.lastIndexOf('@');
+      return { assessedAt: at > 0 ? entry.slice(at + 1).trim() : '', consumer: (at > 0 ? entry.slice(0, at) : entry).trim() };
+    }),
+    // Several, because one advisory can carry a fix per affected package line.
+    rejected: (right ?? '')
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean),
+  };
+}
+
+/**
  * Versions of `name` that a pnpm lockfile resolves, read from the `packages:` / `snapshots:` keys:
  * `  node-forge@1.4.0:`, `  '@scope/pkg@1.2.3':`, with an optional peer suffix `(peer@4.0.0)` and
  * the leading slash of lockfile v6 (`  /pkg@1.0.0:`).
@@ -118,6 +181,106 @@ export function resolvedVersions(lockText, name) {
     if (m && m[1] === name) versions.add(m[2]);
   }
   return [...versions];
+}
+
+/**
+ * Every package in a pnpm lockfile that depends on `name`, at any version of it. `importers:` holds
+ * what the workspace declares itself, reported as `the workspace package '<path>'`; `snapshots:`
+ * holds the edges between third-party packages, reported as `consumer@version` with the
+ * `(peer)(peer)` suffix cut. The version stays, because a second version of a declared consumer is
+ * a path nobody assessed. `dependencies`, `devDependencies` and `optionalDependencies` count as
+ * edges. The `peerDependencies` and `transitivePeerDependencies` blocks do not, although a v9
+ * snapshot writes a RESOLVED peer into `dependencies:`, where it counts. That over-counts, the safe
+ * direction. `scanned` is false when the lockfile has neither half, so "could not look" never reads
+ * as "nothing pulls it". Ported from nest-server's `check-overrides.mjs` (12.2.0).
+ *
+ * Only edges to an AFFECTED version count. `ranges` are the advisory's `vulnerable_version_range`s
+ * for `name`. An edge whose resolved version lies outside all of them pulls the fixed package and is
+ * no consumer of the vulnerability. Counting it failed a correct declaration for good the moment one
+ * subtree was lifted to the fixed major: glob 14.0.3 pulling minimatch 11.0.3 next to the declared
+ * consumers still on minimatch 10. An edge counts unless its version is READ and lies outside every
+ * range: a `link:` or an unparsable range counts, and so does every edge when no range is given
+ * (fail-closed). Ported from nest-server's fix of 2026-11-02.
+ *
+ * An edge is matched by the package it PULLS, not by its key. An npm alias keys the edge by the
+ * alias (`mm-cjs: minimatch@5.1.9`), so matching on the key let a consumer of the vulnerable copy
+ * through and reported "nothing else pulls it" over it (review of 2026-11-03).
+ */
+export function dependentsOf(lockText, name, ranges = []) {
+  const text = String(lockText);
+  const edgeSections = new Set(['dependencies', 'devDependencies', 'optionalDependencies']);
+  // `(\s|$)`: an importer's package line ends at the colon, a snapshot's carries the version.
+  const edgeRe = /^ {6}('[^']+'|[^\s:'][^:]*):(\s|$)/;
+  const parents = new Set();
+  let scanned = false;
+  for (const { header, workspace } of [
+    { header: /^importers:\s*$/m, workspace: true },
+    { header: /^snapshots:\s*$/m, workspace: false },
+  ]) {
+    const at = text.search(header);
+    if (at === -1) continue;
+    scanned = true;
+    let current = null;
+    let section = null;
+    const lines = text.slice(at).split('\n');
+    for (const [index, line] of lines.entries()) {
+      // A later top-level section ends this half.
+      if (/^[a-zA-Z]/.test(line) && !header.test(line)) {
+        if (current !== null || section !== null) break;
+        continue;
+      }
+      const key = line.match(/^ {2}('[^']+'|[^\s:][^:]*):\s*(\{\})?\s*$/);
+      if (key) {
+        current = key[1].replace(/^'|'$/g, '');
+        section = null;
+        continue;
+      }
+      const sub = line.match(/^ {4}([a-zA-Z]+):\s*$/);
+      if (sub) {
+        section = sub[1];
+        continue;
+      }
+      const edge = current && section && edgeSections.has(section) ? line.match(edgeRe) : null;
+      if (!edge) continue;
+      const value = workspace ? importerVersion(lines, index) : line.slice(line.indexOf(':') + 1);
+      const target = edgeTarget(edge[1].replace(/^'|'$/g, ''), value);
+      if (target.name !== name || !pullsAffectedVersion(target.version, ranges)) continue;
+      parents.add(workspace ? `the workspace package '${current}'` : current.replace(/\(.*$/, ''));
+    }
+  }
+  return { parents: [...parents], scanned };
+}
+
+/** An importer edge's `version:` line underneath it (`version: 11.0.3(peer@1.0.0)`), if any. */
+function importerVersion(lines, index) {
+  for (let i = index + 1; i < lines.length; i++) {
+    const deeper = lines[i].match(/^ {8}([a-zA-Z]+):\s*(.*)$/);
+    if (!deeper) return undefined;
+    if (deeper[1] === 'version') return deeper[2];
+  }
+  return undefined;
+}
+
+/**
+ * The package an edge pulls and the version it resolves to, the version null when it cannot be
+ * read as one. `value` is what a snapshot carries on the edge line (`minimatch: 11.0.3(peer@1.0.0)`)
+ * or an importer on its `version:` line. An npm alias names its target there
+ * (`string-width-cjs: string-width@4.2.3`), and then the key is only the alias.
+ */
+function edgeTarget(key, value) {
+  const resolved = String(value ?? '')
+    .trim()
+    .replace(/^'|'$/g, '')
+    .replace(/\(.*$/, '');
+  const alias = resolved.match(/^(?:npm:)?(@?[^@\s:]+)@(\d\S*)$/);
+  const version = alias ? alias[2] : resolved;
+  return { name: alias ? alias[1] : key, version: parseVersion(version) ? version : null };
+}
+
+/** Whether an edge to `version` counts: everything but a READ version outside every range. */
+function pullsAffectedVersion(version, ranges) {
+  if (version === null || ranges.length === 0) return true;
+  return ranges.some((range) => inVulnerableRange(version, range) !== false);
 }
 
 function parseVersion(text) {
@@ -212,11 +375,56 @@ function formatTime(ms) {
 }
 
 /**
- * Decide whether one suppression still holds. Network and file access are injected
- * (`fetchAdvisory`, `npmPackument`, `lockedVersions`, plus `now` and `minimumReleaseAgeMinutes`),
- * so every verdict is testable offline.
+ * Why an `unusableFixConsumers` declaration no longer holds, or null while it does: the checks of
+ * nest-server's `check-overrides.mjs`, in its order and wording. `fixes` are the versions this run
+ * would order, so the declaration has to rebut exactly the fix the check found.
  */
-export async function assessSuppression(id, { fetchAdvisory, lockedVersions, minimumReleaseAgeMinutes = DEFAULT_MINIMUM_RELEASE_AGE_MINUTES, now = Date.now(), npmPackument }) {
+function declarationProblem(declared, { affected, fixes, lockedParents, lockedVersions, rangesOf }) {
+  const { consumers, rejected } = parseResidual(declared);
+  const expected = consumers.map(({ assessedAt, consumer }) => `${consumer}@${assessedAt}`);
+  for (const { assessedAt, consumer } of consumers) {
+    const present = lockedVersions(consumer) ?? [];
+    if (present.length === 0) return `no ${consumer} in the tree any more, so the suppression is moot`;
+    // Only the ABSENCE of the assessed version is a move. A second version next to it matters only
+    // when it pulls an affected package, which the parent check below decides from the edges.
+    if (!present.includes(assessedAt)) return `${consumer} moved from ${assessedAt} to ${present.join(', ')}`;
+  }
+  // The backport check: a fix in a line the consumer CAN use leaves the consumer's version alone.
+  const unassessed = fixes.filter((v) => !rejected.includes(v));
+  if (unassessed.length) return `the advisory now offers ${unassessed.join(', ')}, which was never assessed (rejected: ${rejected.join(', ') || 'nothing recorded'})`;
+  // The parent check: `ignoreGhsas` hides the advisory everywhere, so every parent of an affected
+  // VERSION has to be a declared consumer AT ITS ASSESSED VERSION, and nothing else. An edge into
+  // the fixed release is no consumer of the vulnerability.
+  const scans = affected.map((name) => lockedParents(name, rangesOf(name)));
+  if (scans.some((scan) => !scan?.scanned)) return `the lockfile could not be read for ${affected.join(', ')}, so the one-consumer claim is unverifiable`;
+  const parents = [...new Set(scans.flatMap((scan) => scan.parents))];
+  if (parents.length === 0) return `nothing pulls an affected version of ${affected.join(', ')} any more, so the suppression is moot`;
+  const others = parents.filter((parent) => !expected.includes(parent));
+  if (others.length) return `${others.join(', ')} also pull${others.length === 1 ? 's' : ''} an affected package, so "only ${expected.join(' + ')}" no longer holds`;
+  // The other direction: a declared consumer that pulls nothing affected would keep covering a path that is gone.
+  const idle = expected.filter((entry) => !parents.includes(entry));
+  if (idle.length) return `${idle.join(', ')} pull${idle.length === 1 ? 's' : ''} no affected package any more, so the declaration names a path that is gone`;
+  return null;
+}
+
+/**
+ * Decide whether one suppression still holds. Network and file access are injected
+ * (`fetchAdvisory`, `npmPackument`, `lockedVersions`, `lockedParents`, plus `now`,
+ * `minimumReleaseAgeMinutes` and the `unusableFixConsumers` declarations), so every verdict is
+ * testable offline.
+ */
+export async function assessSuppression(
+  id,
+  {
+    fetchAdvisory,
+    lockedParents = () => null,
+    lockedVersions,
+    minimumReleaseAgeMinutes = DEFAULT_MINIMUM_RELEASE_AGE_MINUTES,
+    now = Date.now(),
+    npmPackument,
+    unusableFixConsumers = {},
+  },
+) {
   const answer = await fetchAdvisory(id);
   if (!answer.ok) return { detail: answer.reason, id, status: 'unverified' };
 
@@ -282,15 +490,26 @@ export async function assessSuppression(id, { fetchAdvisory, lockedVersions, min
       return a.deprecated ? `${published}, deprecated like every release outside the vulnerable range` : published;
     })
     .join('; ');
-  return { detail, id, status: 'fix-available' };
+  if (!Object.hasOwn(unusableFixConsumers, id)) return { detail, id, status: 'fix-available' };
+
+  const declared = unusableFixConsumers[id];
+  const fixes = [...new Set(answers.map((a) => a.fix))];
+  const affected = [...new Set(npmVulnerabilities.map((v) => v.package.name))];
+  const rangesOf = (name) => npmVulnerabilities.filter((v) => v.package.name === name).map((v) => v.vulnerable_version_range);
+  const problem = declarationProblem(declared, { affected, fixes, lockedParents, lockedVersions, rangesOf });
+  if (problem) return { detail: `${fixes.join(' / ')} declared unusable, but ${problem}`, id, status: 're-test' };
+  const consumers = parseResidual(declared)
+    .consumers.map(({ assessedAt, consumer }) => `${consumer}@${assessedAt}`)
+    .join(' + ');
+  return { detail: `${detail}; ${consumers} cannot use it, and nothing else pulls it`, id, status: 'unusable-fix' };
 }
 
 /**
- * Exit code for a finished run: obsolete always fails; unverified fails only in CI with a token,
- * where the lookup was expected to work (see the header for why not without one).
+ * Exit code for a finished run: obsolete and re-test always fail; unverified fails only in CI with
+ * a token, where the lookup was expected to work (see the header for why not without one).
  */
 export function exitCodeFor(results, { ci, token }) {
-  if (results.some((r) => OBSOLETE.has(r.status))) return 1;
+  if (results.some((r) => OBSOLETE.has(r.status) || r.status === 're-test')) return 1;
   if (ci && token && results.some((r) => r.status === 'unverified')) return 1;
   return 0;
 }
@@ -301,6 +520,8 @@ export function summaryLine(results) {
   if (total === 0) return `${TAG} none declared`;
   const obsolete = results.filter((r) => OBSOLETE.has(r.status)).length;
   if (obsolete) return `${TAG} OBSOLETE ${obsolete} of ${total}`;
+  const retest = results.filter((r) => r.status === 're-test').length;
+  if (retest) return `${TAG} RE-TEST ${retest} of ${total}`;
   const unverified = results.filter((r) => r.status === 'unverified').length;
   if (unverified) return `${TAG} NOT verified ${unverified} of ${total}`;
   return `${TAG} verified ${total} of ${total}`;
@@ -370,7 +591,9 @@ const LABEL = {
   'fix-in-quarantine': '✓ fix maturing  ',
   'fix-unpublished': '✓ still holds   ',
   'not-present': '✗ NOT IN TREE   ',
+  're-test': '✗ RE-TEST       ',
   unfixable: '✓ still holds   ',
+  'unusable-fix': '✓ unusable fix  ',
   unverified: '! NOT verified  ',
   withdrawn: '✗ WITHDRAWN     ',
 };
@@ -394,20 +617,36 @@ export async function run({ cwd = dirname(dirname(fileURLToPath(import.meta.url)
   }
   const deps = {
     fetchAdvisory: createAdvisoryFetcher({ token }),
+    lockedParents: (name, ranges) => (lockText === null ? null : dependentsOf(lockText, name, ranges)),
     lockedVersions: (name) => (lockText === null ? null : resolvedVersions(lockText, name)),
     minimumReleaseAgeMinutes: minimumReleaseAgeOf(workspaceText),
     npmPackument: createNpmPackumentFetcher(),
+    unusableFixConsumers: listUnusableFixConsumers(workspaceText),
   };
   const results = await Promise.all(ids.map((id) => assessSuppression(id, deps)));
 
+  const file = join(root, 'pnpm-workspace.yaml');
   for (const r of results) log(`  ${LABEL[r.status]} ${r.id}  ${r.detail}`);
   if (results.some((r) => OBSOLETE.has(r.status))) {
     log(
       `\n${TAG} A suppression no longer has a reason. Take the fix if there is one (update or\n` +
-        `  override), then remove the entry from \`auditConfig.ignoreGhsas\` in ${join(root, 'pnpm-workspace.yaml')}.\n` +
-        '  `pnpm audit` must stay clean without it.',
+        `  override), then remove the entry from \`auditConfig.ignoreGhsas\` in ${file}.\n` +
+        '  `pnpm audit` must stay clean without it.' +
+        (results.some((r) => r.status === 'fix-available')
+          ? '\n  If a fix exists that its consumer provably cannot use, work the ladder first (raise the\n' +
+            '  consumer, raise the framework, patch it). Only then declare it next to the entry, which\n' +
+            "  keeps it re-checked: `auditConfig.unusableFixConsumers.<id>: '<consumer>@<version> cannot use <fix>'`."
+          : ''),
     );
-  } else if (results.some((r) => r.status === 'unverified')) {
+  }
+  if (results.some((r) => r.status === 're-test')) {
+    log(
+      `\n${TAG} A declared unusable fix needs a second look: something it was assessed against has\n` +
+        '  changed. Re-test whether the fix works now. Take it if it does, and remove the entry from\n' +
+        '  `auditConfig.ignoreGhsas` and `auditConfig.unusableFixConsumers`; otherwise update the\n' +
+        `  declaration in ${file} to what you assessed.`,
+    );
+  } else if (!results.some((r) => OBSOLETE.has(r.status)) && results.some((r) => r.status === 'unverified')) {
     log(
       `\n${TAG} At least one suppression was NOT checked. Its reason may already be gone; nothing\n` +
         '  here says either way. Re-run with network access (and GITHUB_TOKEN when rate-limited).' +

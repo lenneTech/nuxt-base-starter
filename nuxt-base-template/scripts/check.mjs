@@ -667,9 +667,9 @@ function renderVulnLine(counts) {
 export function parseSuppressionSummary(out) {
   const text = stripAnsi(String(out));
   if (/\[suppressions\] none declared/.test(text)) return { count: 0, state: 'none', total: 0 };
-  const m = text.match(/\[suppressions\] (OBSOLETE|NOT verified|verified) (\d+) of (\d+)/);
+  const m = text.match(/\[suppressions\] (OBSOLETE|RE-TEST|NOT verified|verified) (\d+) of (\d+)/);
   if (!m) return null;
-  const state = m[1] === 'OBSOLETE' ? 'obsolete' : m[1] === 'verified' ? 'verified' : 'unverified';
+  const state = m[1] === 'OBSOLETE' ? 'obsolete' : m[1] === 'RE-TEST' ? 'retest' : m[1] === 'verified' ? 'verified' : 'unverified';
   return { count: Number(m[2]), state, total: Number(m[3]) };
 }
 
@@ -700,6 +700,7 @@ function metricSuffix(r) {
     if (s.state === 'verified') return `  ${C.dim(`${s.total} verified`)}`;
     if (s.state === 'none') return `  ${C.dim('none declared')}`;
     if (s.state === 'unverified') return `  ${C.yellow(`${s.count} of ${s.total} NOT verified`)}`;
+    if (s.state === 'retest') return `  ${C.red(`${s.count} to re-test`)}`;
     return `  ${C.red(`${s.count} obsolete`)}`;
   }
   if (r.kind === 'overrides' && r.overrides) {
