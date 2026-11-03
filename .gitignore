@@ -2,6 +2,10 @@ node_modules
 .idea
 nuxt-base-template/node_modules
 
-# Claude Code agent working notes + local settings — repo-local tooling, not part of the release
-.claude/agent-memory/
+# Claude Code agent working notes + local settings — repo-local tooling, not part of the release.
+# The notes live in a private repository of the team, linked in by the lt-memory plugin: this
+# repository is public (decided 2026-11-01). `**/` so the scope under nuxt-base-template/ is covered
+# too, since a pattern with a slash in the middle matches only here. No trailing slash: the link is a
+# symlink, which a directory-only pattern does not match.
+**/.claude/agent-memory
 .claude/settings.local.json

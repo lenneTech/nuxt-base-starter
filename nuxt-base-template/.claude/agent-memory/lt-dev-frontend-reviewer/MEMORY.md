@@ -1,1 +1,0 @@
-- [DevTools console-capture probe](reference-devtools-console-probe.md) — initScript output is not captured; prove capture with a data: URL before trusting an empty console

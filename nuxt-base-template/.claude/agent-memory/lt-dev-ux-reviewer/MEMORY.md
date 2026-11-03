@@ -1,1 +1,0 @@
-- [Toast capture timing](feedback_toast_capture_timing.md) — plain MCP click blocks ~4s, 5s toast is gone by the next snapshot; use includeSnapshot before claiming "no feedback"
