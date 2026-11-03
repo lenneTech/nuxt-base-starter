@@ -132,6 +132,8 @@ onlyBuiltDependencies:
 # Re-run 2026-10-28 (nuxt 4.6.3 round), same method plus one fresh resolve per entry with only
 # that entry removed: each of the five reopens its own advisory on its own, none holds a package
 # below what the unrestricted resolve picks, and every target is still the newest in its major.
+# Added 2026-11-01, same method: four scoped glob/minimatch entries, each of which reopens
+# GHSA-3g3m-2fjr-6pw4 or GHSA-g3hv-75wg-m249 on its own. Nine entries now.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -186,6 +188,37 @@ overrides:
   # lockfile. If this entry is ever dropped (bug.lt moving to a patched @nuxt/ui), re-check
   # `pnpm why unhead` for a single major first. Verified 2026-10-07.
   '@nuxt/ui@<4.8.1': 4.12.0
+  # glob and minimatch across their majors (owner decision 2026-11-01: override rather than
+  # suppress). GHSA-3g3m-2fjr-6pw4 (glob >=9.0.0 <=14.0.1, moderate, AbortSignal cancellation
+  # bypass, first patched 14.0.2) and GHSA-g3hv-75wg-m249 (minimatch <11.0.1, moderate, DoS
+  # through globparts amplification, first patched 11.0.1). Both fixes exist only in the new
+  # majors (2026-10-27), and every consumer is on its newest release and still requests the old
+  # one: @vercel/nft 1.11.0 (via nitropack) glob ^13, archiver-utils 5.0.2 (via archiver, via
+  # nitropack) glob ^10, rimraf 6.1.3 (devDependency) glob ^13, readdir-glob 1.1.3 (via archiver)
+  # minimatch ^5. Lifting the glob consumers to 14 takes glob's own minimatch to 11 as well, so
+  # readdir-glob is the only minimatch entry. Four entries, one per consumer; each reopens its
+  # advisory on its own in a fresh resolve without it, and all four together resolve exactly one
+  # glob (14.0.3) and one minimatch (11.0.4), with `pnpm audit` clean.
+  #
+  # Shape and behaviour, measured 2026-11-01. glob 14 still exports `glob`, `globSync` and `sync`,
+  # the only calls the three glob consumers make. minimatch 11 still exports the `Minimatch` class
+  # with `match()`, the only API readdir-glob uses; it dropped `makeRe()` and `Minimatch#regexp`,
+  # which none of them calls. Old and new major ran side by side with each consumer's exact calls
+  # and options (nft's absolute `ignore`, archiver-utils' `cwd`/`dot`/`nodir`/`matchBase`/
+  # `follow`, rimraf's `--glob`, readdir-glob's 16 flag combinations) over a synthetic tree and
+  # three real ones: 710 comparisons, 0 differences. `nuxt build` traced the identical 397 files
+  # into `.output/server/node_modules` with and without the four entries, and none of these
+  # packages is among them: all of it is build tooling.
+  #
+  # Scoped per consumer on purpose. A bare `minimatch@<11.0.1` key would also reach the api's
+  # consumers in an lt-monorepo (@nestjs/cli, @swc/cli, @ts-morph/common, nodemon), and some of
+  # them need the `makeRe()` that 11 removed. The rimraf entry does reach the api's rimraf there,
+  # which is harmless (same calls, `rimraf --glob` measured identical) and takes the vulnerable
+  # glob out of that tree too. Drop each entry once its consumer requests the patched major
+  # itself; the child range makes it inert then, and `check-overrides.mjs` reports it.
+  '@vercel/nft>glob@<14.0.2': 14.0.3
+  # glob 14 for archiver-utils (glob ^10, `glob.sync`); see the @vercel/nft entry above.
+  'archiver-utils>glob@<14.0.2': 14.0.3
   # esbuild dev-server advisories - transitive via vite tooling. The key covers both:
   #   - GHSA-g7r4-m6w7-qqqr (low): arbitrary file read via the dev server on Windows,
   #     >=0.27.3 <0.28.1, first patched 0.28.1. This is the one the `<0.28.1` bound encodes.
@@ -229,6 +262,11 @@ overrides:
   # The key stays below the first patched version (see the selector note above). Drop this
   # entry once @tailwindcss/typography requests >=6.1.5 itself.
   'postcss-selector-parser@<6.1.5': 6.1.5
+  # minimatch 11 for readdir-glob (minimatch ^5, `new Minimatch(…).match()`); see the
+  # @vercel/nft entry.
+  'readdir-glob>minimatch@<11.0.1': 11.0.4
+  # glob 14 for rimraf (glob ^13, `glob`/`globSync` behind `--glob`); see the @vercel/nft entry.
+  'rimraf>glob@<14.0.2': 14.0.3
 
 patchedDependencies:
   # reka-ui 2.10.0+ hides every toast from screen readers. ToastAnnounce wraps the
