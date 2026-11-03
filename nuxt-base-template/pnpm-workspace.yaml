@@ -134,6 +134,9 @@ onlyBuiltDependencies:
 # below what the unrestricted resolve picks, and every target is still the newest in its major.
 # Added 2026-11-01, same method: four scoped glob/minimatch entries, each of which reopens
 # GHSA-3g3m-2fjr-6pw4 or GHSA-g3hv-75wg-m249 on its own. Nine entries now.
+# Added 2026-11-03: `@iconify/vue`, the one entry the audit method cannot prove, because it
+# closes no advisory. Its proof is `tests/unit/icon-endpoint-contract.test.ts`, which fails
+# without it; an audit-only re-run must not drop it (see the entry). Ten entries now.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -148,6 +151,19 @@ onlyBuiltDependencies:
 # and pins the OLD version, silently re-introducing the patched CVEs. hono is owned
 # by nest-server's overrides. Do not add it back.
 overrides:
+  # @iconify/vue held at 5.0.4. Not an advisory: without it the browser loads icons from
+  # Iconify's public API (nuxt/icon#571). 5.0.5 (2026-11-01) made the default API provider two
+  # hosts, api and api2.iconify.design. @nuxt/icon 2.6.2 installs the app's `localApiEndpoint`
+  # ('/_nuxt_icon', nuxt.config.ts) in the browser only while the provider still equals its own
+  # copy of the default, a one-host list, so with 5.0.5 the endpoint is never installed and every
+  # icon outside the client bundle comes from api.iconify.design. Measured 2026-11-03: signing in
+  # fetched `lucide.json?icons=sun-medium` and `simple-icons.json` from there, and no request
+  # reached /_nuxt_icon. Where a CSP or a firewall blocks that host, those icons do not render.
+  # 5.0.4 is inside both consumers' ranges (@nuxt/icon ^5.0.4, @nuxt/ui ^5.0.3) and stays the only
+  # copy in the tree; @nuxt/icon itself stays on 2.6.2. `tests/unit/icon-endpoint-contract.test.ts`
+  # runs both packages' own code and fails while they disagree. Drop this entry once a @nuxt/icon
+  # release handles the two-host default: remove it, `pnpm install`, and the test stays green.
+  '@iconify/vue': 5.0.4
   # zod <4.6.6 (GHSA-mrhx-c7xc-m3w5, high, first patched 4.6.6); via @lenne.tech/bug.lt, whose
   # newest release (1.6.9) hard-pins zod EXACTLY at 4.1.13, so no bump can fix it. Every other
   # zod consumer (better-auth, @nuxt/ui, the @nuxtjs/seo modules) already resolves 4.6.7 on its
