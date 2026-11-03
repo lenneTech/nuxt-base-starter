@@ -40,7 +40,9 @@ const fields: AuthFormField[] = [
     type: 'text',
   },
   {
-    autocomplete: 'email',
+    // `username`, not `email`: it pairs this field with the password for the password manager.
+    // `type: 'email'` keeps validation and the keyboard (DEV-3147).
+    autocomplete: 'username',
     label: 'E-Mail',
     name: 'email',
     placeholder: 'E-Mail eingeben',
