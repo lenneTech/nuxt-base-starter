@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.33.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.3...v2.33.4) (2026-11-03)
+
+
+### Bug Fixes
+
+* **audit:** lift glob and minimatch across the major in the build tooling ([322a2db](https://github.com/lenneTech/nuxt-base-starter/commit/322a2db475ed12b6751a89904a4f8c61c5f4e1d1))
+* **audit:** read unusable-fix declarations in both suppression guards ([682d533](https://github.com/lenneTech/nuxt-base-starter/commit/682d5333b878c075862cd786895183f8fef5b01e))
+* **auth:** let password managers pair the email field with the password ([cc50924](https://github.com/lenneTech/nuxt-base-starter/commit/cc50924b3b590b084e348ea70f587ea3ebb8ece3))
+* **icons:** keep the browser on the app's own icon endpoint ([8b36927](https://github.com/lenneTech/nuxt-base-starter/commit/8b36927726dea6d59e3df2b36de190015d2f7ee6))
+
+
+### Documentation
+
+* **migration:** add the 2.33.4 guide ([e3fed8b](https://github.com/lenneTech/nuxt-base-starter/commit/e3fed8b4fa7197edd243cfd37a98e19d72f76a42))
+
+
+### Build System
+
+* drop standard-version from the repository root ([dd1bd87](https://github.com/lenneTech/nuxt-base-starter/commit/dd1bd87366a1d58d7a23b135ae10fe2935767def))
+* give the pre-push hook a test:unit script at the root ([47a375c](https://github.com/lenneTech/nuxt-base-starter/commit/47a375c828a9f2c1f46d02a0b60c621a0d240af5))
+
+
+### Tests
+
+* **e2e:** cover several passkeys per account ([272470d](https://github.com/lenneTech/nuxt-base-starter/commit/272470d99336ed726907c103d0df1ce2520bd41e))
+
+
+### Chores
+
+* **deps:** take @lenne.tech/nuxt-extensions 1.21.0 and refresh dependencies ([b5d10fc](https://github.com/lenneTech/nuxt-base-starter/commit/b5d10fc504aeb1ac819d2ecf33acf88da54d6531))
+* keep agent memory out of the public repository ([89b531d](https://github.com/lenneTech/nuxt-base-starter/commit/89b531d0836eeb608a5c817cd002745ff75f3958))
+
 ### [2.33.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.2...v2.33.3) (2026-10-29)
 
 
