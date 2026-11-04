@@ -561,9 +561,25 @@ no server-side backstop — and nothing fails, which is what makes it dangerous.
 same mechanism `maxPasswordLength` can never be exceeded: do **not** add an upper bound,
 it would reject passwords the server accepts.
 
-**The reset token is stripped from the URL** on mount via `history.replaceState`. It stays
-valid until used or expired, and otherwise survives in browser history and travels with
-the URL whenever somebody pastes it asking for help.
+**The reset token is stripped from the URL** on mount via `router.replace`. It stays valid
+until used or expired, and otherwise survives in browser history and travels with the URL
+whenever somebody pastes it asking for help. Do not use `history.replaceState` for this:
+vue-router keeps its own copy of the location and writes it into `current` of the entry it
+leaves and `back` of the entry it creates, so the token returns to the URL and to
+`history.state` on the first in-app navigation.
+
+**A reload keeps the link, and nothing else does.** Stripping the token means a second load
+finds none and reports a valid link as dead, with no request and no console error. So the
+link is remembered, which is the risk: on a shared device the next person in the tab must
+not receive it, or they can set the previous person's password. It is therefore bound to the
+history entry that received it (`app/utils/reset-link-memory.ts`): a random id in
+`history.state`, the same id next to the token in `sessionStorage`. It comes back only when
+the Navigation Timing type is `reload` **and** the id matches. Both checks are needed. The
+type counts for the whole document, so a redirect after reloading the login page passes it.
+The id survives "Back", so `back_forward` must not qualify. Every other arrival erases the
+link, and so do leaving the form inside the app, a return from the back/forward cache, a
+successful reset and a rejection by the server. Input and system errors keep it for the
+retry. `tests/e2e/auth-reset-password-token.spec.ts` pins both halves; Safari is unverified.
 
 `tests/unit/auth/error-translation-contract.spec.ts` guards the layer underneath: it runs
 against the `ERROR_CODE_REGEX` **shipped by the installed package** rather than a copy,
