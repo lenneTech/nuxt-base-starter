@@ -28,6 +28,12 @@ useHead({
   title: 'Passwort zurücksetzen',
 });
 
+// Server only: on the client the head would run it again after mount, on the arrival that has just
+// stored the link, and erase that.
+if (import.meta.server) {
+  useHead({ script: [{ innerHTML: ERASE_RESET_LINK_SCRIPT }] });
+}
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -154,6 +160,9 @@ onBeforeRouteLeave(() => {
   forgetResetLink();
 });
 
+// Starts the short window in which a reload may bring the link back (`RELOAD_WINDOW_MS`).
+useEventListener('pagehide', stampResetLink);
+
 // A return from the back/forward cache restores the page whole, token included, and runs no other
 // hook. Browsers take this path for "Back" after another site, which may be the next person.
 useEventListener('pageshow', (event) => {
@@ -250,9 +259,9 @@ function keepLinkOutOfTheUrl(): void {
 /**
  * The remembered link, when this arrival is a reload of the history entry that received it.
  *
- * It takes both checks. The Navigation Timing type counts for the whole document, so a redirect
- * after reloading the login page passes it. The entry id survives "Back", which may be the next
- * person, so `back_forward` does not qualify. See `app/utils/reset-link-memory.ts`.
+ * The Navigation Timing type counts for the whole document, so a redirect after reloading the
+ * login page passes it. The entry id survives "Back", which may be the next person, so `back_forward`
+ * does not qualify. It takes both, and `recallResetLink` adds the time since the page was left.
  */
 function recallLinkOnReload(): string {
   const [navigation] = window.performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];

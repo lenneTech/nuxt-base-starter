@@ -4,6 +4,8 @@ import { expect, test } from '@nuxt/test-utils/playwright';
 
 import { fillInput, gotoAndWaitForHydration, waitForHydration } from '@lenne.tech/nuxt-extensions/testing';
 
+import { ERASE_RESET_LINK_SCRIPT } from '../../app/utils/reset-link-memory';
+
 /**
  * Pins both halves of how the reset page keeps its token.
  *
@@ -14,7 +16,8 @@ import { fillInput, gotoAndWaitForHydration, waitForHydration } from '@lenne.tec
  *
  * Half one: a reload of the entry that received the link keeps it usable. Half two: no other
  * arrival gets it back, and every one of them erases it. A message on screen proves nothing about
- * the second part, so `expectLinkGone` reloads after it: whatever survived in storage would return.
+ * the second part, so `expectLinkGone` looks into storage as well: on an entry without the id, a
+ * reload would show the same message whatever storage still holds.
  *
  * Playwright starts Chromium with `--disable-back-forward-cache`, so "Back" here is a full document
  * load, and the return from the cache has its own test with a synthetic `pageshow`. Safari is not
@@ -82,10 +85,26 @@ async function expectLinkDead(page: Page): Promise<void> {
   await expect(page.getByRole('button', { name: 'Passwort speichern' })).toBeDisabled();
 }
 
-async function expectLinkGone(page: Page): Promise<void> {
+async function expectLinkGone(page: Page, token: string): Promise<void> {
   await expectLinkDead(page);
+  expect(await page.evaluate(() => JSON.stringify(window.sessionStorage))).not.toContain(token);
   await reload(page);
   await expectLinkDead(page);
+}
+
+/**
+ * Moves the clock of this page and of every later one.
+ *
+ * Not `page.clock`: it fakes `performance` as well, and the Navigation Timing entries the page
+ * decides on disappear with it.
+ */
+async function moveClockForward(page: Page, milliseconds: number): Promise<void> {
+  const move = (offset: number): void => {
+    const now = Date.now;
+    Date.now = () => now() + offset;
+  };
+  await page.evaluate(move, milliseconds);
+  await page.addInitScript(move, milliseconds);
 }
 
 /** Pins the precondition of a test, so a changed flow fails instead of passing for the wrong reason. */
@@ -120,6 +139,21 @@ test.describe('Reset-password link', () => {
       await submitNewPassword(page);
       await expect(page.getByRole('heading', { name: 'Passwort zurückgesetzt' })).toBeVisible();
       expect(stub.sentTokens).toEqual(['first-load-token']);
+    });
+
+    test('after the form has been open for a long time', async ({ page }) => {
+      const stub = await stubResetEndpoint(page, { body: { status: true }, status: 200 });
+
+      await gotoAndWaitForHydration(page, '/auth/reset-password?token=patient-token');
+
+      // The window counts from leaving the page, not from arriving on it.
+      await moveClockForward(page, 600_000);
+      await reload(page);
+      await expectFormUsable(page);
+
+      await submitNewPassword(page);
+      await expect(page.getByRole('heading', { name: 'Passwort zurückgesetzt' })).toBeVisible();
+      expect(stub.sentTokens).toEqual(['patient-token']);
     });
 
     test('after a failure that is not about the link', async ({ page }) => {
@@ -190,7 +224,7 @@ test.describe('Reset-password link', () => {
       // ...and into `current` of the entry it leaves: that once restored the token in the URL.
       await expect(page).toHaveURL(/\/auth\/reset-password$/);
       await expectNotInHistoryState(page, 'left-token');
-      await expectLinkGone(page);
+      await expectLinkGone(page, 'left-token');
     });
 
     test('when "Neuen Link anfordern" leaves a reloaded form', async ({ page }) => {
@@ -206,7 +240,7 @@ test.describe('Reset-password link', () => {
       await page.goBack();
       await expect(page).toHaveURL(/\/auth\/reset-password$/);
       await expectDocumentType(page, 'reload');
-      await expectLinkGone(page);
+      await expectLinkGone(page, 'left-after-reload-token');
     });
 
     test('when somebody types the address of the page', async ({ page }) => {
@@ -215,7 +249,7 @@ test.describe('Reset-password link', () => {
       await gotoAndWaitForHydration(page, '/auth/reset-password');
       await expectDocumentType(page, 'navigate');
 
-      await expectLinkGone(page);
+      await expectLinkGone(page, 'abandoned-token');
     });
 
     test('when Back returns to it after another address was typed', async ({ page }) => {
@@ -227,7 +261,28 @@ test.describe('Reset-password link', () => {
       await expect(page).toHaveURL(/\/auth\/reset-password$/);
       await expectDocumentType(page, 'back_forward');
 
-      await expectLinkGone(page);
+      await expectLinkGone(page, 'abandoned-token');
+    });
+
+    test('when Back returns to it and the head script does not run', async ({ page }) => {
+      await gotoAndWaitForHydration(page, '/auth/reset-password?token=abandoned-token');
+      await gotoAndWaitForHydration(page, '/auth/login');
+
+      // A project's own CSP can block the script. The check on mount then has to hold alone.
+      let scriptRemoved = false;
+      await page.route('**/auth/reset-password', async (route) => {
+        const response = await route.fetch();
+        const html = await response.text();
+        scriptRemoved = html.includes(ERASE_RESET_LINK_SCRIPT);
+        await route.fulfill({ body: html.replace(ERASE_RESET_LINK_SCRIPT, ''), response });
+      });
+
+      await page.goBack({ waitUntil: 'domcontentloaded' });
+      await waitForHydration(page);
+      expect(scriptRemoved).toBe(true);
+      await expectDocumentType(page, 'back_forward');
+
+      await expectLinkGone(page, 'abandoned-token');
     });
 
     test('when the page returns from the back/forward cache', async ({ page }) => {
@@ -237,7 +292,7 @@ test.describe('Reset-password link', () => {
       // The page comes back whole, its token still in memory, and no code path of a load runs.
       await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })));
 
-      await expectLinkGone(page);
+      await expectLinkGone(page, 'cached-token');
     });
   });
 
@@ -255,7 +310,7 @@ test.describe('Reset-password link', () => {
       await expect(page).toHaveURL(/\/auth\/reset-password$/);
       await expectDocumentType(page, 'reload');
 
-      await expectLinkGone(page);
+      await expectLinkGone(page, 'abandoned-token');
     });
 
     test('who is redirected after the two-factor step', async ({ page }) => {
@@ -273,7 +328,50 @@ test.describe('Reset-password link', () => {
       await expect(page).toHaveURL(/\/auth\/reset-password$/);
       await expectDocumentType(page, 'reload');
 
-      await expectLinkGone(page);
+      await expectLinkGone(page, 'abandoned-token');
+    });
+
+    test('who goes Back and reloads before the app has hydrated', async ({ page }) => {
+      const anotherSite = 'https://another-site.example/';
+      await page.route(anotherSite, (route) => route.fulfill({ body: '<h1>Another site</h1>', contentType: 'text/html', status: 200 }));
+
+      await gotoAndWaitForHydration(page, '/auth/reset-password?token=abandoned-token');
+      await page.goto(anotherSite);
+
+      // A slow connection taken to the extreme: the document arrives, its bundle does not. No app
+      // code runs on this arrival, so only the script in the head can erase the link.
+      await page.route('**/_nuxt/**', (route) => route.abort());
+      await page.goBack({ waitUntil: 'domcontentloaded' });
+      await expect(page).toHaveURL(/\/auth\/reset-password$/);
+      await expectDocumentType(page, 'back_forward');
+
+      await page.unroute('**/_nuxt/**');
+      await reload(page);
+      await expectDocumentType(page, 'reload');
+
+      await expectLinkGone(page, 'abandoned-token');
+    });
+
+    test('who goes Back to an error page and reloads once the app answers again', async ({ page }) => {
+      const anotherSite = 'https://another-site.example/';
+      await page.route(anotherSite, (route) => route.fulfill({ body: '<h1>Another site</h1>', contentType: 'text/html', status: 200 }));
+
+      await gotoAndWaitForHydration(page, '/auth/reset-password?token=abandoned-token');
+      await page.goto(anotherSite);
+
+      // A proxy or a maintenance page answers: nothing of ours runs, not even the head script,
+      // and the entry keeps its id. Only the time since the page was left stands in the way.
+      const maintenancePage = '**/auth/reset-password';
+      await page.route(maintenancePage, (route) => route.fulfill({ body: '<h1>Wartung</h1>', contentType: 'text/html', status: 503 }));
+      await page.goBack({ waitUntil: 'domcontentloaded' });
+      await expect(page.getByRole('heading', { name: 'Wartung' })).toBeVisible();
+
+      await moveClockForward(page, 60_000);
+      await page.unroute(maintenancePage);
+      await reload(page);
+      await expectDocumentType(page, 'reload');
+
+      await expectLinkGone(page, 'abandoned-token');
     });
 
     test('who reloads another site that redirects here', async ({ page }) => {
@@ -292,7 +390,7 @@ test.describe('Reset-password link', () => {
       await expect(page).toHaveURL(/\/auth\/reset-password$/);
       await expectDocumentType(page, 'reload');
 
-      await expectLinkGone(page);
+      await expectLinkGone(page, 'abandoned-token');
     });
   });
 

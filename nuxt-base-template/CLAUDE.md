@@ -574,12 +574,20 @@ link is remembered, which is the risk: on a shared device the next person in the
 not receive it, or they can set the previous person's password. It is therefore bound to the
 history entry that received it (`app/utils/reset-link-memory.ts`): a random id in
 `history.state`, the same id next to the token in `sessionStorage`. It comes back only when
-the Navigation Timing type is `reload` **and** the id matches. Both checks are needed. The
-type counts for the whole document, so a redirect after reloading the login page passes it.
-The id survives "Back", so `back_forward` must not qualify. Every other arrival erases the
-link, and so do leaving the form inside the app, a return from the back/forward cache, a
-successful reset and a rejection by the server. Input and system errors keep it for the
-retry. `tests/e2e/auth-reset-password-token.spec.ts` pins both halves; Safari is unverified.
+the Navigation Timing type is `reload`, the id matches, **and** the page was left less than
+30 seconds ago. All three are needed. The type counts for the whole document, so a redirect
+after reloading the login page passes it. The id survives "Back", so `back_forward` must not
+qualify. The time covers what no code of ours sees: "Back" onto a proxy's error page or a
+maintenance page runs nothing, and the reload after it still finds the id and the link; so
+`pagehide` stamps the link and the window counts from there, not from the arrival. Every other
+arrival erases the link, and so do leaving the form inside the app, a return from the
+back/forward cache, a successful reset and a rejection by the server. Input and system errors
+keep it for the retry. Erasing on mount alone is not enough: until the bundle has arrived,
+"Back" plus a reload is a reload of the entry with the id, so an inline script in the document
+head (`ERASE_RESET_LINK_SCRIPT`) erases first. A project with its own CSP has to allow that
+script, as it does Nuxt's; without it the other checks still hold.
+`tests/e2e/auth-reset-password-token.spec.ts` pins both halves; Safari is unverified. None of
+this removes the visit from the browser's own history, where the link stays until it expires.
 
 `tests/unit/auth/error-translation-contract.spec.ts` guards the layer underneath: it runs
 against the `ERROR_CODE_REGEX` **shipped by the installed package** rather than a copy,
