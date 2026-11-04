@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.34.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.4...v2.34.0) (2026-11-04)
+
+
+### Features
+
+* **ai:** MCP confirmation switch on /app/settings/ai ([3b41117](https://github.com/lenneTech/nuxt-base-starter/commit/3b41117556db39d1928ae36cdfaea89720058b59))
+* **ai:** show the AI pages only while the API runs its AI module ([f53efff](https://github.com/lenneTech/nuxt-base-starter/commit/f53efff736efd7a6aa7b7dab9ea4f2796790d481))
+
+
+### Bug Fixes
+
+* **deps:** take better-auth 1.7.16 with nest-server 12.3.1, and current dependencies ([01002cf](https://github.com/lenneTech/nuxt-base-starter/commit/01002cf26dfeda6b8d6924e67d4c34e5e276055a))
+* **check-overrides:** warn about overrides that change nothing in the resolved tree ([9e172c6](https://github.com/lenneTech/nuxt-base-starter/commit/9e172c6a2c0543720171a2ad460158cad27d8b99))
+
+
+### Documentation
+
+* **migration:** add the 2.34.0 guide and update the template notes ([1a73c18](https://github.com/lenneTech/nuxt-base-starter/commit/1a73c18787433c552efd8a53c17b06f10ba7d75c))
+
 ### [2.33.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.3...v2.33.4) (2026-11-03)
 
 
