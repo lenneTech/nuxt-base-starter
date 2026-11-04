@@ -233,21 +233,32 @@ Ready-to-use UI for the `@lenne.tech/nest-server` **AI module**, built on the
 
 Components live in `app/components/Ai/`: `AiChat`, `AiMessage`, `AiConnectionPicker`,
 `AiContextWindow`, `AiPlaceholderHint`, `AiPromptPicker`, `AiTokenBar`, `AiUsageBadge`,
-`ModalAiConnection`. The header navigation gains four AI entries for authenticated users
-("KI-Assistent", "KI-Vorlagen", "KI-Einstellungen" + "Administration" for admins).
+`ModalAiConnection`. The header navigation gains three AI entries for authenticated users
+("KI-Assistent", "KI-Vorlagen", "KI-Einstellungen"; admins also see "Administration").
 Admin routes are gated by `app/middleware/admin.global.ts` (which delegates the
 role check to the auto-imported `isAdminUser()` helper in `app/utils/`).
 
-**Opt-out:** set `ltExtensions.ai.enabled: false` in `nuxt.config.ts` to disable the
-client-side AI surface entirely (the layout nav entries and pages will still ship
-but the composables short-circuit). For a full opt-out, also delete `app/components/Ai/`,
-`app/pages/app/ai/`, `app/pages/app/admin/ai/`, `app/pages/app/settings/ai*.vue`
-and the corresponding header entries in `app/layouts/default.vue`.
+**Shown only while the API runs its AI module (since 2.34.0).** The app reads the public
+`GET /ai/status` through `useLtAiStatus()`. While it answers 404, which is the default of
+nest-server-starter (no `ai` block), the AI links, the admin dashboard's AI cards and the AI
+routes stay hidden: `app/middleware/ai.global.ts` sends the routes `isAiRoute()` lists
+(`app/utils/ai-routes.ts`) to `/app`. The MCP card on `/app/settings/ai` shows only while the API
+runs an MCP server. Switching the API's module on (an `ai` block, or `NSC__AI__ENCRYPTION_SECRET`)
+is all the app needs.
 
-**Requirements:** the backend must run the `@lenne.tech/nest-server` AI module
-(11.26.0+) with at least one connection (admin-created or seeded via `AI_BASE_URL`).
-The expected REST routes are `/ai/{prompt,stream,connections,preferences,budget-limits,
-interactions,slots,prompts,prompt-hints,placeholders,usage,features}`. The streaming
+**Removing the AI UI entirely:** keep `ltExtensions.ai.enabled: true` until the code that uses the
+AI composables is gone. The layout and `ai.global.ts` call `useLtAiStatus()` on every page, and
+with `false` that auto-import does not exist, so every page would break. Delete
+`app/components/Ai/`, `app/pages/app/ai/`, `app/pages/app/admin/ai/`,
+`app/pages/app/settings/ai*.vue`, `app/middleware/ai.global.ts` and `app/utils/ai-routes.ts`; remove
+the AI links and the `useLtAiStatus()` / `loadAiStatus()` lines from `app/layouts/default.vue` and
+the AI cards and the `aiEnabled` filter from `app/pages/app/admin/index.vue`. Then set it to `false`.
+
+**Requirements:** the backend must run the `@lenne.tech/nest-server` AI module, 12.3.1 or later
+(older versions answer `GET /ai/status` with 404 and the app hides the AI pages), with at least one
+connection (admin-created or seeded via `AI_BASE_URL`). The expected REST routes are
+`/ai/{status,prompt,stream,connections,preferences,budget-limits,interactions,slots,prompts,
+prompt-hints,placeholders,usage,settings,features}`. The streaming
 endpoint (`POST /ai/stream`) flows through the existing `/api` dev proxy. Configure the
 client base path in `nuxt.config.ts` (`ltExtensions.ai.basePath`, default `/ai`).
 

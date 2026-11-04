@@ -160,6 +160,9 @@ export default defineNuxtConfig({
   ltExtensions: {
     ai: {
       // AI assistant composables. basePath must match the nest-server AI controller.
+      // Keep `enabled: true`: the layout and ai.global.ts call useLtAiStatus() on every page, and
+      // whether the AI UI shows is the API's call (GET /ai/status, 404 = module off). To remove
+      // the AI UI, see the README section "AI Assistant" first.
       enabled: true,
       basePath: '/ai',
     },
@@ -222,7 +225,7 @@ export default defineNuxtConfig({
     '@lenne.tech/bug.lt', // Bug reporting to Linear
     '@vueuse/nuxt', // Vue composition utilities
     '@nuxt/ui', // NuxtUI component library
-    '@nuxtjs/plausible', // Privacy-friendly analytics
+    '@nuxtjs/plausible', // Privacy-friendly analytics — `@plausible-analytics/tracker` is declared in package.json for it, so its optimizeDeps entry resolves (NUXT_B7002, see tests/unit/optimize-deps-contract.test.ts)
     '@nuxtjs/seo', // SEO optimization (sitemap, robots, og-image)
     '@pinia/nuxt', // State management — `pinia` is its required peer dependency (kept explicit in package.json; do not drop it as "unused")
   ],

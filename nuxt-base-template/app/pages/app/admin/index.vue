@@ -4,7 +4,10 @@
 // ============================================================================
 useHead({ title: 'Administration' });
 
-const cards = [
+// The AI cards only while the API runs its AI module (status loaded by ai.global.ts).
+const { enabled: aiEnabled } = useLtAiStatus();
+
+const allCards = [
   { description: 'LLM-Verbindungen verwalten + Fähigkeiten erkennen', icon: 'i-lucide-plug', title: 'KI-Verbindungen', to: '/app/admin/ai/connections' },
   { description: 'Standard-Verbindung pro Tenant/Nutzer', icon: 'i-lucide-list-checks', title: 'KI-Präferenzen', to: '/app/admin/ai/preferences' },
   { description: 'Token-/Anfrage-Limits', icon: 'i-lucide-gauge', title: 'KI-Budgets', to: '/app/admin/ai/budgets' },
@@ -13,6 +16,8 @@ const cards = [
   { description: 'Gelernte Hinweise prüfen & freigeben', icon: 'i-lucide-graduation-cap', title: 'KI-Lern-Hinweise', to: '/app/admin/ai/prompt-hints' },
   { description: 'Build-Informationen von App & API (Drift-Erkennung)', icon: 'i-lucide-server-cog', title: 'System', to: '/app/admin/system' },
 ];
+
+const cards = computed(() => allCards.filter((card) => aiEnabled.value || !isAiRoute(card.to)));
 </script>
 
 <template>

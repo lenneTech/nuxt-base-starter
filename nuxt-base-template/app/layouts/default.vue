@@ -2,10 +2,24 @@
 import type { NavigationMenuItem } from '@nuxt/ui';
 
 const { isAuthenticated, signOut, user, validateSession } = useLtAuth();
+// AI links only while the API runs its AI module. ai.global.ts loads the status on /app routes;
+// on the other pages the watcher below does, once per app start and only for signed-in users:
+// the links are theirs alone, and with the module off (the default) the request answers 404,
+// which the browser would log for every anonymous visitor.
+const { enabled: aiEnabled, load: loadAiStatus } = useLtAiStatus();
 const siteConfig = useSiteConfig();
 
 onMounted(() => {
   validateSession();
+  watch(
+    isAuthenticated,
+    (signedIn) => {
+      if (signedIn) {
+        loadAiStatus();
+      }
+    },
+    { immediate: true },
+  );
 });
 
 async function handleLogout() {
@@ -19,11 +33,13 @@ const headerItems = computed<NavigationMenuItem[]>(() => {
   if (!isAuthenticated.value) {
     return [{ label: 'Docs', to: '#' }];
   }
-  const items: NavigationMenuItem[] = [
-    { icon: 'i-lucide-sparkles', label: 'KI-Assistent', to: '/app/ai' },
-    { icon: 'i-lucide-clipboard-list', label: 'KI-Vorlagen', to: '/app/settings/ai-prompts' },
-    { icon: 'i-lucide-settings', label: 'KI-Einstellungen', to: '/app/settings/ai' },
-  ];
+  const items: NavigationMenuItem[] = aiEnabled.value
+    ? [
+        { icon: 'i-lucide-sparkles', label: 'KI-Assistent', to: '/app/ai' },
+        { icon: 'i-lucide-clipboard-list', label: 'KI-Vorlagen', to: '/app/settings/ai-prompts' },
+        { icon: 'i-lucide-settings', label: 'KI-Einstellungen', to: '/app/settings/ai' },
+      ]
+    : [];
   if (isAdmin.value) {
     items.push({ icon: 'i-lucide-shield', label: 'Administration', to: '/app/admin' });
   }
