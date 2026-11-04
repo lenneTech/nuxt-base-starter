@@ -95,6 +95,26 @@ minimumReleaseAgeExclude:
   # exempting while it is <1 day old AND you need it immediately; once it ages past the
   # gate the entry is dead weight — remove it. Prefer simply waiting out the ~1-day gate.
   - '@lenne.tech/*'
+  # TEMPORARY, decided by Kai 2026-11-04: the better-auth 1.7.16 trio, a stack-wide lock-step
+  # bump with nest-server 12.3.1, nuxt-extensions and nest-server-starter. 1.7.16 closes the
+  # better-auth advisories of 2026-11-03 on the server side, among them GHSA-9hm7-xhfp-cx58
+  # (unverified OAuth email), GHSA-gv75-j3v8-3crm (passkey origin), GHSA-hwq2-v29r-p69r
+  # (email-change links) and GHSA-fvxx-76fc-893x (revoked sessions in the cookie cache), and
+  # brings better-call 1.4.5 (GHSA-23w8-wx9r-vm57, which better-auth's own handler does not
+  # reach). This template runs only the client (`better-auth/vue`, `better-auth/client/plugins`),
+  # so here the bump is about matching the API. Published 2026-11-03 20:45 to 21:24 UTC with
+  # SLSA provenance from GitHub Actions; exact versions only, nothing else exempted. All of them
+  # pass the gate on 2026-11-04 at 21:24 UTC: remove these ten lines then.
+  - '@better-auth/core@1.7.16'
+  - '@better-auth/drizzle-adapter@1.7.16'
+  - '@better-auth/kysely-adapter@1.7.16'
+  - '@better-auth/memory-adapter@1.7.16'
+  - '@better-auth/mongo-adapter@1.7.16'
+  - '@better-auth/passkey@1.7.16'
+  - '@better-auth/prisma-adapter@1.7.16'
+  - '@better-auth/telemetry@1.7.16'
+  - better-auth@1.7.16
+  - better-call@1.4.5
 
 onlyBuiltDependencies:
   - '@parcel/watcher'
@@ -137,6 +157,11 @@ onlyBuiltDependencies:
 # Added 2026-11-03: `@iconify/vue`, the one entry the audit method cannot prove, because it
 # closes no advisory. Its proof is `tests/unit/icon-endpoint-contract.test.ts`, which fails
 # without it; an audit-only re-run must not drop it (see the entry). Ten entries now.
+# Re-run 2026-11-04 (nuxt 4.6.4 round), same method plus one fresh resolve per entry:
+# `archiver-utils>glob@<14.0.2` was removed. nuxt 4.6.4 requires nitropack ^2.13.6, which moved
+# to archiver 8, and archiver 8 no longer depends on archiver-utils. The fresh lockfiles with
+# and without the entry were identical apart from the entry line itself. Each of the other
+# eight audit entries still reopens its own advisory on its own. Nine entries now.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -209,12 +234,14 @@ overrides:
   # bypass, first patched 14.0.2) and GHSA-g3hv-75wg-m249 (minimatch <11.0.1, moderate, DoS
   # through globparts amplification, first patched 11.0.1). Both fixes exist only in the new
   # majors (2026-10-27), and every consumer is on its newest release and still requests the old
-  # one: @vercel/nft 1.11.0 (via nitropack) glob ^13, archiver-utils 5.0.2 (via archiver, via
-  # nitropack) glob ^10, rimraf 6.1.3 (devDependency) glob ^13, readdir-glob 1.1.3 (via archiver)
-  # minimatch ^5. Lifting the glob consumers to 14 takes glob's own minimatch to 11 as well, so
-  # readdir-glob is the only minimatch entry. Four entries, one per consumer; each reopens its
-  # advisory on its own in a fresh resolve without it, and all four together resolve exactly one
-  # glob (14.0.3) and one minimatch (11.0.4), with `pnpm audit` clean.
+  # one: @vercel/nft 1.11.0 (via nitropack) glob ^13, rimraf 6.1.3 (devDependency) glob ^13,
+  # readdir-glob 3.0.0 (via archiver 8, via nitropack) minimatch ^10. Lifting the glob consumers
+  # to 14 takes glob's own minimatch to 11 as well, so readdir-glob is the only minimatch entry.
+  # Three entries, one per consumer; each reopens its advisory on its own in a fresh resolve
+  # without it, and all three together resolve exactly one glob (14.0.3) and one minimatch
+  # (11.0.4), with `pnpm audit` clean. A fourth, `archiver-utils>glob@<14.0.2` (archiver-utils
+  # 5.0.2 via archiver 7, glob ^10), went on 2026-11-04: nitropack 2.13.6 moved to archiver 8,
+  # which does not use archiver-utils, and readdir-glob from 1.1.3 (minimatch ^5) to 3.0.0.
   #
   # Shape and behaviour, measured 2026-11-01. glob 14 still exports `glob`, `globSync` and `sync`,
   # the only calls the three glob consumers make. minimatch 11 still exports the `Minimatch` class
@@ -226,6 +253,14 @@ overrides:
   # into `.output/server/node_modules` with and without the four entries, and none of these
   # packages is among them: all of it is build tooling.
   #
+  # Re-measured 2026-11-04 for readdir-glob 3.0.0, minimatch 10.2.6 against 11.0.4. It still calls
+  # only `new Minimatch(…)` and `match()`. 3,360 cases over a synthetic tree, app/, server/ and a
+  # built .output/: nitropack's one archiver call (azure preset, `archive.glob('**/*', { cwd,
+  # nodir, dot, follow })`), `archiver.directory()`, 13 patterns in all 64 flag combinations, and
+  # ignore/skip lists. The nitropack and directory() calls came out identical. The only
+  # differences (64) were a negated extglob followed by more pattern, `**/!(index)*.js`, which 11
+  # matches against `index.js` as bash does and 10 did not; nothing in this tree passes one.
+  #
   # Scoped per consumer on purpose. A bare `minimatch@<11.0.1` key would also reach the api's
   # consumers in an lt-monorepo (@nestjs/cli, @swc/cli, @ts-morph/common, nodemon), and some of
   # them need the `makeRe()` that 11 removed. The rimraf entry does reach the api's rimraf there,
@@ -233,8 +268,6 @@ overrides:
   # glob out of that tree too. Drop each entry once its consumer requests the patched major
   # itself; the child range makes it inert then, and `check-overrides.mjs` reports it.
   '@vercel/nft>glob@<14.0.2': 14.0.3
-  # glob 14 for archiver-utils (glob ^10, `glob.sync`); see the @vercel/nft entry above.
-  'archiver-utils>glob@<14.0.2': 14.0.3
   # esbuild dev-server advisories - transitive via vite tooling. The key covers both:
   #   - GHSA-g7r4-m6w7-qqqr (low): arbitrary file read via the dev server on Windows,
   #     >=0.27.3 <0.28.1, first patched 0.28.1. This is the one the `<0.28.1` bound encodes.
@@ -278,8 +311,8 @@ overrides:
   # The key stays below the first patched version (see the selector note above). Drop this
   # entry once @tailwindcss/typography requests >=6.1.5 itself.
   'postcss-selector-parser@<6.1.5': 6.1.5
-  # minimatch 11 for readdir-glob (minimatch ^5, `new Minimatch(…).match()`); see the
-  # @vercel/nft entry.
+  # minimatch 11 for readdir-glob (3.0.0 via archiver 8: minimatch ^10, `new Minimatch(…).match()`);
+  # see the @vercel/nft entry, which also carries the 2026-11-04 measurement for this pair.
   'readdir-glob>minimatch@<11.0.1': 11.0.4
   # glob 14 for rimraf (glob ^13, `glob`/`globSync` behind `--glob`); see the @vercel/nft entry.
   'rimraf>glob@<14.0.2': 14.0.3

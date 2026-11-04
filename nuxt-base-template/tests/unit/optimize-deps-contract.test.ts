@@ -26,9 +26,9 @@
  *
  * Read as text, like the other contract tests: the question is structural.
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, realpathSync } from 'node:fs';
 import { builtinModules } from 'node:module';
-import { join, relative } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const ROOT = join(import.meta.dirname, '..', '..');
@@ -225,5 +225,68 @@ describe('optimizeDeps.include covers the client code', () => {
   it('does not pre-bundle what a module deliberately keeps out', () => {
     const fighting = optimizeDeps('include').filter(isModuleManaged);
     expect(fighting).toEqual([]);
+  });
+});
+
+/** The package an import specifier names (`@scope/pkg/sub` → `@scope/pkg`, `pkg/sub` → `pkg`). */
+function packageName(specifier: string): string {
+  const parts = specifier.split('/');
+  return (specifier.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0]) as string;
+}
+
+/** Where `name` is found from `fromDir`, as Node and Vite look: the nearest `node_modules/<name>` upwards. */
+function findPackageDir(fromDir: string, name: string): null | string {
+  for (let dir = fromDir; ; dir = dirname(dir)) {
+    const candidate = join(dir, 'node_modules', ...name.split('/'));
+    if (existsSync(candidate)) return realpathSync(candidate);
+    if (dirname(dir) === dir) return null;
+  }
+}
+
+/** Vite resolves `a > b` by finding `a` from the project root and `b` from `a`. */
+function resolvesFromRoot(entry: string): boolean {
+  let dir: null | string = ROOT;
+  for (const segment of entry.split('>').map((part) => part.trim())) {
+    dir = findPackageDir(dir, packageName(segment));
+    if (!dir) return false;
+  }
+  return true;
+}
+
+/** The entries the modules in `nuxt.config.ts` push into `vite.optimizeDeps.include` themselves. */
+function moduleIncludes(): { entry: string; module: string }[] {
+  const config = readFileSync(join(ROOT, 'nuxt.config.ts'), 'utf8');
+  const block = config.match(/^ {2}modules: \[([\s\S]*?)^ {2}\],/m)?.[1] ?? '';
+  const modules = [...block.matchAll(/^\s*['"]([^'"]+)['"]/gm)].map((match) => match[1] as string);
+  return modules.flatMap((module) => {
+    const file = join(ROOT, 'node_modules', ...packageName(module).split('/'), 'dist', 'module.mjs');
+    if (!existsSync(file)) return [];
+    return [...readFileSync(file, 'utf8').matchAll(/optimizeDeps\.include\.push\(([^)]*)\)/g)].flatMap((call) =>
+      [...(call[1] as string).matchAll(/['"]([^'"]+)['"]/g)].map((literal) => ({ entry: literal[1] as string, module })),
+    );
+  });
+}
+
+/**
+ * Every `optimizeDeps.include` entry has to resolve from the project root, the modules' own
+ * entries included. One that does not pre-bundles nothing, and Nuxt says so on every `nuxt dev`
+ * start of every generated project: `WARN [NUXT_B7002] Some vite.optimizeDeps.include entries
+ * could not be resolved`. Under pnpm's isolated layout that happens to any module that pushes the
+ * bare name of its own dependency: @nuxtjs/plausible 4.0.0 does it with `@plausible-analytics/tracker`
+ * (nuxt-modules/plausible#52, open). The template declares the tracker itself, at the version the
+ * module resolves, so the entry finds the same copy the module's client plugin imports.
+ */
+describe('optimizeDeps.include entries resolve (NUXT_B7002)', () => {
+  it('finds the entries the modules add', () => {
+    // Without this a broken scan would find nothing and pass the check below.
+    expect(moduleIncludes().map(({ module }) => module)).toContain('@nuxtjs/plausible');
+  });
+
+  it('resolves every entry from the project root', () => {
+    const unresolved = [...optimizeDeps('include').map((entry) => ({ entry, module: 'nuxt.config.ts' })), ...moduleIncludes()]
+      .filter(({ entry }) => !resolvesFromRoot(entry))
+      .map(({ entry, module }) => `${entry} (from ${module})`);
+
+    expect(unresolved, 'declare the package in package.json, at the version the module resolves').toEqual([]);
   });
 });
