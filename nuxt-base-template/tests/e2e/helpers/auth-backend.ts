@@ -112,8 +112,9 @@ export const API_BASE = process.env.NUXT_PUBLIC_API_URL || process.env.API_URL |
  */
 export const FRONTEND_BASE = process.env.NUXT_PUBLIC_SITE_URL || process.env.APP_URL || 'http://localhost:3001';
 
-// Better-Auth collection names (default without prefix)
-const COLLECTIONS = ['session', 'account', 'verification', 'passkey', 'twoFactor', 'backupCode'];
+// Better-Auth collection names (default without prefix), plus the AI module's per-user
+// settings (nest-server 12.3.0), which the MCP confirmation spec writes
+const COLLECTIONS = ['session', 'account', 'verification', 'passkey', 'twoFactor', 'backupCode', 'aiUserSettings'];
 
 /** Loopback hosts — the only ones `resetTestData` will delete from without an explicit opt-in. */
 const LOOPBACK_URI = /^mongodb(\+srv)?:\/\/(?:[^@/]*@)?(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(\/|$)/;

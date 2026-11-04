@@ -122,6 +122,31 @@ Only the Playwright report is kept, and only on failure.
 If the job ever gets too slow to block on, shard it the way lt-monorepo's `app:test` does
 (`parallel: 2`) rather than demoting it to advisory.
 
+### The AI module (`ai-visibility.spec.ts`, `ai-settings-mcp-confirmation.spec.ts`)
+
+The app shows its AI pages only while the API runs its AI module, read from the public
+`GET /ai/status` (nest-server 12.3.1 or later): 200 `{ mcp }` while it runs, 404 while it is off.
+`nest-server-starter` leaves the module off: its `config.env.ts` has no `ai` block. Two variables
+switch the module and its MCP server on, with any of the options above:
+
+```bash
+NSC__AI__ENCRYPTION_SECRET=<any 32 characters> NSC__AI__MCP__ENABLED=true npm run start > /tmp/nest-server.log 2>&1 &
+```
+
+Check it with `curl -s localhost:3000/ai/status`: `{"mcp":true}` means both are on, 404 means the
+module is off or nest-server is older.
+
+- `ai-visibility.spec.ts` checks whichever state the API is in: with the module on, the AI links
+  show and `/app/settings/ai` opens; with it off, there are no links and the route goes to `/app`.
+  A run that sets `NSC__AI__ENCRYPTION_SECRET` expects it on and fails on a 404.
+- `ai-settings-mcp-confirmation.spec.ts` needs the MCP server, because the card appears only with
+  it. It skips without one, unless the run sets `NSC__AI__MCP__ENABLED`: then it fails.
+
+Both `e2e-auth` jobs (this repo's root workflow and the template's own) set both variables. The
+trigger is deliberately not `CI`: an lt-monorepo's `app:test` runs this suite with `CI=true`
+against an API whose module is off, where `ai-visibility` checks the off state and the MCP spec
+skips.
+
 ## Configuration scenarios
 
 The suite detects the live configuration via `GET /iam/features` and adapts — it skips steps
@@ -206,7 +231,7 @@ first place. An assertion pinned to a literal `for` value would be pinning the r
 ## Test data
 
 `resetTestData(email)` removes a user and everything Better Auth hung off it — sessions,
-accounts, verifications, passkeys, 2FA rows. Without it an auth suite starts failing on its
+accounts, verifications, passkeys, 2FA rows — plus the user's AI settings (`aiUserSettings`). Without it an auth suite starts failing on its
 _second_ run rather than its first.
 
 It deletes by exact email match and refuses anything that is not an `@test.com` address, and it

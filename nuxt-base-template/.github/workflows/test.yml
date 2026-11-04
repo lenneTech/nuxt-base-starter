@@ -210,6 +210,14 @@ jobs:
       # Relaxes rate limiting and disables the Better-Auth user cache, so a
       # freshly promoted admin is recognised immediately.
       PLAYWRIGHT: 'true'
+      # Switch on the API's AI module and its MCP server, which nest-server-starter
+      # leaves off (no `ai` block in its config.env.ts). The AI visibility spec needs
+      # the module (`GET /ai/status` 200), the MCP confirmation spec the MCP server
+      # (`mcp: true`); because this job sets the variables, both fail instead of
+      # skipping when the API lacks them. A throwaway value, like the admin
+      # credentials below.
+      NSC__AI__ENCRYPTION_SECRET: ci-e2e-throwaway-ai-encryption-secret-000
+      NSC__AI__MCP__ENABLED: 'true'
 
     steps:
       - name: Checkout template
