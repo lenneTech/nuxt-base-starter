@@ -1,7 +1,8 @@
 // Ported from nest-server's tests/unit/check-overrides.guard.spec.ts (12.3.1, release commit 50cd831,
 // 2026-11-04: UNUSED also reports an override whose parent left the tree, whose parent no longer
 // depends on the package, or whose selector matches nothing any more) together with
-// scripts/check-overrides.mjs. Verbatim apart from formatting and one type annotation, on
+// scripts/check-overrides.mjs (develop 07a07d4: the lockfile scan no longer copies the lockfile per
+// edge). Verbatim apart from formatting and one type annotation, on
 // `advisory()`, which this template's stricter typecheck:tests needs. "This repo" and the mutation
 // names registered in tests/regression-mutations.json refer to nest-server. Take fixes from there
 // rather than forking this copy.
