@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.34.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.34.0...v2.34.1) (2026-11-04)
+
+
+### Performance Improvements
+
+* **check-overrides:** scan the lockfile without copying it once per edge ([36ae7fb](https://github.com/lenneTech/nuxt-base-starter/commit/36ae7fbfa244922d0b0cb6c02309b319bc7defbc))
+
 ## [2.34.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.33.4...v2.34.0) (2026-11-04)
 
 
