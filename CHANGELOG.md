@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.37.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.36.0...v2.37.0) (2026-11-06)
+
+
+### Highlights for adopters
+
+* **Every existing project needs an update, including one that does not use Plausible.** `@nuxtjs/plausible` is on by default and fell back to `plausible.io` without an analytics host, so every project reported its pageviews there, with record ids, codes, click ids and external referrers. From 2.37.0 on, Plausible runs only with an explicitly set host (`NUXT_PLAUSIBLE_API_URL` at build time or `NUXT_PUBLIC_PLAUSIBLE_API_HOST` on the stage), and nothing that names a person or opens an account reaches the analytics server, whichever server it is. `/auth/verify-email` keeps the e-mail address and the token out of the URL. Follow the [2.37.0 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.37.0/migration-guides/2.37.0-plausible-explicit-host.md); its steps 1 to 4 apply to every project.
+
+
+### Bug Fixes
+
+* **analytics:** Plausible only with an explicit host, nothing personal in analytics or the verify-email URL (#32) ([6bff3ff](https://github.com/lenneTech/nuxt-base-starter/commit/6bff3fffb3598bee2b8137f2452330371a9900c4))
+* **analytics:** guard nested routes, and make the Dockerfile build arg a step for every project ([49abe96](https://github.com/lenneTech/nuxt-base-starter/commit/49abe96b27b81ff6136641d2633e834f21fc1917))
+
 ## [2.36.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.35.1...v2.36.0) (2026-11-05)
 
 
