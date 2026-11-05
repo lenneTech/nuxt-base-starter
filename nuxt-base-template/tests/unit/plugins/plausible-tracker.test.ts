@@ -16,6 +16,7 @@
  * soon as a config change lets the plausible.io fallback back in.
  */
 import plausibleModule from '@nuxtjs/plausible';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadNuxtConfig } from 'nuxt/kit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -23,16 +24,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const tracker = vi.hoisted(() => ({ init: vi.fn(), track: vi.fn() }));
 vi.mock('@plausible-analytics/tracker', () => tracker);
 
-const nuxt = vi.hoisted(() => ({ runtimeConfig: { public: {} as Record<string, unknown> }, useHead: vi.fn() }));
+const nuxt = vi.hoisted(() => ({
+  runtimeConfig: { public: {} as Record<string, unknown> },
+  // The app's routes, in small: `/invite/accept` is a static page, everything else is dynamic or unknown.
+  staticPaths: ['/invite/accept'],
+  useHead: vi.fn(),
+}));
 vi.mock('#imports', () => ({
   defineNuxtPlugin: (plugin: unknown) => plugin,
   useHead: nuxt.useHead,
+  useRouter: () => ({ resolve: (to: string) => ({ matched: nuxt.staticPaths.includes(to) ? [{ path: to }] : [{ path: '/:slug(.*)*' }] }) }),
   useRuntimeConfig: () => nuxt.runtimeConfig,
 }));
 
 type PlausibleOptions = Record<string, unknown> & { apiHost: string; enabled: boolean };
 type Plugin = { setup: () => undefined | { provide: { plausible: { trackEvent: (name: string, options?: object) => void; trackPageview: (options?: object) => void } } } };
-type Payload = { d: string; n: string; r: null | string; u: string };
+type Payload = { d: string; n: string; p?: Record<string, boolean | number | string>; r: null | string; u: string };
 
 const templateRoot = join(import.meta.dirname, '..', '..', '..');
 
@@ -49,13 +56,12 @@ async function resolvedOptions(buildTimeUrl?: string): Promise<PlausibleOptions>
   return getOptions({}, { options });
 }
 
-async function loadPlugin(path: string): Promise<Plugin> {
+/** The plugin, fresh. Through `~`, so the file runs unchanged in a project on `srcDir: './src'`. */
+async function templatePlugin(): Promise<Plugin> {
   vi.resetModules();
-  const { default: plugin } = (await import(path)) as { default: Plugin };
+  const { default: plugin } = (await import('~/plugins/plausible.client')) as unknown as { default: Plugin };
   return plugin;
 }
-
-const templatePlugin = (): Promise<Plugin> => loadPlugin('../../../app/plugins/plausible.client');
 
 /** The `transformRequest` the template plugin hands the tracker. */
 function transformRequest(): (payload: Payload) => null | Payload {
@@ -168,6 +174,53 @@ describe('app/plugins/plausible.client.ts', () => {
     expect(sent).toEqual({ d: 'app.example', n: 'Signup', r: 'https://mail.example', u: 'https://app.example/share/:id?utm_source=mail' });
   });
 
+  it('masks the address the tracker adds to a click on a tagged link, and keeps the other props', async () => {
+    withHost('https://stats.example');
+    (await templatePlugin()).setup();
+
+    const sent = transformRequest()({
+      d: 'app.example',
+      n: 'Open Order',
+      p: { plan: 'pro', url: 'https://app.example/app/orders/6630f1c2a9b8c7d6e5f40312?email=max%40test.com&token=s3cr3t' },
+      r: null,
+      u: 'https://app.example/app/orders',
+    });
+
+    expect(sent?.p).toEqual({ plan: 'pro', url: 'https://app.example/app/orders/:id' });
+  });
+
+  it.each([
+    ['a mailto link', 'mailto:max@test.com'],
+    ['a tel link', 'tel:+491701234567'],
+  ])('drops the address of %s', async (_label, url) => {
+    withHost('https://stats.example');
+    (await templatePlugin()).setup();
+
+    expect(transformRequest()({ d: 'app.example', n: 'Contact', p: { url }, r: null, u: 'https://app.example/' })?.p).toEqual({});
+  });
+
+  it('adds no props to an event that has none', async () => {
+    withHost('https://stats.example');
+    (await templatePlugin()).setup();
+
+    expect(transformRequest()({ d: 'app.example', n: 'pageview', r: null, u: 'https://app.example/' })).not.toHaveProperty('p');
+  });
+
+  it("keeps a static page of the app whole, in the URL and in a tagged link's `url`", async () => {
+    withHost('https://stats.example');
+    (await templatePlugin()).setup();
+
+    const sent = transformRequest()({
+      d: 'app.example',
+      n: 'Accept',
+      p: { url: 'https://app.example/invite/accept?token=s3cr3t' },
+      r: null,
+      u: 'https://app.example/invite/accept?token=s3cr3t',
+    });
+
+    expect(sent).toMatchObject({ p: { url: 'https://app.example/invite/accept' }, u: 'https://app.example/invite/accept' });
+  });
+
   it('drops events from a hostname the config ignores, as the module would', async () => {
     withHost('https://stats.example', { ignoredHostnames: ['localhost', 'staging.example'] });
     Object.defineProperty(window, 'location', { value: new URL('https://staging.example/') });
@@ -187,5 +240,23 @@ describe('app/plugins/plausible.client.ts', () => {
       ['pageview', { url: 'https://app.example/' }],
       ['Signup', { props: { plan: 'pro' } }],
     ]);
+  });
+});
+
+describe('Dockerfile', () => {
+  /** The stage of the Dockerfile that begins with `FROM … AS <name>`, up to the next `FROM`. */
+  function stage(name: string): string {
+    const dockerfile = readFileSync(join(templateRoot, 'Dockerfile'), 'utf8');
+    return dockerfile.split(/^(?=FROM )/m).find((part) => new RegExp(`^FROM \\S+ AS ${name}\\b`).test(part)) ?? '';
+  }
+
+  it('hands NUXT_PLAUSIBLE_API_URL to `nuxt build`: a CI variable never reaches the build otherwise', () => {
+    const builder = stage('builder');
+    const build = builder.lastIndexOf('pnpm run build');
+
+    expect(build).toBeGreaterThan(-1);
+    expect(builder.indexOf('ARG NUXT_PLAUSIBLE_API_URL\n')).toBeGreaterThan(-1);
+    expect(builder.indexOf('ENV NUXT_PLAUSIBLE_API_URL=$NUXT_PLAUSIBLE_API_URL')).toBeGreaterThan(builder.indexOf('ARG NUXT_PLAUSIBLE_API_URL'));
+    expect(builder.indexOf('ENV NUXT_PLAUSIBLE_API_URL=$NUXT_PLAUSIBLE_API_URL')).toBeLessThan(build);
   });
 });
