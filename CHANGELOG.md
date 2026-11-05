@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.35.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.35.0...v2.35.1) (2026-11-05)
+
+
+### Highlights for adopters
+
+* **Existing projects need an update before they move to vue-tsc 3.3.14, and vendor-mode projects may already be on it.** vue-tsc 3.3.14 stops type-checking a template at the first `//` inside a component attribute, often without an error, and the vendored core printed three lint warnings on every run. Follow the [2.35.1 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.35.1/migration-guides/2.35.1-vendor-core-lint-vue-tsc.md).
+
+
+### Bug Fixes
+
+* **lint:** keep the template's plugins away from a vendored core ([217df0f](https://github.com/lenneTech/nuxt-base-starter/commit/217df0f3934686c66ad04c1b68cb83b36f33741b))
+* **types:** bind URLs on components, so vue-tsc 3.3.14 checks whole templates ([8ec8902](https://github.com/lenneTech/nuxt-base-starter/commit/8ec890213acbd2732315edd2dc96372e04a5e155))
+
+
+### Documentation
+
+* **migration:** add the 2.35.1 guide ([4e69185](https://github.com/lenneTech/nuxt-base-starter/commit/4e69185342e086080f389a0fdf6da4bccd8fbd8e))
+
+
+### Chores
+
+* **deps:** raise @lenne.tech/nuxt-extensions to 1.24.1 ([5efbe6d](https://github.com/lenneTech/nuxt-base-starter/commit/5efbe6d5bb103d783a24baeb1d672888da16a873))
+
 ## [2.35.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.34.1...v2.35.0) (2026-11-05)
 
 
