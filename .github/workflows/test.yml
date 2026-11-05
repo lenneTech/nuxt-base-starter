@@ -165,9 +165,59 @@ jobs:
         working-directory: api
         run: pnpm run migrate:up
 
-      # `$!` is captured so the readiness loop can tell "still booting" from
-      # "already dead". Without it a crashed API is only noticed when the timeout
-      # expires, and it reports as a timeout rather than as the crash it was.
+      # The app comes first: the setup page is tested against two API starts on
+      # the still empty database before the suite runs.
+      - name: Install app dependencies
+        working-directory: nuxt-base-template
+        run: pnpm install --frozen-lockfile
+
+      # Only Chromium: the suite's WebAuthn coverage drives a CDP virtual
+      # authenticator, which is Chromium-only anyway.
+      - name: Install Playwright browser
+        working-directory: nuxt-base-template
+        run: npx playwright install --with-deps chromium
+
+      # A CI database is EMPTY, and an empty database is its own application
+      # state: with zero users the app routes every visitor to /auth/setup to
+      # create the first admin. Migrations do not cover it; they build the schema.
+      # The setup page is tested in that state twice, before anything else
+      # touches the database.
+      #
+      # First as a deployed system: nest-server 12.4.0+ closes the HTTP init
+      # outside local, ci and e2e, and `NSC__SYSTEM_SETUP__HTTP_INIT=false` closes
+      # it under e2e too. The API gets a process group of its own (setsid), and the
+      # stop step signals that group. pnpm 11 starts its children in groups of
+      # their own and passes the SIGTERM on, so cross-env and node end with it
+      # (measured on Linux: :3000 was free for the next start). `$!` is captured so the
+      # readiness loop can tell "still booting" from "already dead"; without it a
+      # crashed API is only noticed when the timeout expires, as a timeout.
+      - name: Start API with the HTTP init closed
+        env:
+          NSC__SYSTEM_SETUP__HTTP_INIT: 'false'
+        run: |
+          setsid bash -c 'cd api && exec pnpm run start:e2e:dist' > "$GITHUB_WORKSPACE/api-e2e-closed.log" 2>&1 &
+          echo $! > /tmp/api-closed.pid
+          timeout 180 bash -c '
+            until curl -sf http://localhost:3000/meta > /dev/null; do
+              kill -0 "$(cat /tmp/api-closed.pid)" 2>/dev/null || {
+                echo "::error::API process died during boot"; tail -n 60 "$GITHUB_WORKSPACE/api-e2e-closed.log"; exit 1;
+              }
+              sleep 2
+            done'
+          echo "API is up, HTTP init closed"
+
+      - name: Setup page without the HTTP init (hint instead of the form)
+        working-directory: nuxt-base-template
+        env:
+          E2E_SETUP_CASE: closed
+        run: pnpm exec playwright test tests/e2e/system-setup.spec.ts
+
+      - name: Stop the API with the HTTP init closed
+        run: |
+          kill -- "-$(cat /tmp/api-closed.pid)"
+          timeout 30 bash -c 'while curl -sf http://localhost:3000/meta > /dev/null; do sleep 1; done'
+          echo "API stopped"
+
       - name: Start API and wait for readiness
         run: |
           (cd api && pnpm run start:e2e:dist > "$NEST_SERVER_LOG" 2>&1) &
@@ -181,40 +231,27 @@ jobs:
             done'
           echo "API is up"
 
-      # A CI database is EMPTY, and an empty database is its own application
-      # state: with zero users the app routes every visitor to /auth/setup to
-      # create the first admin. The suite is written against an installation that
-      # is past that point — it expects /auth/login — so without this step five
-      # specs fail on a redirect that is entirely correct.
-      #
-      # Migrations do not cover it. They build the schema; the first admin is an
-      # application-level decision, made through this endpoint on purpose (it
-      # refuses once any user exists, so this cannot run twice).
-      #
-      # These credentials are throwaway and live only in this job's Mongo service
-      # container, which is discarded with the run.
-      - name: Create the initial admin (an empty DB routes to /auth/setup)
+      # Then as a local or e2e system, where the form creates the first admin.
+      # It replaces the bare `POST /system-setup/init` this job sent before, and
+      # its admin is the one the rest of the suite runs against: the suite expects
+      # an installation past the setup, at /auth/login.
+      - name: Create the first admin through the setup page
+        working-directory: nuxt-base-template
+        env:
+          E2E_SETUP_CASE: open
+        run: pnpm exec playwright test tests/e2e/system-setup.spec.ts
+
+      # Fail here, not five specs later on a redirect to /auth/setup.
+      - name: Check that the system is set up
         run: |
-          code=$(curl -s -o /tmp/setup.json -w '%{http_code}' -X POST http://localhost:3000/system-setup/init \
-            -H 'Content-Type: application/json' \
-            -d '{"email":"admin@test.com","password":"CiSetupPassw0rd!","name":"CI Admin"}')
-          if [ "$code" != "201" ] && [ "$code" != "200" ]; then
-            echo "::error::system-setup/init answered $code"; cat /tmp/setup.json; exit 1
-          fi
-          echo "initial admin created"
-
-      - name: Install app dependencies
-        working-directory: nuxt-base-template
-        run: pnpm install --frozen-lockfile
-
-      # Only Chromium: the suite's WebAuthn coverage drives a CDP virtual
-      # authenticator, which is Chromium-only anyway.
-      - name: Install Playwright browser
-        working-directory: nuxt-base-template
-        run: npx playwright install --with-deps chromium
+          curl -sf http://localhost:3000/system-setup/status | tee /tmp/setup-status.json
+          jq -e '.needsSetup == false' /tmp/setup-status.json > /dev/null || {
+            echo "::error::the setup page did not create the first admin"; exit 1;
+          }
 
       # playwright.config.ts starts the app itself via its `webServer` block, so
-      # only the API is booted above.
+      # only the API is booted above. system-setup.spec.ts skips here: it runs
+      # only with E2E_SETUP_CASE, in the steps above.
       - name: Run auth E2E suite
         working-directory: nuxt-base-template
         run: pnpm run test:e2e

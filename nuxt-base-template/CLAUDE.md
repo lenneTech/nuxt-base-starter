@@ -428,6 +428,23 @@ ltExtensions: {
 
 Each key is independent — set only the one you need. The starter's global middleware (`app/middleware/auth.global.ts`, `guest.global.ts`, `admin.global.ts`) reads the resolved cookie name from `useRuntimeConfig().public.ltExtensions.auth.cookieNames.state` and falls back to the default.
 
+### First admin — `/auth/setup` follows the HTTP-init status
+
+Since nest-server 12.4.0, `POST /system-setup/init` is closed outside `local`, `ci` and `e2e`
+unless `systemSetup.httpInit` opens it, and `GET /system-setup/status` reports it
+(`httpInitEnabled`, `httpInitTokenRequired`, read by `useSystemSetup()` from nuxt-extensions
+1.25.0). `app/pages/auth/setup.vue` shows the form only while `needsSetup` and `httpInitEnabled`
+hold. With the init closed it shows how to set the system up instead: the first admin through
+`NSC__SYSTEM_SETUP__INITIAL_ADMIN__EMAIL`, `__PASSWORD` and `__NAME`, or a setup token through
+`NSC__SYSTEM_SETUP__HTTP_INIT__TOKEN`, which adds a token field to the form. An API before 12.4.0
+reports neither field and gets the form, as before. Never show the form on `httpInitEnabled ===
+false`: every submit fails with 403. After a 403, `initSetup` re-reads the status, so a submit
+refused with `LTNS_0053` lands on the hint without code on the page.
+
+`tests/unit/pages/auth-setup.test.ts` pins the page's states, the token field included.
+`tests/e2e/system-setup.spec.ts` runs it against a real API on an empty database, closed and open;
+it needs `E2E_SETUP_CASE=closed|open` and skips without it (see its header).
+
 ### Redirect-aware auth flows — `safeRedirectTarget`
 
 `auth.global` sends an unauthenticated visitor to `/auth/login?redirect=<to.fullPath>`
