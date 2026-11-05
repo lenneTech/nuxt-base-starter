@@ -14,11 +14,13 @@
  * should an update stop reusing the pageview's URL, this has to go red.
  */
 import { track as plausibleTrack, init } from '@plausible-analytics/tracker';
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { analyticsReferrer, analyticsUrl, reportPageviews } from '../../../app/utils/analytics-url';
+// Through `~`, which points at the source directory in vitest and in the tests' tsconfig, so the file
+// runs unchanged in a project on `srcDir: './src'`.
+import { analyticsReferrer, analyticsUrl, reportPageviews } from '~/utils/analytics-url';
 
 const SECRET_URL = 'https://app.example/auth/reset-password?token=live-token&email=person%40test.com';
 
@@ -35,9 +37,16 @@ function visit(url: string): void {
 
 const reported = (path: string): string => analyticsUrl(`https://app.example${path}`).slice('https://app.example'.length);
 
+const projectRoot = join(import.meta.dirname, '..', '..', '..');
+
+/** `pages/` under the source directory: `app/` since Nuxt 4, `src/` or the root in older layouts. */
+const pagesDir = ['app', 'src', '.'].map((dir) => join(projectRoot, dir, 'pages')).find((dir) => existsSync(dir));
+
 /** Every static page, as the route it serves: none of them may lose a segment. A `[param]` page is the masks' business. */
 function staticRoutes(): string[] {
-  const pagesDir = join(import.meta.dirname, '..', '..', '..', 'app', 'pages');
+  if (!pagesDir) {
+    throw new Error(`No pages/ under app/, src/ or the root of ${projectRoot}`);
+  }
   return readdirSync(pagesDir, { recursive: true })
     .map(String)
     .filter((file) => file.endsWith('.vue') && !file.includes('['))
@@ -48,7 +57,7 @@ describe('analyticsUrl: the path', () => {
   it('leaves every static page as it is', () => {
     const routes = staticRoutes();
 
-    expect(routes).toContain('/auth/reset-password');
+    expect(routes.length).toBeGreaterThan(0);
     for (const route of routes) {
       expect(reported(route)).toBe(route);
     }
@@ -202,7 +211,7 @@ describe('reportPageviews', () => {
     visit('https://app.example/auth/register');
     const { navigate, report } = start();
 
-    // `register.vue` and `login.vue` send the address along in the query.
+    // A project page may still carry the address in the query.
     visit('https://app.example/auth/verify-email?email=person%40test.com&fromRegister=true');
     navigate();
 
@@ -278,7 +287,7 @@ describe('the real tracker', () => {
 
 describe('nuxt.config.ts', () => {
   it('leaves pageviews to `reportPageviews`, because the tracker would report the token first', () => {
-    const config = readFileSync(join(import.meta.dirname, '..', '..', '..', 'nuxt.config.ts'), 'utf8');
+    const config = readFileSync(join(projectRoot, 'nuxt.config.ts'), 'utf8');
     const plausible = /^ {2}plausible: \{\n([\s\S]*?)^ {2}\},/m.exec(config)?.[1] ?? '';
 
     expect(plausible).toMatch(/^ {4}autoPageviews: false,$/m);
