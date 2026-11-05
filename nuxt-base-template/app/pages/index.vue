@@ -6,6 +6,14 @@
 // engines and link previews show cannot drift from what the page says.
 const description = 'A modern Nuxt 4 starter template with TypeScript, Nuxt UI components, and production-ready tools. Start building your next application with confidence.';
 
+// Bound, not written into the template: vue-tsc 3.3.14 stops type-checking a component's attributes at the
+// first `//` inside one, without an error (vuejs/language-tools#6322). See tests/unit/vue-tsc-url-attributes.test.ts.
+const links = {
+  github: 'https://github.com/lenneTech/nuxt-base-starter',
+  nuxt: 'https://nuxt.com',
+  nuxtUi: 'https://ui.nuxt.com',
+};
+
 const features: Array<{
   color: 'info' | 'primary' | 'secondary' | 'success';
   description: string;
@@ -67,8 +75,8 @@ useSeoMeta({ description });
             {{ description }}
           </p>
           <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <UButton to="https://github.com/lenneTech/nuxt-base-starter" target="_blank" size="xl" icon="i-lucide-github" color="primary"> View on GitHub </UButton>
-            <UButton to="https://ui.nuxt.com" target="_blank" size="xl" variant="outline" color="neutral" trailing-icon="i-lucide-arrow-right"> Nuxt UI Docs </UButton>
+            <UButton :to="links.github" target="_blank" size="xl" icon="i-lucide-github" color="primary"> View on GitHub </UButton>
+            <UButton :to="links.nuxtUi" target="_blank" size="xl" variant="outline" color="neutral" trailing-icon="i-lucide-arrow-right"> Nuxt UI Docs </UButton>
           </div>
         </div>
       </div>
@@ -116,9 +124,9 @@ useSeoMeta({ description });
       <div class="text-center">
         <p class="text-sm text-neutral-600 dark:text-neutral-400">
           Built with
-          <ULink to="https://nuxt.com" target="_blank" class="font-medium text-primary"> Nuxt 4 </ULink>
+          <ULink :to="links.nuxt" target="_blank" class="font-medium text-primary"> Nuxt 4 </ULink>
           and
-          <ULink to="https://ui.nuxt.com" target="_blank" class="font-medium text-primary"> Nuxt UI </ULink>
+          <ULink :to="links.nuxtUi" target="_blank" class="font-medium text-primary"> Nuxt UI </ULink>
         </p>
       </div>
     </div>

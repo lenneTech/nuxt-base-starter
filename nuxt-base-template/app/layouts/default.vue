@@ -63,6 +63,10 @@ const footerItems: NavigationMenuItem[] = [
     to: '#',
   },
 ];
+
+// Bound, not written into the template: vue-tsc 3.3.14 stops type-checking a component's attributes at the
+// first `//` inside one, without an error (vuejs/language-tools#6322). See tests/unit/vue-tsc-url-attributes.test.ts.
+const githubUrl = 'https://github.com/lenneTech/nuxt-base-starter';
 </script>
 
 <template>
@@ -91,7 +95,7 @@ const footerItems: NavigationMenuItem[] = [
         <UColorModeButton />
 
         <UTooltip text="Open on GitHub" :kbds="['meta', 'G']">
-          <UButton color="neutral" variant="ghost" to="https://github.com/lenneTech/nuxt-base-starter" target="_blank" icon="i-simple-icons-github" aria-label="GitHub" />
+          <UButton color="neutral" variant="ghost" :to="githubUrl" target="_blank" icon="i-simple-icons-github" aria-label="GitHub" />
         </UTooltip>
       </template>
     </UHeader>

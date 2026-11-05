@@ -38,6 +38,12 @@ const providerItems = [
   { label: 'Claude Code CLI (lokal)', value: 'claude-cli' },
 ];
 
+// Bound, not written into the template: after a `//` in a static attribute, vue-tsc 3.3.14 generates
+// broken code, and every later `v-model="form.…"` fails with TS2339 (vuejs/language-tools#6322). See
+// tests/unit/vue-tsc-url-attributes.test.ts.
+const baseUrlExample = 'https://llm.example.com/v1';
+const baseUrlHelp = `OpenAI-kompatibler Endpoint, z.B. ${baseUrlExample} oder http://localhost:11434/v1 (Ollama)`;
+
 function toTri(value?: boolean): TriState {
   return value === undefined ? 'auto' : value ? 'yes' : 'no';
 }
@@ -116,14 +122,8 @@ async function onSubmit(_event: FormSubmitEvent<v.InferOutput<typeof schema>>): 
         <UFormField label="Provider" name="providerType" help="Backend-Art der Verbindung">
           <USelectMenu v-model="form.providerType" :items="providerItems" value-key="value" class="w-full" />
         </UFormField>
-        <UFormField
-          v-if="!isCliProvider"
-          label="Basis-URL"
-          name="baseUrl"
-          required
-          help="OpenAI-kompatibler Endpoint, z.B. https://llm.example.com/v1 oder http://localhost:11434/v1 (Ollama)"
-        >
-          <UInput v-model="form.baseUrl" placeholder="https://llm.example.com/v1" />
+        <UFormField v-if="!isCliProvider" label="Basis-URL" name="baseUrl" required :help="baseUrlHelp">
+          <UInput v-model="form.baseUrl" :placeholder="baseUrlExample" />
         </UFormField>
         <UFormField label="Modell" name="model" required :help="isCliProvider ? 'Claude-Alias, z.B. sonnet, opus oder haiku' : undefined">
           <UInput v-model="form.model" :placeholder="isCliProvider ? 'z.B. sonnet' : 'z.B. gpt-oss-120b'" />
