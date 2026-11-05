@@ -69,6 +69,22 @@ test.describe('System setup page', () => {
     await expect(page.getByText('NSC__SYSTEM_SETUP__HTTP_INIT__TOKEN')).toBeVisible();
     await expect(page.locator('input[name="email"]'), 'no form while the HTTP init is closed').toHaveCount(0);
 
+    // Phone width, or 400 % zoom (WCAG 1.4.10): the names have to fit. A name wider than the card
+    // pushed its start left of the screen, where nothing scrolls, and an operator copied a variable
+    // the API never reads.
+    const viewport = page.viewportSize();
+    await page.setViewportSize({ height: 640, width: 320 });
+    for (const code of await page.locator('main code').all()) {
+      const name = (await code.textContent()) ?? '';
+      const box = await code.boundingBox();
+      expect(box, name).not.toBeNull();
+      expect(box?.x ?? -1, `${name} starts left of the screen`).toBeGreaterThanOrEqual(0);
+      expect((box?.x ?? 0) + (box?.width ?? Number.POSITIVE_INFINITY), `${name} ends right of the screen`).toBeLessThanOrEqual(320);
+    }
+    if (viewport) {
+      await page.setViewportSize(viewport);
+    }
+
     await page.getByRole('link', { name: 'Zur Anmeldung' }).click();
     await waitForURLAndHydration(page, /\/auth\/login$/);
     await expect(page.locator('input[name="email"]')).toBeVisible();

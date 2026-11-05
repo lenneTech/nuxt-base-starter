@@ -196,16 +196,19 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
       <UAlert color="info" variant="subtle" title="Die Ersteinrichtung erfolgt über die Konfiguration">
         <template #description>
+          <!-- wrap-anywhere: the names have no break point and are wider than a phone. Without it the
+               centred card grew past the left edge of the screen, where nothing scrolls, and the start
+               of each name was cut off (tests/e2e/system-setup.spec.ts checks 320 px). -->
           <div class="space-y-3 text-sm">
             <p>Auf diesem System lässt sich der erste Administrator nicht über diese Seite anlegen. Setze dafür diese Umgebungsvariablen der API und starte die API neu:</p>
             <ul class="list-disc space-y-1 pl-5">
-              <li><code>NSC__SYSTEM_SETUP__INITIAL_ADMIN__EMAIL</code></li>
-              <li><code>NSC__SYSTEM_SETUP__INITIAL_ADMIN__PASSWORD</code></li>
-              <li><code>NSC__SYSTEM_SETUP__INITIAL_ADMIN__NAME</code> (optional)</li>
+              <li><code class="wrap-anywhere">NSC__SYSTEM_SETUP__INITIAL_ADMIN__EMAIL</code></li>
+              <li><code class="wrap-anywhere">NSC__SYSTEM_SETUP__INITIAL_ADMIN__PASSWORD</code></li>
+              <li><code class="wrap-anywhere">NSC__SYSTEM_SETUP__INITIAL_ADMIN__NAME</code> (optional)</li>
             </ul>
             <p>
-              Oder gib diese Seite mit einem Setup-Token frei: Setze <code>NSC__SYSTEM_SETUP__HTTP_INIT__TOKEN</code> (mindestens 16 Zeichen, nicht nur Ziffern), starte die API neu
-              und lade diese Seite neu. Das Formular fragt dann nach dem Token.
+              Oder gib diese Seite mit einem Setup-Token frei: Setze <code class="wrap-anywhere">NSC__SYSTEM_SETUP__HTTP_INIT__TOKEN</code> (mindestens 16 Zeichen, nicht nur
+              Ziffern), starte die API neu und lade diese Seite neu. Das Formular fragt dann nach dem Token.
             </p>
           </div>
         </template>
