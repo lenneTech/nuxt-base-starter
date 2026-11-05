@@ -4,7 +4,8 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { recallVerifyEmail, verifyEmailState } from '../../../app/utils/verify-email-memory';
+// Through `~`, so the file runs unchanged in a project on `srcDir: './src'`.
+import { recallVerifyEmail, verifyEmailState } from '~/utils/verify-email-memory';
 
 describe('verifyEmailState and recallVerifyEmail', () => {
   it('hand the address over and back', () => {

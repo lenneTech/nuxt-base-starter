@@ -93,11 +93,22 @@ test.describe.serial('verify-email keeps the address and the token out of the UR
     await expect(page.getByRole('heading', { name: 'E-Mail bestätigt' })).toBeVisible({ timeout: 15000 });
     await expectNoSecrets(page, token ?? '', user.email);
 
+    // Before any reload: the first in-app navigation writes `back` from the router's own copy of the
+    // location, and Back restores the entry's URL. A raw `history.replaceState` leaves that copy on
+    // the old URL, and a reload would rebuild it from the clean address bar and hide the leak.
+    await page.getByRole('link', { name: 'Jetzt anmelden' }).click();
+    await waitForURLAndHydration(page, /\/auth\/login/);
+    await expectNoSecrets(page, token ?? '', user.email);
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/auth\/verify-email$/);
+    await expect(page.getByRole('heading', { name: 'E-Mail bestätigt' })).toBeVisible();
+    await expectNoSecrets(page, token ?? '', user.email);
+
     await page.reload();
     await expect(page.getByRole('heading', { name: 'E-Mail bestätigt' })).toBeVisible();
     await expectNoSecrets(page, token ?? '', user.email);
 
-    // The first in-app navigation writes `back` from the router's copy of the location.
     await page.getByRole('link', { name: 'Jetzt anmelden' }).click();
     await waitForURLAndHydration(page, /\/auth\/login/);
     await expectNoSecrets(page, token ?? '', user.email);
