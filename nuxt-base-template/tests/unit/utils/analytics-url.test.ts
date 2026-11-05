@@ -20,7 +20,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 // Through `~`, which points at the source directory in vitest and in the tests' tsconfig, so the file
 // runs unchanged in a project on `srcDir: './src'`.
-import { analyticsReferrer, analyticsUrl, reportPageviews } from '~/utils/analytics-url';
+import { analyticsReferrer, analyticsUrl, reportPageviews, staticRoutes } from '~/utils/analytics-url';
 
 const SECRET_URL = 'https://app.example/auth/reset-password?token=live-token&email=person%40test.com';
 
@@ -42,27 +42,87 @@ const projectRoot = join(import.meta.dirname, '..', '..', '..');
 /** `pages/` under the source directory: `app/` since Nuxt 4, `src/` or the root in older layouts. */
 const pagesDir = ['app', 'src', '.'].map((dir) => join(projectRoot, dir, 'pages')).find((dir) => existsSync(dir));
 
-/** Every static page, as the route it serves: none of them may lose a segment. A `[param]` page is the masks' business. */
-function staticRoutes(): string[] {
+/** Every page of the project as vue-router gets it: `[id]` becomes a parameter, `[...slug]` a catch-all. */
+function pageRoutes(): string[] {
   if (!pagesDir) {
     throw new Error(`No pages/ under app/, src/ or the root of ${projectRoot}`);
   }
   return readdirSync(pagesDir, { recursive: true })
     .map(String)
-    .filter((file) => file.endsWith('.vue') && !file.includes('['))
-    .map((file) => `/${file.replaceAll('\\', '/')}`.replace(/(\/index)?\.vue$/, '') || '/');
+    .filter((file) => file.endsWith('.vue'))
+    .map((file) => {
+      const segments = file
+        .replaceAll('\\', '/')
+        .replace(/\.vue$/, '')
+        .split('/')
+        .filter((segment) => segment !== 'index');
+      return `/${segments.map((segment) => (segment.startsWith('[...') ? ':slug(.*)*' : segment.includes('[') ? ':param' : segment)).join('/')}`;
+    });
 }
 
-describe('analyticsUrl: the path', () => {
-  it('leaves every static page as it is', () => {
-    const routes = staticRoutes();
+/** vue-router's ranking in small: a static route wins over a dynamic one; a parameter takes one segment, a catch-all the rest. */
+function routerOf(paths: string[]): { resolve: (to: string) => { matched: { path: string }[] } } {
+  const records = [...paths].sort((a, b) => Number(a.includes(':')) - Number(b.includes(':')));
+  const matcher = (path: string): RegExp =>
+    new RegExp(
+      `^${path
+        .split('/')
+        .map((segment) => (segment.includes('(.*)') ? '.*' : segment.startsWith(':') ? '[^/]+' : segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+        .join('/')}/?$`,
+      'i',
+    );
+  return {
+    resolve: (to) => ({
+      matched: records
+        .filter((path) => matcher(path).test(to))
+        .slice(0, 1)
+        .map((path) => ({ path })),
+    }),
+  };
+}
 
-    expect(routes.length).toBeGreaterThan(0);
-    for (const route of routes) {
-      expect(reported(route)).toBe(route);
+describe('analyticsUrl with the routes of the app', () => {
+  const isStaticRoute = staticRoutes(routerOf(['/invite/accept', '/invite/:code', '/app/records/:id']));
+
+  it('leaves every static page of the project as it is, and still drops its query', () => {
+    const routes = pageRoutes();
+    const check = staticRoutes(routerOf(routes));
+    const staticPages = routes.filter((route) => !route.includes(':'));
+
+    expect(staticPages.length).toBeGreaterThan(0);
+    for (const route of staticPages) {
+      expect(analyticsUrl(`https://app.example${route}?token=live-token`, check)).toBe(`https://app.example${route}`);
     }
   });
 
+  it('keeps a static page behind a token word: `/invite/accept` next to `/invite/[code]`', () => {
+    expect(analyticsUrl('https://app.example/invite/accept?token=live-token', isStaticRoute)).toBe('https://app.example/invite/accept');
+  });
+
+  it('masks the dynamic route next to it', () => {
+    expect(analyticsUrl('https://app.example/invite/aB3dE', isStaticRoute)).toBe('https://app.example/invite/:id');
+  });
+
+  it('masks what the rules catch in a dynamic route', () => {
+    expect(analyticsUrl('https://app.example/app/records/12345', isStaticRoute)).toBe('https://app.example/app/records/:id');
+  });
+
+  it('masks a path no route knows', () => {
+    expect(analyticsUrl('https://app.example/share/aB3dE', isStaticRoute)).toBe('https://app.example/share/:id');
+  });
+
+  it('masks a path the router rejects', () => {
+    const rejecting = staticRoutes({
+      resolve: () => {
+        throw new Error('no route');
+      },
+    });
+
+    expect(analyticsUrl('https://app.example/invite/accept', rejecting)).toBe('https://app.example/invite/:id');
+  });
+});
+
+describe('analyticsUrl: the path', () => {
   it('keeps a slug, however long', () => {
     expect(reported('/blog/rueckblick-auf-das-jahr-2026')).toBe('/blog/rueckblick-auf-das-jahr-2026');
   });
@@ -186,6 +246,15 @@ describe('reportPageviews', () => {
 
   afterEach(() => {
     setLocation(originalLocation);
+  });
+
+  it('reports a static page of the app whole, through the router it is given', () => {
+    visit('https://app.example/invite/accept?token=live-token');
+    const report = vi.fn();
+
+    reportPageviews(report, { afterEach: () => () => {}, ...routerOf(['/invite/accept', '/invite/:code']) });
+
+    expect(report).toHaveBeenCalledExactlyOnceWith({ url: 'https://app.example/invite/accept' });
   });
 
   it('reports the first page at once, without its secrets', () => {

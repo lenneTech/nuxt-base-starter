@@ -14,6 +14,10 @@
  * or parameter needs no change here to stay private. The one thing a rule cannot see is a short code
  * behind a fixed word (`/s/aB3dE`): a project adds that word to {@link PROJECT_TOKEN_SEGMENTS}.
  *
+ * A path that resolves to one of the app's own static routes keeps every segment (see
+ * {@link staticRoutes}): it holds nothing but the code's own words, so `/invite/accept` stays itself
+ * next to `/invite/[code]`. The masks are for dynamic routes and for paths no route knows.
+ *
  * Custom events (`useTrackEvent`, `window.plausible`) report `location.href` unless they get a `url`,
  * so they pass `analyticsUrl(window.location.href)`, and their props carry no personal data: no
  * e-mail, no name, no id.
@@ -93,8 +97,30 @@ function isLabel(value: string): boolean {
   return LABEL.test(value) && !value.split(/[.~]/).some(looksLikeIdentifier);
 }
 
-/** The page URL as analytics may see it: origin, masked path, and the parameters listed in the header. */
-export function analyticsUrl(href: string): string {
+/** Whether a path is one of the app's own static routes. */
+export type IsStaticRoute = (pathname: string) => boolean;
+
+/**
+ * {@link IsStaticRoute} from the app's router: true for a path that resolves to routes without a
+ * parameter, false for a dynamic route, a path no route matches, and anything the router rejects.
+ */
+export function staticRoutes(router: { resolve: (to: string) => { matched: ReadonlyArray<{ path: string }> } }): IsStaticRoute {
+  return (pathname) => {
+    try {
+      const { matched } = router.resolve(pathname);
+      return matched.length > 0 && matched.every((record) => !record.path.includes(':'));
+    } catch {
+      return false;
+    }
+  };
+}
+
+/**
+ * The page URL as analytics may see it: origin, masked path, and the parameters listed in the header.
+ *
+ * With `isStaticRoute`, a path of a static route keeps its segments; its query is reduced all the same.
+ */
+export function analyticsUrl(href: string, isStaticRoute?: IsStaticRoute): string {
   const url = new URL(href);
   const reported = new URLSearchParams();
   for (const name of CAMPAIGN_PARAMS) {
@@ -109,7 +135,8 @@ export function analyticsUrl(href: string): string {
     }
   }
   const query = reported.toString();
-  return `${url.origin}${analyticsPath(url.pathname)}${query ? `?${query}` : ''}`;
+  const path = isStaticRoute?.(url.pathname) ? url.pathname : analyticsPath(url.pathname);
+  return `${url.origin}${path}${query ? `?${query}` : ''}`;
 }
 
 /**
@@ -142,8 +169,12 @@ export function analyticsReferrer(referrer: null | string | undefined): null | s
  * The URL is all this covers. A custom event without a `url` still reports `location.href`, and
  * `document.referrer` goes out as it is, which is why `Referrer-Policy` is `strict-origin`.
  */
-export function reportPageviews(report: (options: { url: string }) => void, router: { afterEach: (hook: () => void) => unknown }): void {
-  const reportCurrentPage = (): void => report({ url: analyticsUrl(window.location.href) });
+export function reportPageviews(
+  report: (options: { url: string }) => void,
+  router: { afterEach: (hook: () => void) => unknown; resolve?: (to: string) => { matched: ReadonlyArray<{ path: string }> } },
+): void {
+  const isStaticRoute = router.resolve ? staticRoutes({ resolve: router.resolve.bind(router) }) : undefined;
+  const reportCurrentPage = (): void => report({ url: analyticsUrl(window.location.href, isStaticRoute) });
   let reportedPath = window.location.pathname;
 
   reportCurrentPage();
