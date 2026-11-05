@@ -185,8 +185,10 @@ jobs:
       #
       # First as a deployed system: nest-server 12.4.0+ closes the HTTP init
       # outside local, ci and e2e, and `NSC__SYSTEM_SETUP__HTTP_INIT=false` closes
-      # it under e2e too. The API gets a process group of its own (setsid), so the
-      # stop step ends pnpm, cross-env and node together. `$!` is captured so the
+      # it under e2e too. The API gets a process group of its own (setsid), and the
+      # stop step signals that group. pnpm 11 starts its children in groups of
+      # their own and passes the SIGTERM on, so cross-env and node end with it
+      # (measured on Linux: :3000 was free for the next start). `$!` is captured so the
       # readiness loop can tell "still booting" from "already dead"; without it a
       # crashed API is only noticed when the timeout expires, as a timeout.
       - name: Start API with the HTTP init closed
