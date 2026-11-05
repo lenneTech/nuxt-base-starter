@@ -59,6 +59,8 @@ export default defineConfig<ConfigOptions>({
       url: 'http://localhost:3001',
     },
   ],
-  /* Use single worker to prevent WebAuthn virtual authenticator conflicts across test files */
+  /* Single worker: specs usually share one seeded database. Raise it once your specs
+     are isolated from each other. (The original reason, WebAuthn virtual
+     authenticators colliding across files, left with the MongoDB-era auth specs.) */
   workers: 1,
 });

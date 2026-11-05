@@ -17,11 +17,7 @@ export default defineNuxtPlugin(() => {
   const useProxy = !import.meta.server && !!config.public.apiProxy;
   createClient(
     createConfig({
-      baseUrl: import.meta.server
-        ? (config.apiUrl as string)
-        : useProxy
-          ? ''
-          : (config.public.apiUrl as string),
+      baseUrl: import.meta.server ? (config.apiUrl as string) : useProxy ? '' : (config.public.apiUrl as string),
       // Include cookies on cross-origin requests so session tokens are sent
       // when the browser calls the backend directly (proxy disabled).
       credentials: 'include',

@@ -75,11 +75,15 @@ npm run format          # OxFmt format only
 
 ## Testing
 
-Run E2E tests with Playwright:
-
 ```bash
-npm run test
+pnpm run test       # Vitest unit tests (tests/unit)
+pnpm run test:e2e   # Playwright E2E (tests/e2e); in lt projects run `lt dev test` instead
 ```
+
+The template ships no auth E2E specs. The ones it used to carry were written for
+@lenne.tech/nest-server on MongoDB and could not run against nest-base. Write auth
+flows (sign-up, login, 2FA, passkeys) against nest-base / Better Auth on Postgres,
+and read the API and app URLs from `NUXT_PUBLIC_API_URL` / `NUXT_PUBLIC_SITE_URL`.
 
 ## API Integration
 
