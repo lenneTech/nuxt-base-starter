@@ -198,8 +198,9 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
           description: 'Bitte bestätige zuerst deine E-Mail-Adresse.',
           title: 'E-Mail nicht verifiziert',
         });
-        // `redirectQuery` keeps the deep link alive across the verification detour.
-        await navigateTo({ path: '/auth/verify-email', query: { email: payload.data.email, ...redirectQuery.value } });
+        // `redirectQuery` keeps the deep link alive across the verification detour. The address goes
+        // in the history entry, never in the URL (see `app/utils/verify-email-memory.ts`).
+        await navigateTo({ path: '/auth/verify-email', query: redirectQuery.value, state: verifyEmailState(payload.data.email) });
         return;
       }
 

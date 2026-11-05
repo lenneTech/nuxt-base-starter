@@ -217,7 +217,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
         description: 'Bitte überprüfe dein Postfach und bestätige deine E-Mail-Adresse.',
         title: 'Konto erstellt!',
       });
-      await navigateTo({ path: '/auth/verify-email', query: { email: payload.data.email, fromRegister: 'true' } });
+      // The address goes in the history entry, never in the URL (see `app/utils/verify-email-memory.ts`).
+      await navigateTo({ path: '/auth/verify-email', query: { fromRegister: 'true' }, state: verifyEmailState(payload.data.email) });
       return;
     }
 
