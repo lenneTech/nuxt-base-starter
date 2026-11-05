@@ -1,6 +1,10 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "vue", "unicorn", "import"],
+  // `vue` and `unicorn` join in the first override, for the project's own code only: a vendored core
+  // (app/core/) is linted with `typescript` alone, a subset of the plugins nuxt-extensions lints itself with,
+  // so a core vendored before 1.24.1 stays clean too. `import` has to stay here, because it does not run
+  // when an override enables it (measured 2026-11-05, oxlint 1.90.0).
+  "plugins": ["typescript", "import"],
   "env": {
     "browser": true,
     "node": true
@@ -19,6 +23,11 @@
   },
   "overrides": [
     {
+      "files": ["**/*"],
+      "excludeFiles": ["app/core/**"],
+      "plugins": ["vue", "unicorn"]
+    },
+    {
       "files": ["scripts/**", "tests/unit/fixtures/**"],
       "rules": {
         "no-console": "off"
@@ -26,7 +35,11 @@
     },
     {
       // Vendor mode: app/core/ is @lenne.tech/nuxt-extensions copied in by `lt fullstack init` (or a
-      // convert-mode run) and is linted by its own repository's rules. The type-aware rules stay off here:
+      // convert-mode run) and is linted by its own repository's rules. The project applies a subset of them,
+      // never more: `typescript` only. `vue` and `unicorn` skip this folder (first override), and `import` is
+      // switched off rule by rule. nuxt-extensions lints with all four plugins since 1.24.1; up to 1.24.0 it
+      // used `typescript` alone, and unicorn warned three times in sync-hints.ts of every vendor-mode
+      // project (smoke test, 2026-11-05). The type-aware rules stay off here:
       // the core vendored from nuxt-extensions <= 1.19.1 has 8 un-awaited promises, so `lint` (pre-commit
       // and CI) failed in every newly generated vendor-mode project, and newer cores still raise
       // no-base-to-string / unbound-method warnings on every run (measured 2026-10-26).
@@ -34,8 +47,11 @@
       "rules": {
         "no-console": "off",
         "@typescript-eslint/no-explicit-any": "off",
+        "import/default": "off",
+        "import/namespace": "off",
         "typescript/no-floating-promises": "off",
         "typescript/no-base-to-string": "off",
+        "typescript/restrict-template-expressions": "off",
         "typescript/unbound-method": "off"
       }
     }
