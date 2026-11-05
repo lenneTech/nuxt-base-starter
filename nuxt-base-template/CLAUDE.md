@@ -639,8 +639,11 @@ referrer pass the `transformRequest` that `plausible.client.ts` hands the tracke
   could identify somebody masked as `:id` (ObjectId, UUID, five digits or more, `@`, 16 characters or
   more that are no lower-case slug, the segment after `share`, `s`, `token` and the like). Of the
   query only `utm_source`, `utm_medium`, `utm_campaign`, `ref` and `source` survive, with a plain
-  label as value, and `gclid` / `msclkid` as `1`. A project with a short code behind its own word
-  (`pages/einladung/[code].vue`) adds that word to `PROJECT_TOKEN_SEGMENTS`, with a test.
+  label as value, and `gclid` / `msclkid` as `1`. A path that resolves to one of the app's static
+  routes keeps its segments (`staticRoutes(router)`, passed by both plugins), so `/invite/accept`
+  stays itself next to `/invite/[code]`; the masks are for dynamic routes and unknown paths. A
+  project with a short code behind its own word (`pages/einladung/[code].vue`) adds that word to
+  `PROJECT_TOKEN_SEGMENTS`, with a test.
 - `analyticsReferrer` cuts the referrer to its origin. No event option reaches it, and
   `Referrer-Policy: strict-origin` only covers links inside the app: a visitor from another site
   brings what that site lets through.
@@ -649,7 +652,8 @@ referrer pass the `transformRequest` that `plausible.client.ts` hands the tracke
 pageviews through `reportPageviews`, one per new path. The tracker's automatic link, download and
 form capture stays off whatever the module options say, because those events carry the clicked
 address as a property the masks do not see. A custom event (`useTrackEvent`, `window.plausible`) gets
-its URL masked too, but its props go out as they are: no e-mail, no name, no id in them.
+its URL masked too, and so does the `url` the tracker adds by itself to a click on an element tagged
+`plausible-event-name=…`; every other prop goes out as it is: no e-mail, no name, no id in them.
 `plausible.hashMode` does not work with this: the URL loses its fragment.
 
 To measure any of this, use a hostname other than `localhost` and set `window.__plausible = true`:
