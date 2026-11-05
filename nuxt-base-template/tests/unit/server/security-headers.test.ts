@@ -52,7 +52,7 @@ describe('buildSecurityHeaders', () => {
 
     expect(headers['X-Content-Type-Options']).toBe('nosniff');
     expect(headers['X-Frame-Options']).toBe('DENY');
-    expect(headers['Referrer-Policy']).toBe('strict-origin-when-cross-origin');
+    expect(headers['Referrer-Policy']).toBe('strict-origin');
     expect(headers['Permissions-Policy']).toContain('camera=()');
     expect(headers['X-DNS-Prefetch-Control']).toBe('off');
     expect(headers['X-Permitted-Cross-Domain-Policies']).toBe('none');

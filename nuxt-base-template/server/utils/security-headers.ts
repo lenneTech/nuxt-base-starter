@@ -43,9 +43,11 @@ const ALWAYS: Readonly<Record<string, string>> = Object.freeze({
   // be framed knows it and can override, while the default protects the ones that
   // never thought about it.
   'X-Frame-Options': 'DENY',
-  // Drops the path and query from cross-origin referrers, so a password-reset or
-  // invite URL cannot leak to a third-party host through a link click.
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  // Drops the path and query from every referrer, so a password-reset or invite URL
+  // cannot leak through a link click. Not `strict-origin-when-cross-origin`: that keeps
+  // the full URL on same-origin navigations, `document.referrer` then holds the secret
+  // on the next page, and analytics reports it from there.
+  'Referrer-Policy': 'strict-origin',
   // Denies powerful features the template does not use. A project that adds a camera
   // feature overrides this; the point is that it must be a decision.
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
