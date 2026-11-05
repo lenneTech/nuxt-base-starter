@@ -1,20 +1,24 @@
 /**
- * What Plausible may see of a page URL.
+ * What Plausible may see of a page URL: nothing that names a person or opens an account.
  *
- * Auth links carry live secrets in the query. Left alone, the tracker reports `location.href` the
- * moment it starts, before any page can strip anything, and it repeats that URL in the `engagement`
- * event when the page is left. The first request of a reset link therefore handed a working token
- * to the analytics host, and `verify-email` added the e-mail address.
+ * Auth links carry live secrets in the query, project routes carry them in the path. Left alone, the
+ * tracker reports `location.href` the moment it starts, before any page can strip anything, and it
+ * repeats that URL in the `engagement` event when the page is left. The first request of a reset link
+ * therefore handed a working token to the analytics host, and `verify-email` added the e-mail address.
+ *
+ * Each rule of `analyticsUrl` has a case below that fails without that rule. The rules overlap on
+ * purpose, so a case often has to be one that only its own rule catches: an ObjectId of letters only
+ * would read as a word to the length rule.
  *
  * The tracker test runs the real package, because the engagement half is its behaviour, not ours:
  * should an update stop reusing the pageview's URL, this has to go red.
  */
 import { track as plausibleTrack, init } from '@plausible-analytics/tracker';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { analyticsUrl, reportPageviews } from '../../../app/utils/analytics-url';
+import { analyticsReferrer, analyticsUrl, reportPageviews } from '../../../app/utils/analytics-url';
 
 const SECRET_URL = 'https://app.example/auth/reset-password?token=live-token&email=person%40test.com';
 
@@ -29,7 +33,104 @@ function visit(url: string): void {
   setLocation(new URL(url));
 }
 
-describe('analyticsUrl', () => {
+const reported = (path: string): string => analyticsUrl(`https://app.example${path}`).slice('https://app.example'.length);
+
+/** Every static page, as the route it serves: none of them may lose a segment. A `[param]` page is the masks' business. */
+function staticRoutes(): string[] {
+  const pagesDir = join(import.meta.dirname, '..', '..', '..', 'app', 'pages');
+  return readdirSync(pagesDir, { recursive: true })
+    .map(String)
+    .filter((file) => file.endsWith('.vue') && !file.includes('['))
+    .map((file) => `/${file.replaceAll('\\', '/')}`.replace(/(\/index)?\.vue$/, '') || '/');
+}
+
+describe('analyticsUrl: the path', () => {
+  it('leaves every static page as it is', () => {
+    const routes = staticRoutes();
+
+    expect(routes).toContain('/auth/reset-password');
+    for (const route of routes) {
+      expect(reported(route)).toBe(route);
+    }
+  });
+
+  it('keeps a slug, however long', () => {
+    expect(reported('/blog/rueckblick-auf-das-jahr-2026')).toBe('/blog/rueckblick-auf-das-jahr-2026');
+  });
+
+  it('masks an ObjectId, even one that reads as letters', () => {
+    expect(reported('/app/records/abcdefabcdefabcdefabcdef/edit')).toBe('/app/records/:id/edit');
+  });
+
+  it('masks a UUID, even one whose groups read as words', () => {
+    expect(reported('/app/files/abcdefab-cdef-1234-abcd-cdefabcdefab')).toBe('/app/files/:id');
+  });
+
+  it('masks a number of five digits or more, and keeps a shorter one', () => {
+    expect(reported('/orders/12345/2026')).toBe('/orders/:id/2026');
+  });
+
+  it.each([
+    ['as it is', '/users/max@test.com'],
+    ['percent-encoded', '/users/max%40test.com'],
+  ])('masks an e-mail address %s', (_label, path) => {
+    expect(reported(path)).toBe('/users/:id');
+  });
+
+  it('masks a token of 16 characters or more', () => {
+    expect(reported('/x/aB3dE5fG7hJ9kL1m')).toBe('/x/:id');
+  });
+
+  it('masks a long token of letters only, which reads as a word only to a pattern that ignores case', () => {
+    expect(reported('/x/AbCdEfGhIjKlMnOpQ')).toBe('/x/:id');
+  });
+
+  it.each(['invite', 'koppeln', 'password-reset', 'passwort-setzen', 'reset', 's', 'share', 'token', 'verify'])(
+    'masks the short code after `%s`, whatever it looks like',
+    (word) => {
+      expect(reported(`/${word}/aB3dE`)).toBe(`/${word}/:id`);
+    },
+  );
+
+  it('recognises the word in front of a code in any case', () => {
+    expect(reported('/Share/aB3dE')).toBe('/Share/:id');
+  });
+});
+
+describe('analyticsUrl: the query', () => {
+  it.each(['utm_source', 'utm_medium', 'utm_campaign', 'ref', 'source'])('keeps the campaign label `%s`', (name) => {
+    expect(reported(`/?${name}=herbst-aktion`)).toBe(`/?${name}=herbst-aktion`);
+  });
+
+  it('keeps a label made of dotted parts', () => {
+    expect(reported('/?ref=partner.example.com')).toBe('/?ref=partner.example.com');
+  });
+
+  it.each(['utm_term', 'utm_content'])('drops `%s`, which often holds free text or a recipient id', (name) => {
+    expect(reported(`/?${name}=mail`)).toBe('/');
+  });
+
+  it.each([
+    ['free text', 'Max Mustermann'],
+    ['an e-mail address', 'max@test.com'],
+    ['more than 64 characters', 'a'.repeat(65)],
+  ])('drops a campaign value with %s', (_label, value) => {
+    expect(reported(`/?utm_source=${encodeURIComponent(value)}`)).toBe('/');
+  });
+
+  it.each([
+    ['an ObjectId', 'abcdefabcdefabcdefabcdef'],
+    ['a long number', '12345678'],
+    ['a token', 'aB3dE5fG7hJ9kL1m'],
+    ['a token in a dotted part', 'newsletter.aB3dE5fG7hJ9kL1m'],
+  ])('drops a campaign value that is %s', (_label, value) => {
+    expect(reported(`/?utm_campaign=${value}`)).toBe('/');
+  });
+
+  it.each(['gclid', 'msclkid'])('reports that `%s` was there, never its value', (name) => {
+    expect(reported(`/?${name}=Cj0KCQiA-live-click-id`)).toBe(`/?${name}=1`);
+  });
+
   it.each([
     ['a reset token', '/auth/reset-password?token=live-token', '/auth/reset-password'],
     ['a verification token and an address', '/auth/verify-email?token=live-token&email=a%40test.com', '/auth/verify-email'],
@@ -37,23 +138,26 @@ describe('analyticsUrl', () => {
     ['a parameter nobody thought of', '/invite?code=live-code', '/invite'],
     ['a fragment', '/auth/reset-password#token=live-token', '/auth/reset-password'],
   ])('drops %s', (_label, path, expected) => {
-    expect(analyticsUrl(`https://app.example${path}`)).toBe(`https://app.example${expected}`);
+    expect(reported(path)).toBe(expected);
+  });
+
+  it('keeps a campaign label next to a secret, and only that', () => {
+    expect(reported('/auth/register?utm_source=mail&token=live-token')).toBe('/auth/register?utm_source=mail');
+  });
+});
+
+describe('analyticsReferrer', () => {
+  it('keeps the origin of a full URL and nothing else', () => {
+    expect(analyticsReferrer('https://mail.example/inbox/abcdefabcdefabcdefabcdef?q=max%40test.com#read')).toBe('https://mail.example');
   });
 
   it.each([
-    ['campaign parameters', '/?utm_source=mail&utm_medium=print&utm_campaign=fair&utm_term=x&utm_content=y'],
-    ['the source parameters', '/?ref=partner&source=fair'],
-    ['the paid search parameters', '/?gclid=a&msclkid=b'],
-  ])('keeps %s, which is what Plausible reports on', (_label, path) => {
-    expect(new URL(analyticsUrl(`https://app.example${path}`)).searchParams.size).toBe(new URL(`https://app.example${path}`).searchParams.size);
-  });
-
-  it('keeps a campaign parameter next to a secret, and only that', () => {
-    expect(analyticsUrl('https://app.example/auth/register?utm_source=mail&token=live-token')).toBe('https://app.example/auth/register?utm_source=mail');
-  });
-
-  it('leaves a plain page alone', () => {
-    expect(analyticsUrl('https://app.example/app/settings')).toBe('https://app.example/app/settings');
+    ['none', ''],
+    ['no value', null],
+    ['an opaque origin', 'data:text/html,hello'],
+    ['something that is no URL', 'not a url'],
+  ])('reports nothing for %s', (_label, referrer) => {
+    expect(analyticsReferrer(referrer)).toBeNull();
   });
 });
 
