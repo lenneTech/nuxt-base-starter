@@ -16,7 +16,7 @@
  * soon as a config change lets the plausible.io fallback back in.
  */
 import plausibleModule from '@nuxtjs/plausible';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadNuxtConfig } from 'nuxt/kit';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -243,15 +243,18 @@ describe('app/plugins/plausible.client.ts', () => {
   });
 });
 
-describe('Dockerfile', () => {
-  /** The stage of the Dockerfile that begins with `FROM … AS <name>`, up to the next `FROM`. */
-  function stage(name: string): string {
-    const dockerfile = readFileSync(join(templateRoot, 'Dockerfile'), 'utf8');
-    return dockerfile.split(/^(?=FROM )/m).find((part) => new RegExp(`^FROM \\S+ AS ${name}\\b`).test(part)) ?? '';
-  }
+/** The stage of the Dockerfile that begins with `FROM … AS <name>`, up to the next `FROM`; empty without either. */
+function dockerStage(name: string): string {
+  const file = join(templateRoot, 'Dockerfile');
+  const dockerfile = existsSync(file) ? readFileSync(file, 'utf8') : '';
+  return dockerfile.split(/^(?=FROM )/m).find((part) => new RegExp(`^FROM \\S+ AS ${name}\\b`).test(part)) ?? '';
+}
 
+// A project without the template's Dockerfile (no file, or no `builder` stage) builds its image
+// elsewhere; there the build arg is the project's own business.
+describe.skipIf(!dockerStage('builder'))('Dockerfile', () => {
   it('hands NUXT_PLAUSIBLE_API_URL to `nuxt build`: a CI variable never reaches the build otherwise', () => {
-    const builder = stage('builder');
+    const builder = dockerStage('builder');
     const build = builder.lastIndexOf('pnpm run build');
 
     expect(build).toBeGreaterThan(-1);

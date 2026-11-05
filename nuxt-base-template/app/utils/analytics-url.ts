@@ -164,10 +164,12 @@ export function analyticsReferrer(referrer: null | string | undefined): null | s
  *
  * That capture has to stay off (`plausible.autoPageviews`). It reports `location.href` the moment
  * the tracker starts, before any page can strip a token, and the `engagement` event repeats the
- * pageview's URL when the page is left. The module offers no hook into the request.
+ * pageview's URL when the page is left.
  *
- * The URL is all this covers. A custom event without a `url` still reports `location.href`, and
- * `document.referrer` goes out as it is, which is why `Referrer-Policy` is `strict-origin`.
+ * This covers the pageview URL, also with the module's own plugin, which occupies the tracker's
+ * `transformRequest`. The template's `plugins/plausible.client.ts` starts the tracker itself and
+ * masks every event there: custom events, the `url` the tracker adds to a click on a tagged link,
+ * and the referrer.
  */
 export function reportPageviews(
   report: (options: { url: string }) => void,

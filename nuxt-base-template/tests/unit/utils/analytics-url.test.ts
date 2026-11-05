@@ -107,6 +107,13 @@ describe('analyticsUrl with the routes of the app', () => {
     expect(analyticsUrl('https://app.example/app/records/12345', isStaticRoute)).toBe('https://app.example/app/records/:id');
   });
 
+  it('masks a dynamic child under a static parent page, which vue-router lists after the parent', () => {
+    // pages/app.vue + pages/app/orders/[id].vue: the real router resolves to the whole chain.
+    const nested = staticRoutes({ resolve: () => ({ matched: [{ path: '/app' }, { path: '/app/orders/:id()' }] }) });
+
+    expect(analyticsUrl('https://app.example/app/orders/6630f1c2a9b8c7d6e5f40312', nested)).toBe('https://app.example/app/orders/:id');
+  });
+
   it('masks a path no route knows', () => {
     expect(analyticsUrl('https://app.example/share/aB3dE', isStaticRoute)).toBe('https://app.example/share/:id');
   });
