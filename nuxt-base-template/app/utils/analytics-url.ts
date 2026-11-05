@@ -5,7 +5,7 @@
  * somebody's password, and the next page with a secret of its own must not depend on somebody
  * remembering to extend a denylist.
  */
-const REPORTED_PARAMS = ['ref', 'source', 'utm_campaign', 'utm_content', 'utm_medium', 'utm_source', 'utm_term'];
+const REPORTED_PARAMS = ['gclid', 'msclkid', 'ref', 'source', 'utm_campaign', 'utm_content', 'utm_medium', 'utm_source', 'utm_term'];
 
 /** The page URL without anything but {@link REPORTED_PARAMS}. */
 export function analyticsUrl(href: string): string {
@@ -27,6 +27,9 @@ export function analyticsUrl(href: string): string {
  * That capture has to stay off (`plausible.autoPageviews`). It reports `location.href` the moment
  * the tracker starts, before any page can strip a token, and the `engagement` event repeats the
  * pageview's URL when the page is left. The module offers no hook into the request.
+ *
+ * The URL is all this covers. A custom event without a `url` still reports `location.href`, and
+ * `document.referrer` goes out as it is, which is why `Referrer-Policy` is `strict-origin`.
  */
 export function reportPageviews(report: (options: { url: string }) => void, router: { afterEach: (hook: () => void) => unknown }): void {
   const reportCurrentPage = (): void => report({ url: analyticsUrl(window.location.href) });

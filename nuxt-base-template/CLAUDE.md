@@ -596,9 +596,16 @@ event when the page is left: measured on a built server, a reset link handed its
 analytics host, and `verify-email` added the e-mail address. So `plausible.autoPageviews` stays
 `false`, and `app/plugins/plausible-pageviews.client.ts` sends the pageviews through
 `reportPageviews` (`app/utils/analytics-url.ts`) with an allowlist of what Plausible reports on:
-`utm_*`, `ref` and `source`. An allowlist, so a new secret in a query needs no change here. To
-measure this, use a hostname other than `localhost` and set `window.__plausible = true`: the
-tracker ignores localhost and `navigator.webdriver`, so an automated browser otherwise reports
+`utm_*`, `ref`, `source`, `gclid` and `msclkid`. An allowlist, so a new secret in a query needs no
+change here. The tracker also sends `document.referrer`, which no option reaches, so
+`Referrer-Policy` is `strict-origin`: with the common `strict-origin-when-cross-origin`, opening a
+link from `verify-email` in a new tab reported its token and address as the referrer. A custom
+event (`useTrackEvent`, `window.plausible`) reports `location.href` unless it gets a `url`, so pass
+`analyticsUrl(window.location.href)` there. `plausible.hashMode` does not work with this: the URL
+loses its fragment, and only a new path counts as a pageview.
+
+To measure any of this, use a hostname other than `localhost` and set `window.__plausible = true`:
+the tracker ignores localhost and `navigator.webdriver`, so an automated browser otherwise reports
 nothing at all, which reads like a clean result. `tests/unit/utils/analytics-url.test.ts` runs the
 real tracker.
 

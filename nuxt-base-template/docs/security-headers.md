@@ -13,7 +13,7 @@ pages, `/api/**` routes and error responses alike. The decision lives in
 | ----------------------------------- | ------------------------------------------------------ | -------------- |
 | `X-Content-Type-Options`            | `nosniff`                                              | always         |
 | `X-Frame-Options`                   | `DENY`                                                 | always         |
-| `Referrer-Policy`                   | `strict-origin-when-cross-origin`                      | always         |
+| `Referrer-Policy`                   | `strict-origin`                                        | always         |
 | `Permissions-Policy`                | `camera=(), microphone=(), geolocation=(), payment=()` | always         |
 | `X-DNS-Prefetch-Control`            | `off`                                                  | always         |
 | `X-Permitted-Cross-Domain-Policies` | `none`                                                 | always         |

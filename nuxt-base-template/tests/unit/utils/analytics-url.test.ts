@@ -43,6 +43,7 @@ describe('analyticsUrl', () => {
   it.each([
     ['campaign parameters', '/?utm_source=mail&utm_medium=print&utm_campaign=fair&utm_term=x&utm_content=y'],
     ['the source parameters', '/?ref=partner&source=fair'],
+    ['the paid search parameters', '/?gclid=a&msclkid=b'],
   ])('keeps %s, which is what Plausible reports on', (_label, path) => {
     expect(new URL(analyticsUrl(`https://app.example${path}`)).searchParams.size).toBe(new URL(`https://app.example${path}`).searchParams.size);
   });
@@ -91,6 +92,27 @@ describe('reportPageviews', () => {
 
     expect(report).toHaveBeenLastCalledWith({ url: 'https://app.example/app' });
     expect(report).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps a secret out of a navigation inside the app', () => {
+    visit('https://app.example/auth/register');
+    const { navigate, report } = start();
+
+    // `register.vue` and `login.vue` send the address along in the query.
+    visit('https://app.example/auth/verify-email?email=person%40test.com&fromRegister=true');
+    navigate();
+
+    expect(report).toHaveBeenLastCalledWith({ url: 'https://app.example/auth/verify-email' });
+  });
+
+  it('keeps a secret out of a return from the back/forward cache', () => {
+    visit(SECRET_URL);
+    const { report } = start();
+
+    window.dispatchEvent(Object.assign(new Event('pageshow'), { persisted: true }));
+
+    expect(report).toHaveBeenCalledTimes(2);
+    expect(report).toHaveBeenLastCalledWith({ url: 'https://app.example/auth/reset-password' });
   });
 
   it('does not report a navigation that stays on the path', () => {
