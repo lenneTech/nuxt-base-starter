@@ -289,8 +289,18 @@ export default defineNuxtConfig({
   // ============================================================================
   // Analytics (Plausible)
   // ============================================================================
+  // Off unless an analytics host is set explicitly: at build time through NUXT_PLAUSIBLE_API_URL,
+  // or on the stage through NUXT_PUBLIC_PLAUSIBLE_API_HOST. Without one there is no tracker, no
+  // request and no preconnect, and never the module's fallback to plausible.io.
   plausible: {
-    apiHost: process.env.NUXT_PLAUSIBLE_API_URL,
+    // The module's own plugin stays idle. `app/plugins/plausible.client.ts` starts the tracker once
+    // a host is set, and only that way do the URL and referrer of every event pass the masks in
+    // `app/utils/analytics-url.ts`: the module occupies the tracker's `transformRequest`. Do not
+    // switch this on.
+    enabled: false,
+    // An empty string, never undefined: undefined lets the module default `https://plausible.io`
+    // in, and NUXT_PUBLIC_PLAUSIBLE_API_HOST only lands on a key the build wrote.
+    apiHost: process.env.NUXT_PLAUSIBLE_API_URL?.trim() || '',
     // Off on purpose: the tracker would report `location.href` before a page can strip a reset
     // token, and hand it to the analytics host. `app/plugins/plausible-pageviews.client.ts` sends
     // the pageviews instead. Do not switch this on.

@@ -197,7 +197,9 @@ describe('optimizeDeps.include covers the client code', () => {
   });
 
   it('pre-bundles every package the client code imports', () => {
-    const covered = new Set([...optimizeDeps('include'), ...optimizeDeps('exclude')]);
+    // A module's own `optimizeDeps.include.push(…)` covers its entry as well as nuxt.config.ts does:
+    // `app/plugins/plausible.client.ts` imports the tracker that @nuxtjs/plausible pushes.
+    const covered = new Set([...optimizeDeps('include'), ...optimizeDeps('exclude'), ...moduleIncludes().map(({ entry }) => entry)]);
     const missing = [...clientImports()]
       .filter(([specifier]) => !covered.has(specifier) && !isModuleManaged(specifier))
       .map(([specifier, files]) => `${specifier} (imported by ${files.join(', ')})`);
