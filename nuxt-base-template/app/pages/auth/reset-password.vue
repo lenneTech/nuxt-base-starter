@@ -14,6 +14,7 @@ const authClient = useLtAuthClient();
 // Composables
 // ============================================================================
 const route = useRoute();
+const router = useRouter();
 const { translateError } = useLtErrorTranslation();
 
 // ============================================================================
@@ -26,6 +27,12 @@ definePageMeta({
 useHead({
   title: 'Passwort zurücksetzen',
 });
+
+// Server only: on the client the head would run it again after mount, on the arrival that has just
+// stored the link, and erase that.
+if (import.meta.server) {
+  useHead({ script: [{ innerHTML: ERASE_RESET_LINK_SCRIPT }] });
+}
 
 // ============================================================================
 // Variables
@@ -133,20 +140,35 @@ const LINK_DEAD_MESSAGE = 'Dieser Link ist nicht (mehr) gültig. Bitte fordere e
 // Lifecycle Hooks
 // ============================================================================
 onMounted(() => {
-  if (!isTokenValid.value) {
-    submitError.value = 'Der Link zum Zurücksetzen des Passworts ist ungültig oder fehlt.';
-    submitErrorKind.value = 'link';
+  // A token in the URL is the newest link and wins over a remembered one.
+  if (isTokenValid.value) {
+    keepLinkOutOfTheUrl();
     return;
   }
 
-  /**
-   * Drop the token from the address bar once it is in hand.
-   *
-   * It stays valid until used or expired, and until now it survived in browser history and
-   * travelled with the URL whenever somebody pasted it asking for help. `replaceState` keeps
-   * the entry rather than adding one, so Back still behaves.
-   */
-  window.history.replaceState(window.history.state, '', window.location.pathname);
+  token.value = recallLinkOnReload();
+
+  // Any other way here is not the person who opened the mail continuing. On a shared device it
+  // may be somebody else, who must not inherit the link, so the arrival erases it as well.
+  if (!isTokenValid.value) {
+    dropLink();
+  }
+});
+
+// Leaving the form inside the app ends the flow. A reload is a full document load and never runs this.
+onBeforeRouteLeave(() => {
+  forgetResetLink();
+});
+
+// Starts the short window in which a reload may bring the link back (`RELOAD_WINDOW_MS`).
+useEventListener('pagehide', stampResetLink);
+
+// A return from the back/forward cache restores the page whole, token included, and runs no other
+// hook. Browsers take this path for "Back" after another site, which may be the next person.
+useEventListener('pageshow', (event) => {
+  if (event.persisted) {
+    dropLink();
+  }
 });
 
 // ============================================================================
@@ -169,6 +191,8 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       return;
     }
 
+    // Used up: a reload must not offer a form that can only fail.
+    forgetResetLink();
     resetSuccess.value = true;
     // The form unmounts on success. Without moving focus it lands on <body>, so a keyboard
     // or screen-reader user loses their place entirely.
@@ -200,6 +224,9 @@ function applyError(error: { code?: string; message?: string }): void {
   submitErrorKind.value = LINK_ERROR_CODES.has(code) ? 'link' : 'system';
 
   if (LINK_ERROR_CODES.has(code)) {
+    // The server has declared this token dead. Input and system errors keep it: they say
+    // nothing about the link, and the retry needs it.
+    forgetResetLink();
     // `USER_NOT_FOUND` deliberately carries no translation from nest-server — translating it
     // would make an account-enumeration oracle easier to read. Our own wording covers it, and
     // it says the same thing a dead link says, which is what it is from here.
@@ -210,6 +237,43 @@ function applyError(error: { code?: string; message?: string }): void {
   // Rate limits, 5xx, anything unrecognised. Never "request a new link" — that returns the
   // user to the same overloaded path and produces the same failure.
   submitError.value = translated || 'Das Zurücksetzen ist gerade nicht möglich. Bitte versuche es später erneut.';
+}
+
+/**
+ * Drop the token from the address bar once it is in hand, and bind it to this history entry.
+ *
+ * It stays valid until used or expired, and would otherwise survive in browser history and travel
+ * with the URL whenever somebody pastes it asking for help. Replacing keeps the entry rather than
+ * adding one, so Back still behaves.
+ *
+ * Through the router, never `history.replaceState`: vue-router keeps its own copy of the location,
+ * writes it into `current` of the entry it leaves and into `back` of the entry it creates. That
+ * put the token back into the URL and into `history.state` on the first in-app navigation.
+ */
+function keepLinkOutOfTheUrl(): void {
+  const id = createResetLinkId();
+  rememberResetLink(id, token.value);
+  void router.replace({ path: route.path, state: { [RESET_LINK_HISTORY_KEY]: id } });
+}
+
+/**
+ * The remembered link, when this arrival is a reload of the history entry that received it.
+ *
+ * The Navigation Timing type counts for the whole document, so a redirect after reloading the
+ * login page passes it. The entry id survives "Back", which may be the next person, so `back_forward`
+ * does not qualify. It takes both, and `recallResetLink` adds the time since the page was left.
+ */
+function recallLinkOnReload(): string {
+  const [navigation] = window.performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+  return navigation?.type === 'reload' ? recallResetLink(window.history.state?.[RESET_LINK_HISTORY_KEY]) : '';
+}
+
+/** Ends the link on this page: nothing left to submit, nothing left to recall. */
+function dropLink(): void {
+  token.value = '';
+  forgetResetLink();
+  submitError.value = 'Der Link zum Zurücksetzen des Passworts ist ungültig oder fehlt.';
+  submitErrorKind.value = 'link';
 }
 </script>
 
