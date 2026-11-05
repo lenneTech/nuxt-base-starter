@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.36.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.35.1...v2.36.0) (2026-11-05)
+
+
+### Highlights for adopters
+
+* **Projects that pair with nest-server 12.4.0 or newer need an update.** From that version on, a deployed API creates the first admin over HTTP only where that is released, so the old setup page shows a form whose every submit fails with 403. Follow the [2.36.0 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.36.0/migration-guides/2.36.0-system-setup-http-init.md); its steps 1 and 2 are safe on older nest-server versions too.
+
+
+### Features
+
+* **auth:** show the setup form only while the API takes the first admin over HTTP (#31) ([d2f42e0](https://github.com/lenneTech/nuxt-base-starter/commit/d2f42e0f73a2023de9520f60a8c89ec3ef07a542))
+
+
+### Documentation
+
+* **migration:** name the vendor-mode import of the copied setup spec ([861389b](https://github.com/lenneTech/nuxt-base-starter/commit/861389be349d55788454f3f30a4e0a1f40b0543e))
+
 ### [2.35.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.35.0...v2.35.1) (2026-11-05)
 
 
