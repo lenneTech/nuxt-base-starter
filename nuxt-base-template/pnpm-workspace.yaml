@@ -95,26 +95,6 @@ minimumReleaseAgeExclude:
   # exempting while it is <1 day old AND you need it immediately; once it ages past the
   # gate the entry is dead weight — remove it. Prefer simply waiting out the ~1-day gate.
   - '@lenne.tech/*'
-  # TEMPORARY, decided by Kai 2026-11-04: the better-auth 1.7.16 trio, a stack-wide lock-step
-  # bump with nest-server 12.3.1, nuxt-extensions and nest-server-starter. 1.7.16 closes the
-  # better-auth advisories of 2026-11-03 on the server side, among them GHSA-9hm7-xhfp-cx58
-  # (unverified OAuth email), GHSA-gv75-j3v8-3crm (passkey origin), GHSA-hwq2-v29r-p69r
-  # (email-change links) and GHSA-fvxx-76fc-893x (revoked sessions in the cookie cache), and
-  # brings better-call 1.4.5 (GHSA-23w8-wx9r-vm57, which better-auth's own handler does not
-  # reach). This template runs only the client (`better-auth/vue`, `better-auth/client/plugins`),
-  # so here the bump is about matching the API. Published 2026-11-03 20:45 to 21:24 UTC with
-  # SLSA provenance from GitHub Actions; exact versions only, nothing else exempted. All of them
-  # pass the gate on 2026-11-04 at 21:24 UTC: remove these ten lines then.
-  - '@better-auth/core@1.7.16'
-  - '@better-auth/drizzle-adapter@1.7.16'
-  - '@better-auth/kysely-adapter@1.7.16'
-  - '@better-auth/memory-adapter@1.7.16'
-  - '@better-auth/mongo-adapter@1.7.16'
-  - '@better-auth/passkey@1.7.16'
-  - '@better-auth/prisma-adapter@1.7.16'
-  - '@better-auth/telemetry@1.7.16'
-  - better-auth@1.7.16
-  - better-call@1.4.5
 
 onlyBuiltDependencies:
   - '@parcel/watcher'
