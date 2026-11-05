@@ -197,7 +197,7 @@ mail usually means the mail service is not configured on the backend.
 - robots.txt configuration
 - OG image generation (off by default: switch it on together with `defineOgImage()` and a fixed `NUXT_APP_SECRET`, see `ogImage` in `nuxt.config.ts`)
 - AI Ready (`/llms.txt`, Markdown pages) and Skew Protection (service worker), both bundled with @nuxtjs/seo 6: off by default, see `aiReady` / `skewProtection` in `nuxt.config.ts` for why and how to switch them on
-- Plausible Analytics integration
+- Plausible Analytics: off unless an analytics host is set (`NUXT_PLAUSIBLE_API_URL` at build time or `NUXT_PUBLIC_PLAUSIBLE_API_HOST` on the stage), and never sent a token, e-mail address, record id or click id; see `CLAUDE.md`
 
 ### File Upload
 

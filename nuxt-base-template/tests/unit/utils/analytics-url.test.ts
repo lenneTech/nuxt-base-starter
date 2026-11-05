@@ -1,20 +1,26 @@
 /**
- * What Plausible may see of a page URL.
+ * What Plausible may see of a page URL: nothing that names a person or opens an account.
  *
- * Auth links carry live secrets in the query. Left alone, the tracker reports `location.href` the
- * moment it starts, before any page can strip anything, and it repeats that URL in the `engagement`
- * event when the page is left. The first request of a reset link therefore handed a working token
- * to the analytics host, and `verify-email` added the e-mail address.
+ * Auth links carry live secrets in the query, project routes carry them in the path. Left alone, the
+ * tracker reports `location.href` the moment it starts, before any page can strip anything, and it
+ * repeats that URL in the `engagement` event when the page is left. The first request of a reset link
+ * therefore handed a working token to the analytics host, and `verify-email` added the e-mail address.
+ *
+ * Each rule of `analyticsUrl` has a case below that fails without that rule. The rules overlap on
+ * purpose, so a case often has to be one that only its own rule catches: an ObjectId of letters only
+ * would read as a word to the length rule.
  *
  * The tracker test runs the real package, because the engagement half is its behaviour, not ours:
  * should an update stop reusing the pageview's URL, this has to go red.
  */
 import { track as plausibleTrack, init } from '@plausible-analytics/tracker';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { analyticsUrl, reportPageviews } from '../../../app/utils/analytics-url';
+// Through `~`, which points at the source directory in vitest and in the tests' tsconfig, so the file
+// runs unchanged in a project on `srcDir: './src'`.
+import { analyticsReferrer, analyticsUrl, reportPageviews, staticRoutes } from '~/utils/analytics-url';
 
 const SECRET_URL = 'https://app.example/auth/reset-password?token=live-token&email=person%40test.com';
 
@@ -29,7 +35,171 @@ function visit(url: string): void {
   setLocation(new URL(url));
 }
 
-describe('analyticsUrl', () => {
+const reported = (path: string): string => analyticsUrl(`https://app.example${path}`).slice('https://app.example'.length);
+
+const projectRoot = join(import.meta.dirname, '..', '..', '..');
+
+/** `pages/` under the source directory: `app/` since Nuxt 4, `src/` or the root in older layouts. */
+const pagesDir = ['app', 'src', '.'].map((dir) => join(projectRoot, dir, 'pages')).find((dir) => existsSync(dir));
+
+/** Every page of the project as vue-router gets it: `[id]` becomes a parameter, `[...slug]` a catch-all. */
+function pageRoutes(): string[] {
+  if (!pagesDir) {
+    throw new Error(`No pages/ under app/, src/ or the root of ${projectRoot}`);
+  }
+  return readdirSync(pagesDir, { recursive: true })
+    .map(String)
+    .filter((file) => file.endsWith('.vue'))
+    .map((file) => {
+      const segments = file
+        .replaceAll('\\', '/')
+        .replace(/\.vue$/, '')
+        .split('/')
+        .filter((segment) => segment !== 'index');
+      return `/${segments.map((segment) => (segment.startsWith('[...') ? ':slug(.*)*' : segment.includes('[') ? ':param' : segment)).join('/')}`;
+    });
+}
+
+/** vue-router's ranking in small: a static route wins over a dynamic one; a parameter takes one segment, a catch-all the rest. */
+function routerOf(paths: string[]): { resolve: (to: string) => { matched: { path: string }[] } } {
+  const records = [...paths].sort((a, b) => Number(a.includes(':')) - Number(b.includes(':')));
+  const matcher = (path: string): RegExp =>
+    new RegExp(
+      `^${path
+        .split('/')
+        .map((segment) => (segment.includes('(.*)') ? '.*' : segment.startsWith(':') ? '[^/]+' : segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
+        .join('/')}/?$`,
+      'i',
+    );
+  return {
+    resolve: (to) => ({
+      matched: records
+        .filter((path) => matcher(path).test(to))
+        .slice(0, 1)
+        .map((path) => ({ path })),
+    }),
+  };
+}
+
+describe('analyticsUrl with the routes of the app', () => {
+  const isStaticRoute = staticRoutes(routerOf(['/invite/accept', '/invite/:code', '/app/records/:id']));
+
+  it('leaves every static page of the project as it is, and still drops its query', () => {
+    const routes = pageRoutes();
+    const check = staticRoutes(routerOf(routes));
+    const staticPages = routes.filter((route) => !route.includes(':'));
+
+    expect(staticPages.length).toBeGreaterThan(0);
+    for (const route of staticPages) {
+      expect(analyticsUrl(`https://app.example${route}?token=live-token`, check)).toBe(`https://app.example${route}`);
+    }
+  });
+
+  it('keeps a static page behind a token word: `/invite/accept` next to `/invite/[code]`', () => {
+    expect(analyticsUrl('https://app.example/invite/accept?token=live-token', isStaticRoute)).toBe('https://app.example/invite/accept');
+  });
+
+  it('masks the dynamic route next to it', () => {
+    expect(analyticsUrl('https://app.example/invite/aB3dE', isStaticRoute)).toBe('https://app.example/invite/:id');
+  });
+
+  it('masks what the rules catch in a dynamic route', () => {
+    expect(analyticsUrl('https://app.example/app/records/12345', isStaticRoute)).toBe('https://app.example/app/records/:id');
+  });
+
+  it('masks a path no route knows', () => {
+    expect(analyticsUrl('https://app.example/share/aB3dE', isStaticRoute)).toBe('https://app.example/share/:id');
+  });
+
+  it('masks a path the router rejects', () => {
+    const rejecting = staticRoutes({
+      resolve: () => {
+        throw new Error('no route');
+      },
+    });
+
+    expect(analyticsUrl('https://app.example/invite/accept', rejecting)).toBe('https://app.example/invite/:id');
+  });
+});
+
+describe('analyticsUrl: the path', () => {
+  it('keeps a slug, however long', () => {
+    expect(reported('/blog/rueckblick-auf-das-jahr-2026')).toBe('/blog/rueckblick-auf-das-jahr-2026');
+  });
+
+  it('masks an ObjectId, even one that reads as letters', () => {
+    expect(reported('/app/records/abcdefabcdefabcdefabcdef/edit')).toBe('/app/records/:id/edit');
+  });
+
+  it('masks a UUID, even one whose groups read as words', () => {
+    expect(reported('/app/files/abcdefab-cdef-1234-abcd-cdefabcdefab')).toBe('/app/files/:id');
+  });
+
+  it('masks a number of five digits or more, and keeps a shorter one', () => {
+    expect(reported('/orders/12345/2026')).toBe('/orders/:id/2026');
+  });
+
+  it.each([
+    ['as it is', '/users/max@test.com'],
+    ['percent-encoded', '/users/max%40test.com'],
+  ])('masks an e-mail address %s', (_label, path) => {
+    expect(reported(path)).toBe('/users/:id');
+  });
+
+  it('masks a token of 16 characters or more', () => {
+    expect(reported('/x/aB3dE5fG7hJ9kL1m')).toBe('/x/:id');
+  });
+
+  it('masks a long token of letters only, which reads as a word only to a pattern that ignores case', () => {
+    expect(reported('/x/AbCdEfGhIjKlMnOpQ')).toBe('/x/:id');
+  });
+
+  it.each(['invite', 'koppeln', 'password-reset', 'passwort-setzen', 'reset', 's', 'share', 'token', 'verify'])(
+    'masks the short code after `%s`, whatever it looks like',
+    (word) => {
+      expect(reported(`/${word}/aB3dE`)).toBe(`/${word}/:id`);
+    },
+  );
+
+  it('recognises the word in front of a code in any case', () => {
+    expect(reported('/Share/aB3dE')).toBe('/Share/:id');
+  });
+});
+
+describe('analyticsUrl: the query', () => {
+  it.each(['utm_source', 'utm_medium', 'utm_campaign', 'ref', 'source'])('keeps the campaign label `%s`', (name) => {
+    expect(reported(`/?${name}=herbst-aktion`)).toBe(`/?${name}=herbst-aktion`);
+  });
+
+  it('keeps a label made of dotted parts', () => {
+    expect(reported('/?ref=partner.example.com')).toBe('/?ref=partner.example.com');
+  });
+
+  it.each(['utm_term', 'utm_content'])('drops `%s`, which often holds free text or a recipient id', (name) => {
+    expect(reported(`/?${name}=mail`)).toBe('/');
+  });
+
+  it.each([
+    ['free text', 'Max Mustermann'],
+    ['an e-mail address', 'max@test.com'],
+    ['more than 64 characters', 'a'.repeat(65)],
+  ])('drops a campaign value with %s', (_label, value) => {
+    expect(reported(`/?utm_source=${encodeURIComponent(value)}`)).toBe('/');
+  });
+
+  it.each([
+    ['an ObjectId', 'abcdefabcdefabcdefabcdef'],
+    ['a long number', '12345678'],
+    ['a token', 'aB3dE5fG7hJ9kL1m'],
+    ['a token in a dotted part', 'newsletter.aB3dE5fG7hJ9kL1m'],
+  ])('drops a campaign value that is %s', (_label, value) => {
+    expect(reported(`/?utm_campaign=${value}`)).toBe('/');
+  });
+
+  it.each(['gclid', 'msclkid'])('reports that `%s` was there, never its value', (name) => {
+    expect(reported(`/?${name}=Cj0KCQiA-live-click-id`)).toBe(`/?${name}=1`);
+  });
+
   it.each([
     ['a reset token', '/auth/reset-password?token=live-token', '/auth/reset-password'],
     ['a verification token and an address', '/auth/verify-email?token=live-token&email=a%40test.com', '/auth/verify-email'],
@@ -37,23 +207,26 @@ describe('analyticsUrl', () => {
     ['a parameter nobody thought of', '/invite?code=live-code', '/invite'],
     ['a fragment', '/auth/reset-password#token=live-token', '/auth/reset-password'],
   ])('drops %s', (_label, path, expected) => {
-    expect(analyticsUrl(`https://app.example${path}`)).toBe(`https://app.example${expected}`);
+    expect(reported(path)).toBe(expected);
+  });
+
+  it('keeps a campaign label next to a secret, and only that', () => {
+    expect(reported('/auth/register?utm_source=mail&token=live-token')).toBe('/auth/register?utm_source=mail');
+  });
+});
+
+describe('analyticsReferrer', () => {
+  it('keeps the origin of a full URL and nothing else', () => {
+    expect(analyticsReferrer('https://mail.example/inbox/abcdefabcdefabcdefabcdef?q=max%40test.com#read')).toBe('https://mail.example');
   });
 
   it.each([
-    ['campaign parameters', '/?utm_source=mail&utm_medium=print&utm_campaign=fair&utm_term=x&utm_content=y'],
-    ['the source parameters', '/?ref=partner&source=fair'],
-    ['the paid search parameters', '/?gclid=a&msclkid=b'],
-  ])('keeps %s, which is what Plausible reports on', (_label, path) => {
-    expect(new URL(analyticsUrl(`https://app.example${path}`)).searchParams.size).toBe(new URL(`https://app.example${path}`).searchParams.size);
-  });
-
-  it('keeps a campaign parameter next to a secret, and only that', () => {
-    expect(analyticsUrl('https://app.example/auth/register?utm_source=mail&token=live-token')).toBe('https://app.example/auth/register?utm_source=mail');
-  });
-
-  it('leaves a plain page alone', () => {
-    expect(analyticsUrl('https://app.example/app/settings')).toBe('https://app.example/app/settings');
+    ['none', ''],
+    ['no value', null],
+    ['an opaque origin', 'data:text/html,hello'],
+    ['something that is no URL', 'not a url'],
+  ])('reports nothing for %s', (_label, referrer) => {
+    expect(analyticsReferrer(referrer)).toBeNull();
   });
 });
 
@@ -73,6 +246,15 @@ describe('reportPageviews', () => {
 
   afterEach(() => {
     setLocation(originalLocation);
+  });
+
+  it('reports a static page of the app whole, through the router it is given', () => {
+    visit('https://app.example/invite/accept?token=live-token');
+    const report = vi.fn();
+
+    reportPageviews(report, { afterEach: () => () => {}, ...routerOf(['/invite/accept', '/invite/:code']) });
+
+    expect(report).toHaveBeenCalledExactlyOnceWith({ url: 'https://app.example/invite/accept' });
   });
 
   it('reports the first page at once, without its secrets', () => {
@@ -98,7 +280,7 @@ describe('reportPageviews', () => {
     visit('https://app.example/auth/register');
     const { navigate, report } = start();
 
-    // `register.vue` and `login.vue` send the address along in the query.
+    // A project page may still carry the address in the query.
     visit('https://app.example/auth/verify-email?email=person%40test.com&fromRegister=true');
     navigate();
 
@@ -174,7 +356,7 @@ describe('the real tracker', () => {
 
 describe('nuxt.config.ts', () => {
   it('leaves pageviews to `reportPageviews`, because the tracker would report the token first', () => {
-    const config = readFileSync(join(import.meta.dirname, '..', '..', '..', 'nuxt.config.ts'), 'utf8');
+    const config = readFileSync(join(projectRoot, 'nuxt.config.ts'), 'utf8');
     const plausible = /^ {2}plausible: \{\n([\s\S]*?)^ {2}\},/m.exec(config)?.[1] ?? '';
 
     expect(plausible).toMatch(/^ {4}autoPageviews: false,$/m);

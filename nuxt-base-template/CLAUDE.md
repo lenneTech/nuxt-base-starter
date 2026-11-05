@@ -606,25 +606,60 @@ script, as it does Nuxt's; without it the other checks still hold.
 `tests/e2e/auth-reset-password-token.spec.ts` pins both halves; Safari is unverified. None of
 this removes the visit from the browser's own history, where the link stays until it expires.
 
-**Plausible must not report a URL by itself.** The module is on by default and, without
-`NUXT_PLAUSIBLE_API_URL`, sends to `plausible.io`. Its tracker reports `location.href` the
-moment it starts, before a page can strip anything, and repeats that URL in the `engagement`
-event when the page is left: measured on a built server, a reset link handed its token to the
-analytics host, and `verify-email` added the e-mail address. So `plausible.autoPageviews` stays
-`false`, and `app/plugins/plausible-pageviews.client.ts` sends the pageviews through
-`reportPageviews` (`app/utils/analytics-url.ts`) with an allowlist of what Plausible reports on:
-`utm_*`, `ref`, `source`, `gclid` and `msclkid`. An allowlist, so a new secret in a query needs no
-change here. The tracker also sends `document.referrer`, which no option reaches, so
-`Referrer-Policy` is `strict-origin`: with the common `strict-origin-when-cross-origin`, opening a
-link from `verify-email` in a new tab reported its token and address as the referrer. A custom
-event (`useTrackEvent`, `window.plausible`) reports `location.href` unless it gets a `url`, so pass
-`analyticsUrl(window.location.href)` there. `plausible.hashMode` does not work with this: the URL
-loses its fragment, and only a new path counts as a pageview.
+**`verify-email` keeps the address and the token out of the URL.** Login and sign-up hand the
+address over in the history entry (`navigateTo({ path, state: verifyEmailState(email) })`,
+`app/utils/verify-email-memory.ts`), never as `?email=`. The verification mail still links with
+`?token=…&email=…`, because nest-server builds it, so the page reads both and moves them out through
+`router.replace` before any request. The history entry keeps the address for "send a new e-mail"
+across a reload and notes an accepted link, so a reload confirms instead of waiting. Never put an
+address into a query: `tests/unit/auth/no-address-in-url.spec.ts` reads every page for it, and
+`tests/e2e/auth-verify-email-url.spec.ts` runs the flow against a real API.
+
+**Plausible runs only with an analytics host set explicitly.** `@nuxtjs/plausible` 4.0.0 is on by
+default and falls back to `https://plausible.io` without an `apiHost`. CI builds leave
+`NUXT_PLAUSIBLE_API_URL` unset, so before 2.37.0 every generated project reported its pageviews
+there. Now the module stays registered but idle (`enabled: false`), which keeps `useTrackEvent` and
+`useTrackPageview`, and `app/plugins/plausible.client.ts` starts the tracker only while
+`runtimeConfig.public.plausible.apiHost` holds a host: `NUXT_PLAUSIBLE_API_URL` at build time (the
+Dockerfile takes it as a build arg) or `NUXT_PUBLIC_PLAUSIBLE_API_HOST` on the stage, which wins.
+Without one there is no tracker, no request and no preconnect. Keep `apiHost` an empty string, never
+undefined: undefined lets the module default back in, and the stage variable only lands on a key the
+build wrote. Do not switch `enabled` on: the module's plugin would start next to this one, with the
+fallback and without the masks (its `proxy` option needs `enabled`, so it is out too).
+`tests/unit/plugins/plausible-tracker.test.ts`
+resolves the real config with the real module defaults.
+
+**Plausible sees nothing that names a person or opens an account,** whichever server receives it.
+Its tracker reports `location.href` the moment it starts, before a page can strip anything, and
+repeats that URL in the `engagement` event: measured on a built server, a reset link handed its
+token to the analytics host, and `verify-email` added the e-mail address. So every event's URL and
+referrer pass the `transformRequest` that `plausible.client.ts` hands the tracker:
+
+- `analyticsUrl` (`app/utils/analytics-url.ts`) keeps the origin and the path, every segment that
+  could identify somebody masked as `:id` (ObjectId, UUID, five digits or more, `@`, 16 characters or
+  more that are no lower-case slug, the segment after `share`, `s`, `token` and the like). Of the
+  query only `utm_source`, `utm_medium`, `utm_campaign`, `ref` and `source` survive, with a plain
+  label as value, and `gclid` / `msclkid` as `1`. A path that resolves to one of the app's static
+  routes keeps its segments (`staticRoutes(router)`, passed by both plugins), so `/invite/accept`
+  stays itself next to `/invite/[code]`; the masks are for dynamic routes and unknown paths. A
+  project with a short code behind its own word (`pages/einladung/[code].vue`) adds that word to
+  `PROJECT_TOKEN_SEGMENTS`, with a test.
+- `analyticsReferrer` cuts the referrer to its origin. No event option reaches it, and
+  `Referrer-Policy: strict-origin` only covers links inside the app: a visitor from another site
+  brings what that site lets through.
+
+`plausible.autoPageviews` stays `false`: `app/plugins/plausible-pageviews.client.ts` sends the
+pageviews through `reportPageviews`, one per new path. The tracker's automatic link, download and
+form capture stays off whatever the module options say, because those events carry the clicked
+address as a property the masks do not see. A custom event (`useTrackEvent`, `window.plausible`) gets
+its URL masked too, and so does the `url` the tracker adds by itself to a click on an element tagged
+`plausible-event-name=…`; every other prop goes out as it is: no e-mail, no name, no id in them.
+`plausible.hashMode` does not work with this: the URL loses its fragment.
 
 To measure any of this, use a hostname other than `localhost` and set `window.__plausible = true`:
 the tracker ignores localhost and `navigator.webdriver`, so an automated browser otherwise reports
 nothing at all, which reads like a clean result. `tests/unit/utils/analytics-url.test.ts` runs the
-real tracker.
+real tracker and has one case per masking rule.
 
 `tests/unit/auth/error-translation-contract.spec.ts` guards the layer underneath: it runs
 against the `ERROR_CODE_REGEX` **shipped by the installed package** rather than a copy,

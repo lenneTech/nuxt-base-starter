@@ -59,6 +59,12 @@ WORKDIR /app
 ARG NUXT_PUBLIC_APP_ENV
 ENV NUXT_PUBLIC_APP_ENV=$NUXT_PUBLIC_APP_ENV
 
+# Plausible's analytics host, read by `nuxt build` (nuxt.config.ts). Optional: unset, no tracker
+# runs, unless the stage sets NUXT_PUBLIC_PLAUSIBLE_API_HOST at runtime, which needs no build arg.
+# Without this line a CI variable never reaches the build: Docker passes no host environment.
+ARG NUXT_PLAUSIBLE_API_URL
+ENV NUXT_PLAUSIBLE_API_URL=$NUXT_PLAUSIBLE_API_URL
+
 COPY --from=deps /app ./
 COPY ${APP_DIR}/ ./${APP_DIR}/
 

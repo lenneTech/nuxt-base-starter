@@ -3,6 +3,7 @@
 // Composables
 // ============================================================================
 const route = useRoute();
+const router = useRouter();
 const toast = useToast();
 const runtimeConfig = useRuntimeConfig();
 const authClient = useLtAuthClient();
@@ -29,8 +30,14 @@ useHead({
 // ============================================================================
 // Variables
 // ============================================================================
-const email = computed(() => (route.query.email as string) || '');
-const token = computed(() => (route.query.token as string) || '');
+/**
+ * Read once into refs rather than computeds over `route.query`: `onMounted` moves both out of the
+ * URL (see `keepSecretsOutOfTheUrl`), which would empty a computed. Reading synchronously keeps SSR
+ * and the first client render in agreement. An address handed over in the history entry
+ * (`verifyEmailState`) arrives in `onMounted`, since the server never sees `history.state`.
+ */
+const email = ref<string>(typeof route.query.email === 'string' ? route.query.email : '');
+const token = ref<string>(typeof route.query.token === 'string' ? route.query.token : '');
 
 /**
  * Where the "back to sign-in" buttons point.
@@ -81,6 +88,7 @@ async function verifyEmailWithToken(verificationToken: string): Promise<void> {
     }
 
     verified.value = true;
+    rememberVerified();
     toast.add({
       color: 'success',
       description: 'Deine E-Mail-Adresse wurde erfolgreich verifiziert.',
@@ -138,6 +146,33 @@ async function resendVerificationEmail(): Promise<void> {
   }
 }
 
+/**
+ * Move the token and the address out of the URL, into this history entry.
+ *
+ * The token confirms the account until it expires, and the address names its owner. In the URL both
+ * would stay in the browser history and travel with every link somebody pastes. Replacing keeps the
+ * entry rather than adding one, so Back still behaves. Through the router, never
+ * `history.replaceState`: vue-router keeps its own copy of the location and would write the old URL
+ * into the next entry it creates (see `reset-password.vue`).
+ */
+async function keepSecretsOutOfTheUrl(): Promise<void> {
+  if (!('email' in route.query) && !('token' in route.query)) {
+    return;
+  }
+  const query = Object.fromEntries(Object.entries(route.query).filter(([key]) => key !== 'email' && key !== 'token'));
+  await router.replace({ path: route.path, query, state: verifyEmailState(email.value) });
+}
+
+/**
+ * Note in this history entry that the link was accepted, so a reload confirms instead of waiting.
+ *
+ * `history.replaceState` is safe here, unlike for the token: the URL stays the one the router already
+ * holds, and vue-router merges `history.state` whenever it rewrites this entry.
+ */
+function rememberVerified(): void {
+  window.history.replaceState({ ...window.history.state, ...verifyEmailState(email.value, true) }, '');
+}
+
 function startCooldown(seconds: number): void {
   resendCooldown.value = seconds;
   if (cooldownInterval) clearInterval(cooldownInterval);
@@ -154,6 +189,11 @@ function startCooldown(seconds: number): void {
 // Lifecycle
 // ============================================================================
 onMounted(async () => {
+  const remembered = recallVerifyEmail(window.history.state);
+  email.value ||= remembered.email;
+  // First, before any request: the URL should not keep the secrets while the page waits.
+  await keepSecretsOutOfTheUrl();
+
   // Fetch dynamic cooldown configuration from backend
   try {
     const features = await $fetch<Record<string, boolean | number | string[]>>(`${apiBase}/features`);
@@ -166,6 +206,9 @@ onMounted(async () => {
 
   if (token.value) {
     await verifyEmailWithToken(token.value);
+  } else if (remembered.verified) {
+    // A reload after the link was accepted: the token has left the URL, the outcome has not.
+    verified.value = true;
   } else if (route.query.fromRegister === 'true') {
     // Email was just sent during registration, start initial cooldown
     startCooldown(cooldownSeconds.value);
