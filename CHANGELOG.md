@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.35.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.34.1...v2.35.0) (2026-11-05)
+
+
+### Highlights for adopters
+
+* **Existing projects need an update, whether or not they use Plausible on purpose.** `@nuxtjs/plausible` is on by default, and its tracker sent reset tokens and e-mail addresses from the URL to the analytics host. Follow steps 1 to 3 of the [2.35.0 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.35.0/migration-guides/2.35.0-plausible-pageviews.md).
+
+
+### Features
+
+* **config:** add a securityTxt example, off by default (#28) ([4587af0](https://github.com/lenneTech/nuxt-base-starter/commit/4587af0bfb85c0204fe340e23ad1da5ab4c13a27))
+
+
+### Bug Fixes
+
+* **auth:** keep a reset link across a reload, without handing it to the next person (#27) ([35b989a](https://github.com/lenneTech/nuxt-base-starter/commit/35b989a49fa7b482545ac52037b23b6d36f88fc7))
+* **auth:** keep tokens and addresses out of what Plausible reports (#29) ([2b3e9f2](https://github.com/lenneTech/nuxt-base-starter/commit/2b3e9f29497f31b807c1d4ab3eadb937127244ba))
+
+
+### Chores
+
+* **deps:** drop the expired release-age excludes, name the pinned test in the guide (#30) ([a77266b](https://github.com/lenneTech/nuxt-base-starter/commit/a77266b2b4f01c5a3c8320430042ad0437f6f266))
+
 ### [2.34.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.34.0...v2.34.1) (2026-11-04)
 
 
