@@ -291,6 +291,10 @@ export default defineNuxtConfig({
   // ============================================================================
   plausible: {
     apiHost: process.env.NUXT_PLAUSIBLE_API_URL,
+    // Off on purpose: the tracker would report `location.href` before a page can strip a reset
+    // token, and hand it to the analytics host. `app/plugins/plausible-pageviews.client.ts` sends
+    // the pageviews instead. Do not switch this on.
+    autoPageviews: false,
     ignoredHostnames: ['localhost'],
   },
 
