@@ -60,7 +60,7 @@ Pre-built auth pages: login, register, forgot-password, reset-password, 2fa
 ### SEO & Analytics
 
 - **@nuxtjs/seo** - Sitemap, robots.txt, Schema.org (OG images, AI Ready and Skew Protection are off by default)
-- **@nuxtjs/plausible** - Privacy-friendly analytics
+- **@nuxtjs/plausible** - Privacy-friendly analytics, off unless an analytics host is set explicitly
 
 ### Developer Experience
 
