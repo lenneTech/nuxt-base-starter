@@ -2,7 +2,6 @@
 // ============================================================================
 // Imports
 // ============================================================================
-import type { LtUserInput } from '@lenne.tech/nuxt-extensions';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { InferOutput } from 'valibot';
 
@@ -13,8 +12,7 @@ import * as v from 'valibot';
 // ============================================================================
 const toast = useToast();
 const { translateError } = useLtErrorTranslation();
-const { setUser, switchToJwtMode, jwtToken } = useLtAuth();
-const authClient = useLtAuthClient();
+const { twoFactor } = useLtAuth();
 const route = useRoute();
 
 // ============================================================================
@@ -59,25 +57,18 @@ const schema = v.object({
 type Schema = InferOutput<typeof schema>;
 
 /**
- * The fields this page reads from `verifyTotp` / `verifyBackupCode`: the error, the user and the
- * token, which `onSubmit` accepts both under `data` and at the top level. A token is taken only
- * when it is a JWT (see `onSubmit`).
+ * Better Auth's refusals of the second factor that are not a wrong code. They carry no `#…_0000:`
+ * marker, so `errorText` alone would show each as "Code ungültig", and the user would retry a code
+ * that cannot work. `restart`: the challenge is spent, only a new sign-in starts another one.
  */
-interface TwoFactorVerifyResult {
-  data?: null | { token?: string; user?: LtUserInput };
-  error?: null | { message?: string };
-  token?: string;
-  user?: LtUserInput;
-}
-
-/**
- * Whether a value is a JWT: three parts and a JSON header (`eyJ`). The same test as
- * `isJwtShaped` in nest-server, so the page and the API never disagree about one token. Better
- * Auth's opaque session token never passes it.
- */
-function isJwtShaped(value: unknown): value is string {
-  return typeof value === 'string' && value.startsWith('eyJ') && value.split('.').length === 3;
-}
+const TWO_FACTOR_REFUSALS: Record<string, { restart: boolean; text: string }> = {
+  ACCOUNT_TEMPORARILY_LOCKED: {
+    restart: false,
+    text: 'Zu viele Fehlversuche. Die Bestätigung ist für einige Minuten gesperrt, bitte versuche es später erneut.',
+  },
+  INVALID_TWO_FACTOR_COOKIE: { restart: true, text: 'Die Bestätigung ist abgelaufen. Bitte melde dich erneut an.' },
+  TOO_MANY_ATTEMPTS_REQUEST_NEW_CODE: { restart: true, text: 'Zu viele Versuche mit diesem Code. Bitte melde dich erneut an.' },
+};
 
 // ============================================================================
 // Functions
@@ -86,77 +77,24 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
   loading.value = true;
 
   try {
-    let result: TwoFactorVerifyResult;
+    // The helpers of nuxt-extensions 1.26.0 complete the sign-in: on the session cookie with a JWT
+    // from `/iam/token`, or with the JWT the API answers in the JWT mode. They never store the
+    // opaque session token nest-server 12.6.0 puts into the answer, the credential the httpOnly
+    // cookie keeps away from scripts, and `lt-jwt-token` takes nothing but a JWT.
+    const verify = useBackupCode.value ? twoFactor.verifyBackupCode : twoFactor.verifyTotp;
+    const { error } = (await verify({ code: payload.data.code })) as { error?: null | { code?: string; message?: string } };
 
-    if (useBackupCode.value) {
-      result = await authClient.twoFactor.verifyBackupCode({
-        code: payload.data.code,
+    if (error) {
+      const refusal = error.code ? TWO_FACTOR_REFUSALS[error.code] : undefined;
+      toast.add({
+        color: 'error',
+        description: refusal?.text ?? errorText(error.message, translateError, useBackupCode.value ? 'Backup-Code ungültig' : 'Code ungültig'),
+        title: 'Bestätigung fehlgeschlagen',
       });
-
-      if (result.error) {
-        toast.add({
-          color: 'error',
-          // Not `translateError(...) || fallback` — that fallback never runs, because
-          // `translateError` returns the input unchanged when it cannot translate it.
-          description: result.error.message ? translateError(result.error.message) : 'Backup-Code ungültig',
-          title: 'Bestätigung fehlgeschlagen',
-        });
-        return;
+      if (refusal?.restart) {
+        await navigateTo({ path: '/auth/login', query: { redirect: redirectTarget.value } });
       }
-    } else {
-      result = await authClient.twoFactor.verifyTotp({
-        code: payload.data.code,
-      });
-
-      if (result.error) {
-        toast.add({
-          color: 'error',
-          description: result.error.message ? translateError(result.error.message) : 'Code ungültig',
-          title: 'Bestätigung fehlgeschlagen',
-        });
-        return;
-      }
-    }
-
-    // Only a JWT may go into `jwtToken`. It lives in `lt-jwt-token`, a cookie any script on the
-    // page can read. In the cookie mode nest-server 12.6.0 answers the second factor with
-    // `{ token, user }`, and `token` is Better Auth's opaque session token: the credential the
-    // httpOnly session cookie keeps away from scripts. Stored there it handed the session to every
-    // XSS for seven days. So an opaque token is never taken: the browser holds the session in its
-    // cookie, and a JWT comes from `/iam/token` (`switchToJwtMode`). The second factor sets that
-    // cookie in the JWT mode (`cookies: false`) too, measured on nest-server 12.6.0. Where an API
-    // answers with a JWT, that one is the sign-in. A session token an earlier version stored is
-    // removed.
-    if (jwtToken.value && !isJwtShaped(jwtToken.value)) {
-      jwtToken.value = null;
-    }
-
-    let token = result?.token || result?.data?.token;
-    let userData = result?.data?.user || result?.user;
-    if (!userData) {
-      // Fallback: read the session from the API.
-      //
-      // This used to build the URL by hand and go through `fetchWithAuth`, because
-      // `useLtAuthClient().getSession` did not survive the client's spread and was `undefined`
-      // at runtime — the workaround, not a preference. Since nuxt-extensions 1.17.0 the method
-      // is passed through explicitly, so the hand-built base URL can go.
-      try {
-        const { data: sessionData } = await authClient.getSession();
-        token = (sessionData as { token?: string } | null)?.token;
-        userData = sessionData?.user ?? undefined;
-      } catch {
-        // Ignore session fetch errors
-      }
-    }
-
-    if (isJwtShaped(token)) {
-      jwtToken.value = token;
-      if (userData) {
-        setUser(userData, 'jwt');
-      }
-    } else if (userData) {
-      setUser(userData, 'cookie');
-      switchToJwtMode().catch(() => {});
+      return;
     }
 
     await navigateTo(redirectTarget.value);

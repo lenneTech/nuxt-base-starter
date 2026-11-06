@@ -26,6 +26,7 @@ const toast = useToast();
 const overlay = useOverlay();
 const { is2FAEnabled, registerPasskey, setUser, user } = useLtAuth();
 const authClient = useLtAuthClient();
+const { translateError } = useLtErrorTranslation();
 
 // ============================================================================
 // Variables
@@ -114,7 +115,7 @@ async function deletePasskey(id: string): Promise<void> {
     if (error) {
       toast.add({
         color: 'error',
-        description: error.message || 'Passkey konnte nicht gelöscht werden',
+        description: errorText(error.message, translateError, 'Passkey konnte nicht gelöscht werden'),
         title: 'Fehler',
       });
       return;
@@ -143,7 +144,7 @@ async function disable2FA(payload: FormSubmitEvent<PasswordSchema>): Promise<voi
     if (error) {
       toast.add({
         color: 'error',
-        description: error.message || '2FA konnte nicht deaktiviert werden',
+        description: errorText(error.message, translateError, '2FA konnte nicht deaktiviert werden'),
         title: 'Fehler',
       });
       return;
@@ -178,7 +179,7 @@ async function enable2FA(payload: FormSubmitEvent<PasswordSchema>): Promise<void
     if (error) {
       toast.add({
         color: 'error',
-        description: error.message || '2FA konnte nicht aktiviert werden',
+        description: errorText(error.message, translateError, '2FA konnte nicht aktiviert werden'),
         title: 'Fehler',
       });
       return;
@@ -261,7 +262,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
     if (error) {
       toast.add({
         color: 'error',
-        description: error.message || 'Code ungültig',
+        description: errorText(error.message, translateError, 'Code ungültig'),
         title: 'Fehler',
       });
       return;
@@ -396,7 +397,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
           <UIcon name="i-lucide-fingerprint" class="size-6 text-primary" />
           <div>
             <h2 class="font-semibold">Passkeys</h2>
-            <p class="text-sm text-muted">Passwordlose Anmeldung mit biometrischen Daten</p>
+            <p class="text-sm text-muted">Passwortlose Anmeldung mit biometrischen Daten</p>
           </div>
         </div>
       </template>

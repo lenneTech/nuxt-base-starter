@@ -526,7 +526,7 @@ work, check both:
 Two rules, both enforced by `tests/unit/auth/auth-pages-translate-errors.spec.ts`.
 
 **1. Every page under `app/pages/auth/` routes backend errors through `translateError`**
-(`useLtErrorTranslation`). Skipping it is invisible until an error happens in production,
+(`useLtErrorTranslation`), and no page under `app/pages/app/settings/` shows a raw `error.message`. Skipping it is invisible until an error happens in production,
 and it got worse with nest-server's error wrapping: a page printing `error.message`
 unfiltered no longer shows English prose but the literal marker,
 `#LTNS_0027: Link is invalid or expired`, which reads like a system fault. Two sibling
@@ -535,7 +535,10 @@ by people who are already locked out.
 
 **Never write `translateError(x) || 'Fallback'`.** The fallback is unreachable:
 `translateError` returns the input unchanged when it cannot translate, so it is only
-empty for empty input. Test the input first: `x ? translateError(x) : 'Fallback'`.
+empty for empty input. `x ? translateError(x) : 'Fallback'` is no better for Better Auth's own
+answers: they carry no `#…_0000:` code ("Invalid code"), so they come back in English. Use
+`errorText(x, translateError, 'Fallback')` (`app/utils/error-text.ts`): it translates a coded
+message and shows the German fallback for any other.
 
 **Reach for `useLtAuthClient()` before writing `$fetch` against `/iam/*`.** Until
 nuxt-extensions 1.17.0 the client's spread promised ~14 methods at the type level that were
