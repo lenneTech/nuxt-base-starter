@@ -2,11 +2,11 @@
  * `/auth/verify-email` keeps the e-mail address and the token out of the URL.
  *
  * Login and sign-up used to send visitors there with `?email=…`, and the link in the verification
- * mail carries `?token=…&email=…` (nest-server builds it). In the address bar both went to analytics,
- * into the referrer of links, into the browser history and into every link somebody pasted. The page
- * now takes the address from the history entry and moves both out of the URL the moment it has read
- * them. A reload keeps what the page needs: the address for "send a new e-mail", and the outcome of an
- * accepted link.
+ * mail carried `?token=…&email=…` until nest-server 12.6.0 (from then on the token alone). In the
+ * address bar both went to analytics, into the referrer of links, into the browser history and into
+ * every link somebody pasted. The page now takes the address from the history entry and moves both
+ * out of the URL the moment it has read them. A reload keeps what the page needs: the address for
+ * "send a new e-mail", the outcome of an accepted link, and the token of a refused one.
  *
  * Checked on `history.state` too, not only on `location.href`: vue-router writes the location it
  * knows into `back` and `current`, and a check of the address bar alone misses that.
@@ -88,8 +88,10 @@ test.describe.serial('verify-email keeps the address and the token out of the UR
     const token = await waitForVerificationToken(user.email);
     expect(token, 'Verification token not found in server logs').not.toBeNull();
 
-    // As nest-server builds it.
-    await gotoAndWaitForHydration(page, `/auth/verify-email?token=${token}&email=${encodeURIComponent(user.email)}`);
+    // As nest-server builds it: the token alone from 12.6.0 on, which is when the API takes it for a
+    // new mail, and with the address before.
+    const link = features.resendVerificationByToken ? `/auth/verify-email?token=${token}` : `/auth/verify-email?token=${token}&email=${encodeURIComponent(user.email)}`;
+    await gotoAndWaitForHydration(page, link);
     await expect(page.getByRole('heading', { name: 'E-Mail bestätigt' })).toBeVisible({ timeout: 15000 });
     await expectNoSecrets(page, token ?? '', user.email);
 
@@ -112,5 +114,36 @@ test.describe.serial('verify-email keeps the address and the token out of the UR
     await page.getByRole('link', { name: 'Jetzt anmelden' }).click();
     await waitForURLAndHydration(page, /\/auth\/login/);
     await expectNoSecrets(page, token ?? '', user.email);
+  });
+
+  test('a refused link loses its token on arrival and still leads to a new mail', async ({ page }) => {
+    // Neither a token of Better Auth nor a sealed one: the API refuses it, and from 12.6.0 on cannot
+    // read it for a new mail either. An expired token, the case the resend exists for, cannot be made
+    // here; tests/unit/pages/auth-verify-email.test.ts pins the answer with a masked address.
+    const refused = 'refused-verification-token';
+    await gotoAndWaitForHydration(page, `/auth/verify-email?token=${refused}`);
+    await expect(page.getByRole('heading', { name: 'Verifizierung fehlgeschlagen' })).toBeVisible({ timeout: 15000 });
+    await expectNoSecrets(page, refused);
+
+    if (features.resendVerificationByToken) {
+      // The token stayed in the history entry, so a reload offers the new mail again.
+      await page.reload();
+      await expect(page.getByRole('heading', { name: 'Verifizierung fehlgeschlagen' })).toBeVisible();
+      await expectNoSecrets(page, refused);
+
+      const answer = page.waitForResponse((response) => response.url().includes('/resend-verification-email'));
+      await page.getByRole('button', { name: 'Neue E-Mail senden' }).click();
+      const response = await answer;
+      expect(response.request().postDataJSON()).toEqual({ token: refused });
+      expect(await response.json()).toEqual({ email: null, success: true });
+    }
+
+    // No address known and no token the API reads: the visitor types it.
+    await expect(page.getByLabel('E-Mail-Adresse')).toBeVisible();
+    await page.getByLabel('E-Mail-Adresse').fill(user.email);
+    const sent = page.waitForResponse((response) => response.url().includes('/send-verification-email'));
+    await page.getByRole('button', { name: 'Neue E-Mail senden' }).click();
+    expect((await sent).ok()).toBe(true);
+    await expectNoSecrets(page, refused, user.email);
   });
 });

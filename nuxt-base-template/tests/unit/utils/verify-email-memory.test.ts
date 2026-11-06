@@ -9,11 +9,17 @@ import { recallVerifyEmail, verifyEmailState } from '~/utils/verify-email-memory
 
 describe('verifyEmailState and recallVerifyEmail', () => {
   it('hand the address over and back', () => {
-    expect(recallVerifyEmail(verifyEmailState('max@test.com'))).toEqual({ email: 'max@test.com', verified: false });
+    expect(recallVerifyEmail(verifyEmailState('max@test.com'))).toEqual({ deadToken: '', email: 'max@test.com', verified: false });
   });
 
   it('carry the outcome of an accepted link', () => {
-    expect(recallVerifyEmail(verifyEmailState('max@test.com', true))).toEqual({ email: 'max@test.com', verified: true });
+    expect(recallVerifyEmail(verifyEmailState('max@test.com', { verified: true }))).toEqual({ deadToken: '', email: 'max@test.com', verified: true });
+  });
+
+  it('carry the token of a link the server refused, without an address', () => {
+    // The link of nest-server 12.6.0+ carries no address; the refused token is what "send a new
+    // e-mail" needs after a reload.
+    expect(recallVerifyEmail(verifyEmailState('', { deadToken: 'sealed.token' }))).toEqual({ deadToken: 'sealed.token', email: '', verified: false });
   });
 
   it("find the page's entry among vue-router's own keys", () => {
@@ -26,8 +32,12 @@ describe('verifyEmailState and recallVerifyEmail', () => {
     ['no state', null],
     ['a state of another page', { back: '/auth/login', current: '/auth/verify-email' }],
     ['an entry of the wrong shape', { ltVerifyEmail: 'max@test.com' }],
-    ['values of the wrong type', { ltVerifyEmail: { email: 42, verified: 'yes' } }],
+    ['values of the wrong type', { ltVerifyEmail: { deadToken: 7, email: 42, verified: 'yes' } }],
   ])('remember nothing from %s', (_label, state) => {
-    expect(recallVerifyEmail(state)).toEqual({ email: '', verified: false });
+    expect(recallVerifyEmail(state)).toEqual({ deadToken: '', email: '', verified: false });
+  });
+
+  it('read an entry written by 2.37.0, which had no deadToken yet', () => {
+    expect(recallVerifyEmail({ ltVerifyEmail: { email: 'max@test.com', verified: true } })).toEqual({ deadToken: '', email: 'max@test.com', verified: true });
   });
 });

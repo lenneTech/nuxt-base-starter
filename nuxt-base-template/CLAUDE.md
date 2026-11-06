@@ -613,12 +613,22 @@ this removes the visit from the browser's own history, where the link stays unti
 
 **`verify-email` keeps the address and the token out of the URL.** Login and sign-up hand the
 address over in the history entry (`navigateTo({ path, state: verifyEmailState(email) })`,
-`app/utils/verify-email-memory.ts`), never as `?email=`. The verification mail still links with
-`?token=…&email=…`, because nest-server builds it, so the page reads both and moves them out through
-`router.replace` before any request. The history entry keeps the address for "send a new e-mail"
-across a reload and notes an accepted link, so a reload confirms instead of waiting. Never put an
-address into a query: `tests/unit/auth/no-address-in-url.spec.ts` reads every page for it, and
+`app/utils/verify-email-memory.ts`), never as `?email=`. The verification mail links with
+`?token=…` (before nest-server 12.6.0 with `&email=…` as well), so the page reads both and moves them
+out through `router.replace` before any request. The history entry keeps the address for "send a new
+e-mail" across a reload and notes an accepted link, so a reload confirms instead of waiting. Never put
+an address into a query: `tests/unit/auth/no-address-in-url.spec.ts` reads every page for it, and
 `tests/e2e/auth-verify-email-url.spec.ts` runs the flow against a real API.
+
+**"Send a new e-mail" goes by token where the API takes it.** While `GET /iam/features` reports
+`resendVerificationByToken` (nest-server 12.6.0+), a refused link's token goes to
+`POST /iam/resend-verification-email`; the API mails the address the token belongs to and answers it
+masked (`k***@example.com`), so nobody types the address and it never travels. The answer is the
+same for an account that is verified already, so the page promises no mail. The refused token stays
+in the history entry (`deadToken`), and only then: a 5xx says nothing about the link. Without the
+flag the page sends to the address it knows, and without one it asks for it in a field.
+`tests/unit/pages/auth-verify-email.test.ts` pins every way; the E2E helper finds tokens of both log
+formats (`UserKey` from 12.6.0 on, the readable JWT before).
 
 **Plausible runs only with an analytics host set explicitly.** `@nuxtjs/plausible` 4.0.0 is on by
 default and falls back to `https://plausible.io` without an `apiHost`. CI builds leave
