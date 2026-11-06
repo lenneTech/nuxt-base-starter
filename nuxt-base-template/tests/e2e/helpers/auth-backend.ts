@@ -238,6 +238,12 @@ export async function resetTestData(email: string): Promise<void> {
       } catch {
         // Collection may not exist
       }
+      // AI prompts name their author as `ownerId`, not `userId` (tests/e2e/ai-prompts-include-disabled.spec.ts).
+      try {
+        await db.collection('aiPrompts').deleteMany({ ownerId: { $in: [userId, user._id] } });
+      } catch {
+        // Collection may not exist (AI module off)
+      }
       // Also clean verification by identifier (email)
       try {
         await db.collection('verification').deleteMany({ identifier: email });
