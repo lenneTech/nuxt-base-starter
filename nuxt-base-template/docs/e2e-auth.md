@@ -214,9 +214,7 @@ Effect: auth via JWT instead of cookies, all features active.
 
 Until nest-server 12.7.0 the JWT mode works same-origin only: start the app with
 `NUXT_PUBLIC_API_PROXY=true`, so it reaches the API through its own origin. Cross-origin it needs
-CORS with credentials, which comes with 12.7.0. Under nest-server 12.6.0 the 2FA sign-in fails in
-this mode, because the API answers the second factor with the raw session token, which the app
-does not store (see the 2.38.1 migration guide); 12.6.1 answers with a JWT.
+CORS with credentials, which comes with 12.7.0.
 
 ### Scenario 4 — JWT mode, no verification or checks
 

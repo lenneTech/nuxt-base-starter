@@ -123,9 +123,10 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     // `{ token, user }`, and `token` is Better Auth's opaque session token: the credential the
     // httpOnly session cookie keeps away from scripts. Stored there it handed the session to every
     // XSS for seven days. So an opaque token is never taken: the browser holds the session in its
-    // cookie, and a JWT comes from `/iam/token` (`switchToJwtMode`). In the JWT mode (`cookies:
-    // false`) the API sends a JWT instead, and that one is the sign-in. A session token an earlier
-    // version stored is removed.
+    // cookie, and a JWT comes from `/iam/token` (`switchToJwtMode`). The second factor sets that
+    // cookie in the JWT mode (`cookies: false`) too, measured on nest-server 12.6.0. Where an API
+    // answers with a JWT, that one is the sign-in. A session token an earlier version stored is
+    // removed.
     if (jwtToken.value && !isJwtShaped(jwtToken.value)) {
       jwtToken.value = null;
     }
