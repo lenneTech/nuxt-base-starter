@@ -77,6 +77,65 @@ describe('findVerificationToken', () => {
   });
 });
 
+/**
+ * nest-server 12.6.0 and newer: the token in the link is sealed (a JWE nobody can read), and the
+ * line names the account by `UserKey`, the first 16 hex characters of the SHA-256 of the trimmed,
+ * lower-cased address. The legacy format above stays readable, because a project may pair this
+ * template with an older server.
+ */
+describe('findVerificationToken with a UserKey (nest-server 12.6.0+)', () => {
+  /** A compact JWE as the link carries it: five base64url parts, nothing readable in any of them. */
+  function sealed(seed: string): string {
+    return `eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..${seed}iv.${seed}ciphertext.${seed}tag`;
+  }
+
+  function keyLine(userKey: string, token: string): string {
+    return `[EMAIL VERIFICATION] User: a***@test.com, UserKey: ${userKey}, URL: https://app.test/auth/verify-email?token=${token}\n`;
+  }
+
+  // Spelled out instead of computed here: a test that computed the key like the helper would agree
+  // with the helper whatever formula both used. These are nest-server's values for the two addresses.
+  const KEY_A = '2ca85939294aefb0';
+  const KEY_OTHER = 'a37c7e8ee65c7546';
+
+  it('returns the token of the line whose UserKey belongs to the address', () => {
+    const mine = sealed('mine');
+    const log = keyLine(KEY_OTHER, sealed('other')) + keyLine(KEY_A, mine);
+
+    expect(findVerificationToken(log, 'a@test.com')).toBe(mine);
+  });
+
+  it('builds the key from the trimmed, lower-cased address, as nest-server does', () => {
+    const token = sealed('mine');
+
+    expect(findVerificationToken(keyLine(KEY_A, token), '  A@Test.com ')).toBe(token);
+  });
+
+  it('never returns the token of a line keyed to another address', () => {
+    expect(findVerificationToken(keyLine(KEY_OTHER, sealed('other')), 'a@test.com')).toBeNull();
+  });
+
+  it('trusts the UserKey over a readable payload in the same line', () => {
+    // Once a line names its account, that is the answer. Reading the token as well would let a
+    // payload that happens to carry the address hand back another account's link.
+    expect(findVerificationToken(keyLine(KEY_OTHER, jwt({ email: 'a@test.com' })), 'a@test.com')).toBeNull();
+  });
+
+  it('returns the freshest token across both formats', () => {
+    // A server updated between two mails leaves one line of each kind for the same address.
+    const fresh = sealed('fresh');
+    const log = logLine('a@test.com', jwt({ email: 'a@test.com' })) + keyLine(KEY_A, fresh);
+
+    expect(findVerificationToken(log, 'a@test.com')).toBe(fresh);
+  });
+
+  it('leaves the password-reset line alone, which carries a UserKey too', () => {
+    const log = `[PASSWORD RESET] User: a***@test.com, UserKey: ${KEY_A}, URL: https://app.test/auth/reset-password?token=reset\n`;
+
+    expect(findVerificationToken(log, 'a@test.com')).toBeNull();
+  });
+});
+
 describe('parseFeatures', () => {
   it('keeps the defaults for keys the backend omitted', () => {
     // A backend that predates a flag must not read as "flag is false" — that silently SKIPS
@@ -86,6 +145,12 @@ describe('parseFeatures', () => {
     expect(parsed.jwt).toBe(true);
     expect(parsed.twoFactor).toBe(DEFAULT_FEATURES.twoFactor);
     expect(parsed.emailVerification).toBe(DEFAULT_FEATURES.emailVerification);
+  });
+
+  it('reads the resend by token as off on a backend that predates it', () => {
+    // The one flag whose default is off: before nest-server 12.6.0 the endpoint does not exist.
+    expect(parseFeatures({ enabled: true }).resendVerificationByToken).toBe(false);
+    expect(parseFeatures({ enabled: true, resendVerificationByToken: true }).resendVerificationByToken).toBe(true);
   });
 
   it.each([

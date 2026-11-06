@@ -20,6 +20,13 @@ The stdout redirect is not optional: email-verification tokens are extracted fro
 log, because the token is a **stateless JWT** that is never written to the database (Better
 Auth signs it on send and verifies it by signature at redemption — there is no row to read).
 
+`findVerificationToken()` reads both log formats. From nest-server 12.6.0 on the link carries the
+token sealed (a JWE nobody can read), and the line names the account by
+`UserKey: <16 hex>`, the start of the SHA-256 of the trimmed, lower-cased address; a line with a
+`UserKey` is matched by it and nothing else. Before 12.6.0 the line carries Better-Auth's readable
+JWT, matched by the address in its payload. 12.6.0 prints the line only in the `local`, `ci` and
+`e2e` environments, so an API started otherwise leaves the suite without tokens.
+
 ### Where the log is looked for
 
 `tests/e2e/helpers/auth-backend.ts` → `readServerLog()` concatenates every candidate it finds,
