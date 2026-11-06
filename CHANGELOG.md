@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.38.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.0...v2.38.1) (2026-11-06)
+
+
+### Highlights for adopters
+
+* **Security fix for every project with two-factor sign-in.** In the cookie mode, nest-server answers the second factor with the opaque session token, and `app/pages/auth/2fa.vue` stored it in the script-readable cookie `lt-jwt-token` for seven days, so a single XSS could take over the session. 2.38.1 stores a token from an answer only when it is a JWT, signs in on the session cookie otherwise, removes a session token an earlier version stored, and raises `@lenne.tech/nuxt-extensions` to 1.26.0, which applies the same rule to its own helpers. The 2FA sign-in works in the cookie and in the JWT mode. Follow the [2.38.1 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.38.1/migration-guides/2.38.1-2fa-session-token-out-of-js-cookie.md): raise nuxt-extensions, take over the 2FA page (or apply its diff), take over the tests.
+
+
+### Bug Fixes
+
+* **auth:** keep the session token out of the script-readable token cookie after 2FA (#36) ([d68478d](https://github.com/lenneTech/nuxt-base-starter/commit/d68478d18f833760ae69822ab22fcbadb0277afe))
+
 ## [2.38.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.37.0...v2.38.0) (2026-11-06)
 
 
