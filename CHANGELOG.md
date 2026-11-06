@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.38.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.2...v2.38.3) (2026-11-07)
+
+
+### Highlights for adopters
+
+* **AI prompts switched off stay on the management page.** A prompt saved with "Aktiv" off disappeared from `/app/settings/ai-prompts` right after the save, so its owner could not switch it on again. The page now asks for the disabled prompts too (`@lenne.tech/nuxt-extensions` 1.27.0, `load({ includeDisabled: true })`) and shows them marked "inaktiv"; the chat keeps offering active prompts only. The API side is nest-server 12.7.0; an older API ignores the parameter and nothing breaks. The edit and delete buttons of each prompt now have names a screen reader can announce. Follow the [2.38.3 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.38.3/migration-guides/2.38.3-ai-prompts-include-disabled.md).
+
+
+### Bug Fixes
+
+* **ai:** keep disabled prompts on the AI prompt management page, and name its icon buttons (#39) ([697b324](https://github.com/lenneTech/nuxt-base-starter/commit/697b3241598d4b26a268d7506a305f88a1f5221b))
+
 ### [2.38.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.1...v2.38.2) (2026-11-06)
 
 
