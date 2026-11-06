@@ -81,13 +81,45 @@ async function cleanupAuthenticator(cdpSession: CDPSession, authenticatorId: str
   }
 }
 
+/**
+ * The auth mode this run expects, from `E2E_EXPECT_AUTH_MODE` (`cookie` or `jwt`).
+ *
+ * `GET /iam/features` cannot tell: its `jwt` reports the JWT plugin, which is on in both modes.
+ * Neither can the app's `lt-auth-state`: `switchToJwtMode()` sets its `authMode` to `jwt` in the
+ * cookie mode too, as soon as `/iam/token` hands out a JWT. The mode is the top-level `cookies` of
+ * the nest-server config (`NSC__COOKIES=false` for the JWT mode), and the one sign it leaves in the
+ * browser is the API's httpOnly session cookie: the password sign-in sets it in the cookie mode and
+ * sets no cookie at all in the JWT mode (measured on nest-server 12.6.0). Unset, the run prints the
+ * mode it saw and checks nothing.
+ */
+const EXPECTED_AUTH_MODE = ((): 'cookie' | 'jwt' | null => {
+  const declared = process.env.E2E_EXPECT_AUTH_MODE?.trim().toLowerCase();
+  if (!declared) return null;
+  if (declared === 'cookie' || declared === 'jwt') return declared;
+  throw new Error(`E2E_EXPECT_AUTH_MODE must be "cookie" or "jwt", got "${process.env.E2E_EXPECT_AUTH_MODE}"`);
+})();
+
 function getConfigScenarioName(features: Features): string {
-  const cookies = !features.jwt;
-  if (cookies && features.emailVerification && features.signUpChecks) return 'Szenario 1: Zero Config (alles aktiviert, Cookies)';
-  if (cookies && !features.emailVerification && !features.signUpChecks) return 'Szenario 2: Cookies, ohne EmailVerification/SignUpChecks';
-  if (!cookies && features.emailVerification && features.signUpChecks) return 'Szenario 3: JWT, alles aktiviert';
-  if (!cookies && !features.emailVerification && !features.signUpChecks) return 'Szenario 4: JWT, ohne EmailVerification/SignUpChecks';
-  return `Custom Config (jwt=${features.jwt}, emailVerification=${features.emailVerification}, signUpChecks=${features.signUpChecks})`;
+  const mode = EXPECTED_AUTH_MODE ?? 'cookie';
+  const assumed = EXPECTED_AUTH_MODE ? '' : ' (Modus angenommen)';
+  if (mode === 'cookie' && features.emailVerification && features.signUpChecks) return `Szenario 1: Zero Config (alles aktiviert, Cookies)${assumed}`;
+  if (mode === 'cookie' && !features.emailVerification && !features.signUpChecks) return `Szenario 2: Cookies, ohne EmailVerification/SignUpChecks${assumed}`;
+  if (mode === 'jwt' && features.emailVerification && features.signUpChecks) return 'Szenario 3: JWT, alles aktiviert';
+  if (mode === 'jwt' && !features.emailVerification && !features.signUpChecks) return 'Szenario 4: JWT, ohne EmailVerification/SignUpChecks';
+  return `Custom Config (mode=${mode}, emailVerification=${features.emailVerification}, signUpChecks=${features.signUpChecks})`;
+}
+
+/**
+ * After a password sign-in: the mode the API signed in with, read from its httpOnly session cookie
+ * (present in the cookie mode, absent in the JWT mode), checked against the declared one.
+ */
+async function expectAuthMode(page: Page): Promise<void> {
+  const sessionCookie = (await page.context().cookies()).some((cookie) => cookie.name.endsWith('session_token'));
+  const mode = sessionCookie ? 'cookie' : 'jwt';
+  console.info(`  Auth mode after sign-in: ${mode} (API session cookie ${sessionCookie ? 'set' : 'not set'})`);
+  if (EXPECTED_AUTH_MODE) {
+    expect(mode, `E2E_EXPECT_AUTH_MODE=${EXPECTED_AUTH_MODE}, but the API signed in with the ${mode} mode`).toBe(EXPECTED_AUTH_MODE);
+  }
 }
 
 // =============================================================================
@@ -150,7 +182,8 @@ test.beforeAll(async ({ request }) => {
   console.info('╠══════════════════════════════════════════════════════════════════╣');
   console.info(`║  ${getConfigScenarioName(features).padEnd(62)}║`);
   console.info('╠══════════════════════════════════════════════════════════════════╣');
-  console.info(`║  JWT Mode:            ${String(features.jwt).padEnd(40)}║`);
+  console.info(`║  Auth Mode:           ${String(EXPECTED_AUTH_MODE ?? 'not declared').padEnd(40)}║`);
+  console.info(`║  JWT Plugin:          ${String(features.jwt).padEnd(40)}║`);
   console.info(`║  Email Verification:  ${String(features.emailVerification).padEnd(40)}║`);
   console.info(`║  Sign-Up Checks:      ${String(features.signUpChecks).padEnd(40)}║`);
   console.info(`║  Two-Factor:          ${String(features.twoFactor).padEnd(40)}║`);
@@ -394,6 +427,16 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
     await expect(page.getByText(testUser.email).first()).toBeVisible({ timeout: 5000 });
     console.info('  Logged in with 2FA');
 
+    // The JS-readable token cookie holds a JWT or nothing, never the session token. nest-server
+    // answers the second factor with `{ token, user }`, and `token` is the session token the
+    // httpOnly cookie protects; 2fa.vue used to store it there, readable by any script.
+    const cookies = await page.context().cookies();
+    const sessionToken = decodeURIComponent(cookies.find((cookie) => cookie.name.endsWith('session_token'))?.value ?? '').split('.')[0];
+    for (const cookie of cookies.filter((candidate) => candidate.name.endsWith('jwt-token'))) {
+      expect(cookie.value, `${cookie.name} must hold a JWT, not the session token`).toMatch(/^eyJ[\w-]*\.[\w-]+\.[\w-]+$/);
+      expect(cookie.value).not.toBe(sessionToken);
+    }
+
     // Logout
     await logout(page);
   });
@@ -488,6 +531,7 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
     // Verify user is logged in
     await expect(page.getByText(testUser.email).first()).toBeVisible({ timeout: 5000 });
     console.info('  Logged in without 2FA - direct to /app');
+    await expectAuthMode(page);
   });
 
   test('Step 9: Reset password via the mailed link and sign in with the new one', async ({ page }) => {

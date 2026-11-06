@@ -59,14 +59,24 @@ const schema = v.object({
 type Schema = InferOutput<typeof schema>;
 
 /**
- * The fields this page reads from `verifyTotp` / `verifyBackupCode`: the error, plus the token
- * and the user, which `onSubmit` accepts both under `data` and at the top level.
+ * The fields this page reads from `verifyTotp` / `verifyBackupCode`: the error, the user and the
+ * token, which `onSubmit` accepts both under `data` and at the top level. A token is taken only
+ * when it is a JWT (see `onSubmit`).
  */
 interface TwoFactorVerifyResult {
   data?: null | { token?: string; user?: LtUserInput };
   error?: null | { message?: string };
   token?: string;
   user?: LtUserInput;
+}
+
+/**
+ * Whether a value is a JWT: three parts and a JSON header (`eyJ`). The same test as
+ * `isJwtShaped` in nest-server, so the page and the API never disagree about one token. Better
+ * Auth's opaque session token never passes it.
+ */
+function isJwtShaped(value: unknown): value is string {
+  return typeof value === 'string' && value.startsWith('eyJ') && value.split('.').length === 3;
 }
 
 // ============================================================================
@@ -108,23 +118,22 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       }
     }
 
-    // Extract token and user data from response (JWT mode: cookies: false)
-    const token = result?.token || result?.data?.token;
-    const userData = result?.data?.user || result?.user;
+    // Only a JWT may go into `jwtToken`. It lives in `lt-jwt-token`, a cookie any script on the
+    // page can read. In the cookie mode nest-server 12.6.0 answers the second factor with
+    // `{ token, user }`, and `token` is Better Auth's opaque session token: the credential the
+    // httpOnly session cookie keeps away from scripts. Stored there it handed the session to every
+    // XSS for seven days. So an opaque token is never taken: the browser holds the session in its
+    // cookie, and a JWT comes from `/iam/token` (`switchToJwtMode`). The second factor sets that
+    // cookie in the JWT mode (`cookies: false`) too, measured on nest-server 12.6.0. Where an API
+    // answers with a JWT, that one is the sign-in. A session token an earlier version stored is
+    // removed.
+    if (jwtToken.value && !isJwtShaped(jwtToken.value)) {
+      jwtToken.value = null;
+    }
 
-    if (token) {
-      // JWT mode: Token is in the response
-      jwtToken.value = token;
-      if (userData) {
-        setUser(userData, 'jwt');
-      }
-      console.debug('[Auth] JWT token received from 2FA response');
-    } else if (userData) {
-      // Cookie mode: No token in response, use cookies
-      setUser(userData, 'cookie');
-      // Try to get JWT token for fallback
-      switchToJwtMode().catch(() => {});
-    } else {
+    let token = result?.token || result?.data?.token;
+    let userData = result?.data?.user || result?.user;
+    if (!userData) {
       // Fallback: read the session from the API.
       //
       // This used to build the URL by hand and go through `fetchWithAuth`, because
@@ -133,19 +142,21 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       // is passed through explicitly, so the hand-built base URL can go.
       try {
         const { data: sessionData } = await authClient.getSession();
-        const sessionToken = (sessionData as { token?: string } | null)?.token;
-        if (sessionToken) {
-          jwtToken.value = sessionToken;
-          if (sessionData?.user) {
-            setUser(sessionData.user, 'jwt');
-          }
-        } else if (sessionData?.user) {
-          setUser(sessionData.user, 'cookie');
-          switchToJwtMode().catch(() => {});
-        }
+        token = (sessionData as { token?: string } | null)?.token;
+        userData = sessionData?.user ?? undefined;
       } catch {
         // Ignore session fetch errors
       }
+    }
+
+    if (isJwtShaped(token)) {
+      jwtToken.value = token;
+      if (userData) {
+        setUser(userData, 'jwt');
+      }
+    } else if (userData) {
+      setUser(userData, 'cookie');
+      switchToJwtMode().catch(() => {});
     }
 
     await navigateTo(redirectTarget.value);
