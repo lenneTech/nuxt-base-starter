@@ -7,10 +7,10 @@
 # (GHSA-g3hv-75wg-m249), which no override can lift, because dotgitignore calls
 # `minimatch.makeRe()` and minimatch 11 removed it.
 #
-# IMPORTANT: This file intentionally has NO `packages:` field. It carries
-# ONLY workspace-scoped settings. This is the pnpm-recommended home for these
-# keys and is read by pnpm 10 AND pnpm 11. (pnpm 11 silently ignores the same
-# keys when they live in package.json's `pnpm` block.)
+# This file carries workspace-scoped settings: the pnpm-recommended home for
+# these keys, read by pnpm 10 AND pnpm 11. (pnpm 11 silently ignores the same
+# keys when they live in package.json's `pnpm` block.) Its one key, `packages`,
+# is at the end, with its reason.
 #
 # No overrides and no patches live here. The last pair, `'brace-expansion@<5.0.12': 5.0.12`
 # plus `patches/minimatch@3.1.5.patch`, was removed on 2026-10-06. brace-expansion now
@@ -50,3 +50,14 @@
 # entry reading `.expand` off the namespace closed it (2026-07-30). Work the ladder in
 # nuxt-base-template/CLAUDE.md ("Security Overrides") before suppressing anything.
 # ----------------------------------------------------------------------------------
+
+# The root is a workspace of exactly one project: itself. Without this list the two halves of
+# pnpm disagree. `pnpm install` takes the root alone (`["."]`) and records one project, while the
+# check before every `pnpm run` finds projects with the default `[".", "**"]` and also counts
+# `nuxt-base-template/`. Two against one reads as "The workspace structure has changed since last
+# install", so every root `pnpm run` installed again and warned "The install that ran before the
+# script left node_modules out of date" (pnpm 11.28.10, measured 2026-11-06). The template keeps
+# its own pnpm-workspace.yaml and lockfile; pnpm reads the nearest one. Guarded by
+# scripts/root-workspace.test.mjs.
+packages:
+  - '.'
