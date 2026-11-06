@@ -441,6 +441,11 @@ reports neither field and gets the form, as before. Never show the form on `http
 false`: every submit fails with 403. After a 403, `initSetup` re-reads the status, so a submit
 refused with `LTNS_0053` lands on the hint without code on the page.
 
+With the HTTP init closed the app does not redirect to the setup page (the setup middleware of
+nuxt-extensions redirects only while `httpInitEnabled !== false`), so `/` and the login stay
+reachable. Whoever deploys a stage without users opens `/auth/setup` directly to see the hint; the
+API's boot log names the same variables ("No users exist and this instance cannot be set up").
+
 `tests/unit/pages/auth-setup.test.ts` pins the page's states, the token field included.
 `tests/e2e/system-setup.spec.ts` runs it against a real API on an empty database, closed and open;
 it needs `E2E_SETUP_CASE=closed|open` and skips without it (see its header).
