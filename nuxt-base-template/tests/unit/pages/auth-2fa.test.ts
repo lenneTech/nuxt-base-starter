@@ -181,6 +181,27 @@ describe('2fa page error texts', () => {
     page.unmount();
   });
 
+  // Better Auth's refusals that are not a wrong code. They carry no `#…_0000:` marker, so a plain
+  // fallback turned each into "Code ungültig", and the user retried a code that could never work.
+  it.each([
+    ['an expired challenge', 'INVALID_TWO_FACTOR_COOKIE', 'Invalid two factor cookie', 'abgelaufen', true],
+    ['too many attempts on one challenge', 'TOO_MANY_ATTEMPTS_REQUEST_NEW_CODE', 'Too many attempts. Please request a new code.', 'Zu viele Versuche', true],
+    ['a locked account', 'ACCOUNT_TEMPORARILY_LOCKED', 'Too many failed verification attempts. Your account is temporarily locked.', 'gesperrt', false],
+  ])('says what happened for %s instead of "Code ungültig"', async (_label, code, message, says, restart) => {
+    const page = await mountPage({ error: { code, message } });
+
+    await page.submit();
+
+    expect(page.toasts.at(-1)?.description).toContain(says);
+    expect(page.toasts.at(-1)?.description).not.toBe('Code ungültig');
+    if (restart) {
+      expect(page.navigateTo).toHaveBeenCalledWith({ path: '/auth/login', query: { redirect: '/app' } });
+    } else {
+      expect(page.navigateTo).not.toHaveBeenCalled();
+    }
+    page.unmount();
+  });
+
   it('translates a message with an error code', async () => {
     const page = await mountPage({ error: { message: '#LTNS_0002: Invalid password' } });
 

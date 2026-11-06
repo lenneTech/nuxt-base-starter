@@ -56,6 +56,20 @@ const schema = v.object({
 
 type Schema = InferOutput<typeof schema>;
 
+/**
+ * Better Auth's refusals of the second factor that are not a wrong code. They carry no `#…_0000:`
+ * marker, so `errorText` alone would show each as "Code ungültig", and the user would retry a code
+ * that cannot work. `restart`: the challenge is spent, only a new sign-in starts another one.
+ */
+const TWO_FACTOR_REFUSALS: Record<string, { restart: boolean; text: string }> = {
+  ACCOUNT_TEMPORARILY_LOCKED: {
+    restart: false,
+    text: 'Zu viele Fehlversuche. Die Bestätigung ist für einige Minuten gesperrt, bitte versuche es später erneut.',
+  },
+  INVALID_TWO_FACTOR_COOKIE: { restart: true, text: 'Die Bestätigung ist abgelaufen. Bitte melde dich erneut an.' },
+  TOO_MANY_ATTEMPTS_REQUEST_NEW_CODE: { restart: true, text: 'Zu viele Versuche mit diesem Code. Bitte melde dich erneut an.' },
+};
+
 // ============================================================================
 // Functions
 // ============================================================================
@@ -68,14 +82,18 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     // opaque session token nest-server 12.6.0 puts into the answer, the credential the httpOnly
     // cookie keeps away from scripts, and `lt-jwt-token` takes nothing but a JWT.
     const verify = useBackupCode.value ? twoFactor.verifyBackupCode : twoFactor.verifyTotp;
-    const { error } = (await verify({ code: payload.data.code })) as { error?: null | { message?: string } };
+    const { error } = (await verify({ code: payload.data.code })) as { error?: null | { code?: string; message?: string } };
 
     if (error) {
+      const refusal = error.code ? TWO_FACTOR_REFUSALS[error.code] : undefined;
       toast.add({
         color: 'error',
-        description: errorText(error.message, translateError, useBackupCode.value ? 'Backup-Code ungültig' : 'Code ungültig'),
+        description: refusal?.text ?? errorText(error.message, translateError, useBackupCode.value ? 'Backup-Code ungültig' : 'Code ungültig'),
         title: 'Bestätigung fehlgeschlagen',
       });
+      if (refusal?.restart) {
+        await navigateTo({ path: '/auth/login', query: { redirect: redirectTarget.value } });
+      }
       return;
     }
 
