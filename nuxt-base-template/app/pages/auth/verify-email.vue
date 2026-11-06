@@ -1,5 +1,13 @@
 <script setup lang="ts">
 // ============================================================================
+// Imports
+// ============================================================================
+import type { FormSubmitEvent } from '@nuxt/ui';
+import type { InferOutput } from 'valibot';
+
+import * as v from 'valibot';
+
+// ============================================================================
 // Composables
 // ============================================================================
 const route = useRoute();
@@ -9,12 +17,14 @@ const runtimeConfig = useRuntimeConfig();
 const authClient = useLtAuthClient();
 const { translateError } = useLtErrorTranslation();
 
-// Still needed for `/features`, which is a nest-server endpoint rather than a Better-Auth one
-// and therefore has no client method. The two verification calls no longer use it.
+// For `/features` and `/resend-verification-email`, which are nest-server endpoints rather than
+// Better-Auth ones and therefore have no client method. The verification itself does not use it.
 const apiBase = import.meta.dev ? '/api/iam' : `${runtimeConfig.public.apiUrl || 'http://localhost:3000'}/iam`;
 
 /** Covers "never existed" and "expired" alike — Better Auth answers both the same way. */
 const LINK_DEAD_MESSAGE = 'Dieser Link ist nicht (mehr) gültig. Bitte fordere einen neuen an.';
+
+const SEND_FAILED_MESSAGE = 'Die E-Mail konnte nicht gesendet werden. Bitte versuche es später erneut.';
 
 // ============================================================================
 // Page Meta
@@ -35,6 +45,9 @@ useHead({
  * URL (see `keepSecretsOutOfTheUrl`), which would empty a computed. Reading synchronously keeps SSR
  * and the first client render in agreement. An address handed over in the history entry
  * (`verifyEmailState`) arrives in `onMounted`, since the server never sees `history.state`.
+ *
+ * From nest-server 12.6.0 on the mail link carries the token only, so `email` stays empty for a
+ * visitor who comes from the mail.
  */
 const email = ref<string>(typeof route.query.email === 'string' ? route.query.email : '');
 const token = ref<string>(typeof route.query.token === 'string' ? route.query.token : '');
@@ -63,6 +76,57 @@ const resendCooldown = ref(0);
 const cooldownSeconds = ref(60);
 let cooldownInterval: ReturnType<typeof setInterval> | null = null;
 
+/** The API takes the token of a refused link for a new mail (`GET /iam/features`, nest-server 12.6.0+). */
+const resendByToken = ref(false);
+
+/**
+ * The token of the link the server refused. It confirms nothing any more, but from nest-server
+ * 12.6.0 on it asks for a new mail to the address it belongs to, so nobody types the address and it
+ * never travels. Set only after the server said the link is dead, and only while the API takes it.
+ */
+const deadToken = ref('');
+
+/** The address a new mail went to, as the server masked it (`k***@example.com`). */
+const maskedEmail = ref('');
+
+/** The fallback when the page knows no address and no token can stand in for it. */
+const addressForm = reactive({ email: '' });
+
+const addressSchema = v.object({
+  email: v.pipe(
+    v.string('Bitte gib deine E-Mail-Adresse ein.'),
+    v.trim(),
+    v.nonEmpty('Bitte gib deine E-Mail-Adresse ein.'),
+    v.email('Bitte gib eine gültige E-Mail-Adresse ein.'),
+  ),
+});
+
+type AddressSchema = InferOutput<typeof addressSchema>;
+
+// ============================================================================
+// Computed
+// ============================================================================
+/**
+ * How "send a new e-mail" reaches the account.
+ *
+ * - `token`: the refused link's token goes to the API, which mails the address it belongs to.
+ * - `address`: the page knows the address, handed over by login or sign-up, or from `&email=` in a
+ *   link of a server before 12.6.0.
+ * - `typed`: neither, so the visitor types it. That is the case for a visit without a link, an API
+ *   without the endpoint, or a token the API cannot read.
+ */
+const resendMode = computed<'address' | 'token' | 'typed'>(() => {
+  if (deadToken.value && resendByToken.value) {
+    return 'token';
+  }
+  return email.value ? 'address' : 'typed';
+});
+
+const resendLabel = computed(() => {
+  const label = verifyError.value ? 'Neue E-Mail senden' : 'Bestätigungs-E-Mail erneut senden';
+  return resendCooldown.value > 0 ? `${label} (${resendCooldown.value}s)` : label;
+});
+
 // ============================================================================
 // Functions
 // ============================================================================
@@ -77,18 +141,21 @@ async function verifyEmailWithToken(verificationToken: string): Promise<void> {
     // passing it here produces a page that reports failure on success.
     const { data, error } = await authClient.verifyEmail({ query: { token: verificationToken } });
 
-    if (error) {
-      verifyError.value = error.message ? translateError(error.message) : LINK_DEAD_MESSAGE;
-      return;
-    }
-
-    if (!data?.status) {
-      verifyError.value = LINK_DEAD_MESSAGE;
+    if (error || !data?.status) {
+      verifyError.value = error?.message ? translateError(error.message) : LINK_DEAD_MESSAGE;
+      // Better Auth refuses a dead link with 401 (expired, invalid, no such user). Then its token can
+      // still ask for a new mail, and a reload should find it, since the URL no longer carries it. A
+      // 5xx says nothing about the link, so its token is not kept.
+      const linkRefused = !(typeof error?.status === 'number' && error.status >= 500);
+      if (linkRefused && resendByToken.value) {
+        deadToken.value = verificationToken;
+        rememberPage();
+      }
       return;
     }
 
     verified.value = true;
-    rememberVerified();
+    rememberPage();
     toast.add({
       color: 'success',
       description: 'Deine E-Mail-Adresse wurde erfolgreich verifiziert.',
@@ -104,9 +171,74 @@ async function verifyEmailWithToken(verificationToken: string): Promise<void> {
   }
 }
 
+/** "Send a new e-mail" by the token of the refused link, or to the address the page knows. */
 async function resendVerificationEmail(): Promise<void> {
-  if (!email.value || resendCooldown.value > 0) return;
+  if (resending.value || resendCooldown.value > 0) return;
 
+  if (resendMode.value === 'token') {
+    await resendWithToken();
+  } else if (email.value) {
+    await resendToAddress(email.value);
+  }
+}
+
+/**
+ * "Send a new e-mail" to the address the visitor typed. It stays in the form and goes nowhere else:
+ * not into the URL, and not into the history entry, which keeps only what login and sign-up handed
+ * over.
+ */
+async function resendToTypedAddress(event: FormSubmitEvent<AddressSchema>): Promise<void> {
+  if (resending.value || resendCooldown.value > 0) return;
+
+  await resendToAddress(event.data.email);
+}
+
+/**
+ * Ask the API to mail the address the refused token belongs to (nest-server 12.6.0+).
+ *
+ * The answer is the same whether a mail went out or not: an account that is verified already gets
+ * none, and the page cannot tell. It says so in the message instead of promising a mail.
+ */
+async function resendWithToken(): Promise<void> {
+  resending.value = true;
+
+  try {
+    const answer = await $fetch<{ email: null | string; success: boolean }>(`${apiBase}/resend-verification-email`, {
+      body: { token: deadToken.value },
+      method: 'POST',
+    });
+
+    if (!answer?.email) {
+      // The API cannot read this token at all, so there is no address to mail. Ask for it.
+      deadToken.value = '';
+      rememberPage();
+      toast.add({
+        color: 'error',
+        description: 'Zu diesem Link können wir keine neue E-Mail senden. Gib deine E-Mail-Adresse ein, dann schicken wir dir einen neuen Link.',
+        title: 'Link nicht erkannt',
+      });
+      return;
+    }
+
+    maskedEmail.value = answer.email;
+    toast.add({
+      color: 'success',
+      description: `Falls dein Konto noch nicht bestätigt ist, ist eine neue Bestätigungs-E-Mail an ${answer.email} unterwegs.`,
+      title: 'E-Mail gesendet',
+    });
+    startCooldown(cooldownSeconds.value);
+  } catch (error) {
+    // A refusal from the API carries its message in the body (429 `LTNS_0020`: too many requests
+    // for this link); a transport failure does not, and its message is no sentence for a visitor.
+    const fromServer = typeof (error as { data?: { message?: unknown } })?.data?.message === 'string';
+    toast.add({ color: 'error', description: fromServer ? translateError(error) : SEND_FAILED_MESSAGE, title: 'Fehler' });
+  } finally {
+    resending.value = false;
+  }
+}
+
+/** Ask Better Auth to mail `address`; `true` once the request went through. */
+async function resendToAddress(address: string): Promise<boolean> {
   resending.value = true;
 
   try {
@@ -116,16 +248,16 @@ async function resendVerificationEmail(): Promise<void> {
       // route does not exist — the mail goes out and the user follows a link to a 404. The
       // client passes this through untouched on purpose. See `utils/app-origin.ts`.
       callbackURL: appUrl('/auth/verify-email', runtimeConfig.public.siteUrl),
-      email: email.value,
+      email: address,
     });
 
     if (error) {
       toast.add({
         color: 'error',
-        description: error.message ? translateError(error.message) : 'Die E-Mail konnte nicht gesendet werden. Bitte versuche es später erneut.',
+        description: error.message ? translateError(error.message) : SEND_FAILED_MESSAGE,
         title: 'Fehler',
       });
-      return;
+      return false;
     }
 
     toast.add({
@@ -135,12 +267,14 @@ async function resendVerificationEmail(): Promise<void> {
     });
 
     startCooldown(cooldownSeconds.value);
+    return true;
   } catch {
     toast.add({
       color: 'error',
-      description: 'Die E-Mail konnte nicht gesendet werden. Bitte versuche es später erneut.',
+      description: SEND_FAILED_MESSAGE,
       title: 'Fehler',
     });
+    return false;
   } finally {
     resending.value = false;
   }
@@ -164,13 +298,25 @@ async function keepSecretsOutOfTheUrl(): Promise<void> {
 }
 
 /**
- * Note in this history entry that the link was accepted, so a reload confirms instead of waiting.
- *
- * `history.replaceState` is safe here, unlike for the token: the URL stays the one the router already
- * holds, and vue-router merges `history.state` whenever it rewrites this entry.
+ * Whether a token is sealed: a compact JWE (five parts), as nest-server 12.6.0+ puts into the link.
+ * Better Auth's own token, from a mail sent before the update, is a JWT (three parts) whose payload
+ * carries the address and the user id in plain text.
  */
-function rememberVerified(): void {
-  window.history.replaceState({ ...window.history.state, ...verifyEmailState(email.value, true) }, '');
+function isSealed(value: string): boolean {
+  return value.split('.').length === 5;
+}
+
+/**
+ * Note in this history entry what a reload needs: the address, the outcome of an accepted link, and
+ * the token of a refused one. Only a sealed token: a readable one would put the address and the user
+ * id into the entry, and a reload then falls back to the address the page knows.
+ *
+ * `history.replaceState` is safe here, unlike for the token in the URL: the URL stays the one the
+ * router already holds, and vue-router merges `history.state` whenever it rewrites this entry.
+ */
+function rememberPage(): void {
+  const keptToken = isSealed(deadToken.value) ? deadToken.value : '';
+  window.history.replaceState({ ...window.history.state, ...verifyEmailState(email.value, { deadToken: keptToken, verified: verified.value }) }, '');
 }
 
 function startCooldown(seconds: number): void {
@@ -194,14 +340,15 @@ onMounted(async () => {
   // First, before any request: the URL should not keep the secrets while the page waits.
   await keepSecretsOutOfTheUrl();
 
-  // Fetch dynamic cooldown configuration from backend
+  // The resend cooldown, and whether the API takes a refused link's token for a new mail
   try {
     const features = await $fetch<Record<string, boolean | number | string[]>>(`${apiBase}/features`);
     if (typeof features?.resendCooldownSeconds === 'number') {
       cooldownSeconds.value = features.resendCooldownSeconds;
     }
+    resendByToken.value = features?.resendVerificationByToken === true;
   } catch {
-    // Use default cooldown if features endpoint is unavailable
+    // Use the default cooldown, and the address instead of the token, if features are unavailable
   }
 
   if (token.value) {
@@ -209,6 +356,11 @@ onMounted(async () => {
   } else if (remembered.verified) {
     // A reload after the link was accepted: the token has left the URL, the outcome has not.
     verified.value = true;
+  } else if (remembered.deadToken) {
+    // A reload after the link was refused: offer the new mail again, without asking the server
+    // a second time about a token it already refused.
+    deadToken.value = remembered.deadToken;
+    verifyError.value = LINK_DEAD_MESSAGE;
   } else if (route.query.fromRegister === 'true') {
     // Email was just sent during registration, start initial cooldown
     startCooldown(cooldownSeconds.value);
@@ -245,35 +397,17 @@ onUnmounted(() => {
       </div>
     </template>
 
-    <!-- Error state: Verification failed -->
-    <template v-else-if="verifyError">
-      <div class="flex flex-col items-center gap-6 py-4">
+    <!-- Error state (link refused) and pending state (waiting for the mail) share the resend -->
+    <div v-else class="flex flex-col items-center gap-6 py-4">
+      <template v-if="verifyError">
         <UIcon name="i-lucide-x-circle" class="size-16 text-error" />
         <div class="text-center">
           <h1 class="text-xl font-semibold">Verifizierung fehlgeschlagen</h1>
           <p class="mt-2 text-sm text-muted">{{ verifyError }}</p>
         </div>
+      </template>
 
-        <div class="flex w-full flex-col gap-3">
-          <UButton
-            v-if="email"
-            block
-            :color="resendCooldown > 0 ? 'neutral' : 'primary'"
-            :disabled="resendCooldown > 0"
-            :loading="resending"
-            :variant="resendCooldown > 0 ? 'outline' : 'solid'"
-            @click="resendVerificationEmail"
-          >
-            {{ resendCooldown > 0 ? `Neue E-Mail senden (${resendCooldown}s)` : 'Neue E-Mail senden' }}
-          </UButton>
-          <UButton block variant="outline" color="neutral" :to="loginLink">Zurück zur Anmeldung</UButton>
-        </div>
-      </div>
-    </template>
-
-    <!-- Pending state: Waiting for verification (from register page) -->
-    <template v-else>
-      <div class="flex flex-col items-center gap-6 py-4">
+      <template v-else>
         <UIcon name="i-lucide-mail-check" class="size-16 text-primary" />
         <div class="text-center">
           <h1 class="text-xl font-semibold">E-Mail bestätigen</h1>
@@ -294,22 +428,33 @@ onUnmounted(() => {
             </ul>
           </template>
         </UAlert>
+      </template>
 
-        <div class="flex w-full flex-col gap-3">
-          <UButton
-            v-if="email"
-            block
-            :color="resendCooldown > 0 ? 'neutral' : 'primary'"
-            :disabled="resendCooldown > 0"
-            :loading="resending"
-            :variant="resendCooldown > 0 ? 'subtle' : 'outline'"
-            @click="resendVerificationEmail"
-          >
-            {{ resendCooldown > 0 ? `Bestätigungs-E-Mail erneut senden (${resendCooldown}s)` : 'Bestätigungs-E-Mail erneut senden' }}
-          </UButton>
-          <UButton block variant="outline" color="neutral" :to="loginLink">Zurück zur Anmeldung</UButton>
-        </div>
+      <p v-if="maskedEmail" class="text-center text-sm text-muted" role="status">
+        Neue E-Mail angefordert für <strong>{{ maskedEmail }}</strong>
+      </p>
+
+      <div class="flex w-full flex-col gap-3">
+        <!-- Fallback: no address known, and no token the API takes instead -->
+        <UForm v-if="resendMode === 'typed'" :schema="addressSchema" :state="addressForm" class="flex flex-col gap-3" @submit="resendToTypedAddress">
+          <UFormField label="E-Mail-Adresse" name="email">
+            <UInput v-model="addressForm.email" autocomplete="email" class="w-full" placeholder="name@beispiel.de" type="email" />
+          </UFormField>
+          <UButton block :disabled="resendCooldown > 0" :loading="resending" type="submit">{{ resendLabel }}</UButton>
+        </UForm>
+        <UButton
+          v-else
+          block
+          :color="resendCooldown > 0 ? 'neutral' : 'primary'"
+          :disabled="resendCooldown > 0"
+          :loading="resending"
+          :variant="resendCooldown > 0 ? (verifyError ? 'outline' : 'subtle') : verifyError ? 'solid' : 'outline'"
+          @click="resendVerificationEmail"
+        >
+          {{ resendLabel }}
+        </UButton>
+        <UButton block variant="outline" color="neutral" :to="loginLink">Zurück zur Anmeldung</UButton>
       </div>
-    </template>
+    </div>
   </UPageCard>
 </template>

@@ -14,6 +14,7 @@
  * Setup, configuration scenarios and locator conventions: `docs/e2e-auth.md`.
  */
 
+import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -39,6 +40,12 @@ export interface Features {
   passkey: boolean;
   /** Cooldown between two verification-mail resends, in seconds. */
   resendCooldownSeconds: number;
+  /**
+   * `POST /iam/resend-verification-email` takes the token of a verification link (nest-server
+   * 12.6.0+). Off by default, unlike the other flags: an older server lacks the endpoint, so a
+   * missing key really means "not there".
+   */
+  resendVerificationByToken: boolean;
   /** Registration requires the terms checkbox. */
   signUpChecks: boolean;
   /** Registration is open at all. */
@@ -63,6 +70,7 @@ export const DEFAULT_FEATURES: Features = {
   jwt: false,
   passkey: true,
   resendCooldownSeconds: 60,
+  resendVerificationByToken: false,
   signUpChecks: true,
   signUpEnabled: true,
   socialProviders: [],
@@ -338,43 +346,76 @@ export function readServerLog(): string {
 }
 
 /**
+ * The pseudonym nest-server 12.6.0+ prints for an address in its auth-URL log lines.
+ *
+ * `UserKey` is the first 16 hex characters of the SHA-256 of the trimmed, lower-cased address
+ * (`CoreBetterAuthEmailVerificationService` in nest-server). It tells a test which line belongs
+ * to which account without the address standing in the log.
+ *
+ * @param email Address as a spec passes it; trimmed and lower-cased here, as on the server.
+ * @returns The 16-character key.
+ */
+export function userKey(email: string): string {
+  return createHash('sha256').update(email.trim().toLowerCase()).digest('hex').slice(0, 16);
+}
+
+/** The address in the payload of a readable JWT, or `undefined` for anything else. */
+function jwtEmail(token: string): string | undefined {
+  const payload = token.split('.')[1];
+  if (!payload) {
+    return undefined;
+  }
+  try {
+    const decoded: unknown = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    const email = typeof decoded === 'object' && decoded !== null ? (decoded as { email?: unknown }).email : undefined;
+    return typeof email === 'string' ? email : undefined;
+  } catch {
+    // Not a JWT we can read — skip it rather than guessing.
+    return undefined;
+  }
+}
+
+/**
  * Find the freshest email-verification token for `email` in a backend log.
  *
  * The log line MASKS the address (`pa***@test.com`), so it cannot be matched directly.
  * Rebuilding the mask here would duplicate `maskEmail()` from the nest-server core — it drifts
  * the moment the core changes how it masks — and it is ambiguous: two test addresses sharing
  * the first two characters (`comprehensive-…` and `contact-…` both mask to `co***`) would hand
- * back the wrong user's token, sporadically. The token is a JWT carrying the address in its
- * payload, so identify it by that instead.
+ * back the wrong user's token, sporadically. Two formats name the account instead:
+ *
+ * - **nest-server 12.6.0+** seals the token (a JWE nobody can read) and prints
+ *   `[EMAIL VERIFICATION] User: <masked>, UserKey: <16 hex>, URL: <link>`. The line is matched
+ *   by {@link userKey}; a line with a `UserKey` is never read any other way.
+ * - **Older servers** print the link with Better-Auth's readable JWT, which carries the address
+ *   in its payload. A line without a `UserKey` is matched by that payload.
  *
  * The signature is deliberately not verified: this selects among tokens the backend just
  * emitted, it does not trust one. Authority stays with the backend, which verifies the
  * signature when the token is redeemed.
  *
  * @param log Log content, as returned by {@link readServerLog}.
- * @param email Address to find a token for; compared case-insensitively because Better-Auth
- *   signs `email.toLowerCase()` into the payload.
+ * @param email Address to find a token for; compared trimmed and case-insensitively, because
+ *   Better-Auth signs `email.toLowerCase()` into the payload and nest-server keys the trimmed,
+ *   lower-cased address.
  * @returns The last matching token in the log, or `null` when there is none.
  */
 export function findVerificationToken(log: string, email: string): null | string {
-  const wanted = email.toLowerCase();
-  const regex = /\[EMAIL VERIFICATION\][^\n]*?[?&]token=([^&\s]+)/g;
-  let match: null | RegExpExecArray;
+  const wanted = email.trim().toLowerCase();
+  const wantedKey = userKey(email);
   let token: null | string = null;
 
-  while ((match = regex.exec(log)) !== null) {
-    const candidate = match[1];
-    const payload = candidate?.split('.')[1];
-    if (!candidate || !payload) {
+  for (const line of log.split('\n')) {
+    if (!line.includes('[EMAIL VERIFICATION]')) {
       continue;
     }
-    try {
-      const decoded: unknown = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-      if (typeof decoded === 'object' && decoded !== null && (decoded as { email?: unknown }).email === wanted) {
-        token = candidate;
-      }
-    } catch {
-      // Not a JWT we can read — skip it rather than guessing.
+    const candidate = /[?&]token=([^&\s]+)/.exec(line)?.[1];
+    if (!candidate) {
+      continue;
+    }
+    const lineKey = /\bUserKey: ([0-9a-f]{16})\b/.exec(line)?.[1];
+    if (lineKey === undefined ? jwtEmail(candidate) === wanted : lineKey === wantedKey) {
+      token = candidate;
     }
   }
 
