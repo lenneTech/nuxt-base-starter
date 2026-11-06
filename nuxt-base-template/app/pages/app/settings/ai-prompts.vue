@@ -32,7 +32,12 @@ const form = reactive<LtAiPromptInput>(emptyForm());
 const editId = ref<null | string>(null);
 const saving = ref(false);
 
-onMounted(load);
+// The management list asks for the disabled prompts too (nuxt-extensions 1.27.0, nest-server
+// 12.7.0): without them a prompt switched off disappeared here, and the "inaktiv" badge and the
+// switch never had anything to show. The option also holds for the reload after a save. The chat
+// picker keeps the plain `load()`, so a disabled prompt never appears there. An API before 12.7.0
+// ignores the parameter.
+onMounted(() => load({ includeDisabled: true }));
 
 function canMutate(s: LtAiPrompt): boolean {
   return isAdmin.value || s.ownerId === myUserId.value;

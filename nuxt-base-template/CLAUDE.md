@@ -280,16 +280,16 @@ composables (which talk to the `@lenne.tech/nest-server` 11.26.0+ AI module).
 
 **Composables consumed** (auto-imported when `ltExtensions.ai.enabled: true` in `nuxt.config.ts`):
 
-| Composable              | Used by                                                                                                    |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `useLtAiChat()`         | `app/components/Ai/AiChat.vue` — streaming + budget + ctx                                                  |
-| `useLtAiPrompts()`      | `app/components/Ai/AiPromptPicker.vue`, `pages/app/settings/ai-prompts.vue`                                |
-| `useLtAiPlaceholders()` | `app/components/Ai/AiPlaceholderHint.vue`                                                                  |
-| `useLtAiConnections()`  | `app/components/Ai/AiConnectionPicker.vue`, `pages/app/settings/ai.vue`                                    |
-| `useLtAiStatus()`       | `middleware/ai.global.ts`, `layouts/default.vue`, `pages/app/admin/index.vue`, `pages/app/settings/ai.vue` |
-| `useLtAiSettings()`     | `pages/app/settings/ai.vue` — the MCP confirmation switch (nuxt-extensions 1.22.0+, nest-server 12.3.0+)   |
-| `useLtAiUsage()`        | `pages/app/settings/ai.vue`                                                                                |
-| `useLtAiAdmin()`        | `pages/app/admin/ai/*.vue` (CRUD for connections, budgets, slots, prompt-hints, preferences, interactions) |
+| Composable              | Used by                                                                                                                                                                                       |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useLtAiChat()`         | `app/components/Ai/AiChat.vue` — streaming + budget + ctx                                                                                                                                     |
+| `useLtAiPrompts()`      | `app/components/Ai/AiPromptPicker.vue` (`load()`: active prompts only), `pages/app/settings/ai-prompts.vue` (`load({ includeDisabled: true })`, nuxt-extensions 1.27.0+, nest-server 12.7.0+) |
+| `useLtAiPlaceholders()` | `app/components/Ai/AiPlaceholderHint.vue`                                                                                                                                                     |
+| `useLtAiConnections()`  | `app/components/Ai/AiConnectionPicker.vue`, `pages/app/settings/ai.vue`                                                                                                                       |
+| `useLtAiStatus()`       | `middleware/ai.global.ts`, `layouts/default.vue`, `pages/app/admin/index.vue`, `pages/app/settings/ai.vue`                                                                                    |
+| `useLtAiSettings()`     | `pages/app/settings/ai.vue` — the MCP confirmation switch (nuxt-extensions 1.22.0+, nest-server 12.3.0+)                                                                                      |
+| `useLtAiUsage()`        | `pages/app/settings/ai.vue`                                                                                                                                                                   |
+| `useLtAiAdmin()`        | `pages/app/admin/ai/*.vue` (CRUD for connections, budgets, slots, prompt-hints, preferences, interactions)                                                                                    |
 
 **The AI pages appear only while the API runs its AI module (since 2.34.0).** nest-server-starter
 leaves the module off (no `ai` block). `useLtAiStatus()` (nuxt-extensions 1.23.0+) reads the public

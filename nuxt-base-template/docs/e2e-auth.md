@@ -136,7 +136,7 @@ Only the Playwright report is kept, and only on failure.
 If the job ever gets too slow to block on, shard it the way lt-monorepo's `app:test` does
 (`parallel: 2`) rather than demoting it to advisory.
 
-### The AI module (`ai-visibility.spec.ts`, `ai-settings-mcp-confirmation.spec.ts`)
+### The AI module (`ai-visibility.spec.ts`, `ai-settings-mcp-confirmation.spec.ts`, `ai-prompts-include-disabled.spec.ts`)
 
 The app shows its AI pages only while the API runs its AI module, read from the public
 `GET /ai/status` (nest-server 12.3.1 or later): 200 `{ mcp }` while it runs, 404 while it is off.
@@ -155,11 +155,17 @@ module is off or nest-server is older.
   A run that sets `NSC__AI__ENCRYPTION_SECRET` expects it on and fails on a 404.
 - `ai-settings-mcp-confirmation.spec.ts` needs the MCP server, because the card appears only with
   it. It skips without one, unless the run sets `NSC__AI__MCP__ENABLED`: then it fails.
+- `ai-prompts-include-disabled.spec.ts` needs the module. It checks that every load of
+  `/app/settings/ai-prompts` asks for the disabled prompts too (`?includeDisabled=true`), the reload
+  after a save included, and that the chat picker on `/app/ai` never does. Whether the page then
+  shows a disabled prompt depends on the API: nest-server 12.7.0 lists it, an older one ignores the
+  parameter, which the spec notes as the annotation `api-before-12.7.0`. It skips without the module,
+  unless the run sets `NSC__AI__ENCRYPTION_SECRET`: then it fails.
 
 Both `e2e-auth` jobs (this repo's root workflow and the template's own) set both variables. The
 trigger is deliberately not `CI`: an lt-monorepo's `app:test` runs this suite with `CI=true`
-against an API whose module is off, where `ai-visibility` checks the off state and the MCP spec
-skips.
+against an API whose module is off, where `ai-visibility` checks the off state and the MCP and
+prompt specs skip.
 
 ## Configuration scenarios
 

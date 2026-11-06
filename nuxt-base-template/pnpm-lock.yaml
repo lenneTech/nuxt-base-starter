@@ -29,8 +29,8 @@ importers:
         specifier: 1.6.9
         version: 1.6.9(30d9af4650e2b7d8d50f62cb7e805ce9)
       '@lenne.tech/nuxt-extensions':
-        specifier: 1.26.0
-        version: 1.26.0(3c589e0bd51c9bb1390a5ae12368b4d6)
+        specifier: 1.27.0
+        version: 1.27.0(3c589e0bd51c9bb1390a5ae12368b4d6)
       '@nuxt/ui':
         specifier: 4.12.0
         version: 4.12.0(c1f2d56b26dd2307f2cdbe8252eb6f1a)
@@ -658,8 +658,8 @@ packages:
   '@lenne.tech/bug.lt@1.6.9':
     resolution: {integrity: sha512-1lLNiYqqKiPT1p/lU3f07L2moKq+0oM5SiE3PJ9069RglVrOyJ5IcPhL246qEWEg5gBzbVful1vrK368HqZmUg==}
 
-  '@lenne.tech/nuxt-extensions@1.26.0':
-    resolution: {integrity: sha512-cK/VxejtnQcQK8PhGdr4zLya5w+LG4W+dYLbBidCHNq/GpuxIT15pAXjJkIIlWR4Icj81DHUIOEusxIY6wV/Fg==}
+  '@lenne.tech/nuxt-extensions@1.27.0':
+    resolution: {integrity: sha512-bJLKzI9zYaH2MwrJ7jZVR8lcA4Xucc0KJZTGFw/kYYDzcuCZ2BkucVtZCO+5+iuRil+f6zc4h0rJu+KK+c+TMw==}
     engines: {node: '>= 22', pnpm: ^11.0.0}
     peerDependencies:
       '@better-auth/passkey': '>=1.7.16 <1.8.0'
@@ -6082,7 +6082,7 @@ snapshots:
       - webpack
       - yup
 
-  '@lenne.tech/nuxt-extensions@1.26.0(3c589e0bd51c9bb1390a5ae12368b4d6)':
+  '@lenne.tech/nuxt-extensions@1.27.0(3c589e0bd51c9bb1390a5ae12368b4d6)':
     dependencies:
       '@nuxt/kit': 4.6.4(@nuxt/schema@4.6.4)(confbox@0.3.2)(dotenv@17.4.2)(giget@3.3.1)(jiti@2.7.0)(magic-string@1.4.5)(mlly@1.8.2)(oxc-parser@0.153.0)(rolldown@1.2.16)(unplugin@3.7.0(esbuild@0.28.2)(rolldown@1.2.16)(rollup@4.67.4)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)))
       better-auth: 1.7.16(mongodb@7.8.0)(vitest@5.1.0(@types/node@26.6.6)(happy-dom@21.0.4)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)))(vue@3.5.44(typescript@6.0.3))
