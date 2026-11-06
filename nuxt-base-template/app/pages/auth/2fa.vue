@@ -59,15 +59,18 @@ const schema = v.object({
 type Schema = InferOutput<typeof schema>;
 
 /**
- * The fields this page reads from `verifyTotp` / `verifyBackupCode`: the error, plus the token
- * and the user, which `onSubmit` accepts both under `data` and at the top level.
+ * The fields this page reads from `verifyTotp` / `verifyBackupCode`: the error and the user, which
+ * `onSubmit` accepts both under `data` and at the top level. The answer carries a `token` as well,
+ * and the page deliberately never reads it (see `onSubmit`).
  */
 interface TwoFactorVerifyResult {
-  data?: null | { token?: string; user?: LtUserInput };
+  data?: null | { user?: LtUserInput };
   error?: null | { message?: string };
-  token?: string;
   user?: LtUserInput;
 }
+
+/** A JWT has three base64url parts; Better Auth's session token has none of that shape. */
+const JWT_SHAPE = /^eyJ[\w-]*\.[\w-]+\.[\w-]+$/;
 
 // ============================================================================
 // Functions
@@ -108,24 +111,19 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       }
     }
 
-    // Extract token and user data from response (JWT mode: cookies: false)
-    const token = result?.token || result?.data?.token;
-    const userData = result?.data?.user || result?.user;
+    // Never take a token from an answer. nest-server answers the second factor with
+    // `{ token, user }`, and `token` is Better Auth's opaque session token: the credential the
+    // httpOnly session cookie keeps away from scripts. `jwtToken` lives in `lt-jwt-token`, a cookie
+    // any script on the page can read, so storing it there handed the session to every XSS for
+    // seven days. The browser holds the session in its cookie already; a JWT comes from
+    // `/iam/token` (`switchToJwtMode`). A session token an earlier version stored is removed.
+    if (jwtToken.value && !JWT_SHAPE.test(jwtToken.value)) {
+      jwtToken.value = null;
+    }
 
-    if (token) {
-      // JWT mode: Token is in the response
-      jwtToken.value = token;
-      if (userData) {
-        setUser(userData, 'jwt');
-      }
-      console.debug('[Auth] JWT token received from 2FA response');
-    } else if (userData) {
-      // Cookie mode: No token in response, use cookies
-      setUser(userData, 'cookie');
-      // Try to get JWT token for fallback
-      switchToJwtMode().catch(() => {});
-    } else {
-      // Fallback: read the session from the API.
+    let userData = result?.data?.user || result?.user;
+    if (!userData) {
+      // Fallback: read the user from the session, never its token.
       //
       // This used to build the URL by hand and go through `fetchWithAuth`, because
       // `useLtAuthClient().getSession` did not survive the client's spread and was `undefined`
@@ -133,19 +131,15 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       // is passed through explicitly, so the hand-built base URL can go.
       try {
         const { data: sessionData } = await authClient.getSession();
-        const sessionToken = (sessionData as { token?: string } | null)?.token;
-        if (sessionToken) {
-          jwtToken.value = sessionToken;
-          if (sessionData?.user) {
-            setUser(sessionData.user, 'jwt');
-          }
-        } else if (sessionData?.user) {
-          setUser(sessionData.user, 'cookie');
-          switchToJwtMode().catch(() => {});
-        }
+        userData = sessionData?.user ?? undefined;
       } catch {
         // Ignore session fetch errors
       }
+    }
+
+    if (userData) {
+      setUser(userData, 'cookie');
+      switchToJwtMode().catch(() => {});
     }
 
     await navigateTo(redirectTarget.value);
