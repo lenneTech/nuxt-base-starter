@@ -397,7 +397,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
           <UIcon name="i-lucide-fingerprint" class="size-6 text-primary" />
           <div>
             <h2 class="font-semibold">Passkeys</h2>
-            <p class="text-sm text-muted">Passwordlose Anmeldung mit biometrischen Daten</p>
+            <p class="text-sm text-muted">Passwortlose Anmeldung mit biometrischen Daten</p>
           </div>
         </div>
       </template>
