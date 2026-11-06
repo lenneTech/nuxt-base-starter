@@ -59,18 +59,25 @@ const schema = v.object({
 type Schema = InferOutput<typeof schema>;
 
 /**
- * The fields this page reads from `verifyTotp` / `verifyBackupCode`: the error and the user, which
- * `onSubmit` accepts both under `data` and at the top level. The answer carries a `token` as well,
- * and the page deliberately never reads it (see `onSubmit`).
+ * The fields this page reads from `verifyTotp` / `verifyBackupCode`: the error, the user and the
+ * token, which `onSubmit` accepts both under `data` and at the top level. A token is taken only
+ * when it is a JWT (see `onSubmit`).
  */
 interface TwoFactorVerifyResult {
-  data?: null | { user?: LtUserInput };
+  data?: null | { token?: string; user?: LtUserInput };
   error?: null | { message?: string };
+  token?: string;
   user?: LtUserInput;
 }
 
-/** A JWT has three base64url parts; Better Auth's session token has none of that shape. */
-const JWT_SHAPE = /^eyJ[\w-]*\.[\w-]+\.[\w-]+$/;
+/**
+ * Whether a value is a JWT: three parts and a JSON header (`eyJ`). The same test as
+ * `isJwtShaped` in nest-server, so the page and the API never disagree about one token. Better
+ * Auth's opaque session token never passes it.
+ */
+function isJwtShaped(value: unknown): value is string {
+  return typeof value === 'string' && value.startsWith('eyJ') && value.split('.').length === 3;
+}
 
 // ============================================================================
 // Functions
@@ -111,19 +118,22 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       }
     }
 
-    // Never take a token from an answer. nest-server answers the second factor with
+    // Only a JWT may go into `jwtToken`. It lives in `lt-jwt-token`, a cookie any script on the
+    // page can read. In the cookie mode nest-server 12.6.0 answers the second factor with
     // `{ token, user }`, and `token` is Better Auth's opaque session token: the credential the
-    // httpOnly session cookie keeps away from scripts. `jwtToken` lives in `lt-jwt-token`, a cookie
-    // any script on the page can read, so storing it there handed the session to every XSS for
-    // seven days. The browser holds the session in its cookie already; a JWT comes from
-    // `/iam/token` (`switchToJwtMode`). A session token an earlier version stored is removed.
-    if (jwtToken.value && !JWT_SHAPE.test(jwtToken.value)) {
+    // httpOnly session cookie keeps away from scripts. Stored there it handed the session to every
+    // XSS for seven days. So an opaque token is never taken: the browser holds the session in its
+    // cookie, and a JWT comes from `/iam/token` (`switchToJwtMode`). In the JWT mode (`cookies:
+    // false`) the API sends a JWT instead, and that one is the sign-in. A session token an earlier
+    // version stored is removed.
+    if (jwtToken.value && !isJwtShaped(jwtToken.value)) {
       jwtToken.value = null;
     }
 
+    let token = result?.token || result?.data?.token;
     let userData = result?.data?.user || result?.user;
     if (!userData) {
-      // Fallback: read the user from the session, never its token.
+      // Fallback: read the session from the API.
       //
       // This used to build the URL by hand and go through `fetchWithAuth`, because
       // `useLtAuthClient().getSession` did not survive the client's spread and was `undefined`
@@ -131,13 +141,19 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       // is passed through explicitly, so the hand-built base URL can go.
       try {
         const { data: sessionData } = await authClient.getSession();
+        token = (sessionData as { token?: string } | null)?.token;
         userData = sessionData?.user ?? undefined;
       } catch {
         // Ignore session fetch errors
       }
     }
 
-    if (userData) {
+    if (isJwtShaped(token)) {
+      jwtToken.value = token;
+      if (userData) {
+        setUser(userData, 'jwt');
+      }
+    } else if (userData) {
       setUser(userData, 'cookie');
       switchToJwtMode().catch(() => {});
     }

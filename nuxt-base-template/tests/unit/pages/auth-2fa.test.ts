@@ -10,8 +10,10 @@
  * readable by any script on the page for seven days. So in the default cookie mode one XSS was
  * enough to take over the session.
  *
- * The page never takes a token from an answer now. It signs the user in on the session cookie
- * (`setUser(user, 'cookie')`) and asks `/iam/token` for a JWT (`switchToJwtMode()`). A session
+ * The page takes a token only when it is a JWT, the same test as `isJwtShaped` in nest-server.
+ * An opaque token is never stored: the page signs the user in on the session cookie
+ * (`setUser(user, 'cookie')`) and asks `/iam/token` for a JWT (`switchToJwtMode()`). In the JWT
+ * mode (`cookies: false`) the API answers with a JWT, and the page signs in with it. A session
  * token stored by an earlier version is removed; a real JWT stays.
  *
  * The round trip against a real API is step 5 of `tests/e2e/auth-lifecycle.spec.ts`.
@@ -177,6 +179,43 @@ describe('2fa page and the session token', () => {
     expect(page.jwtToken.value).not.toBe(SESSION_TOKEN);
     expect(page.setUser).toHaveBeenCalledWith(USER, 'cookie');
     expect(page.switchToJwtMode).toHaveBeenCalled();
+    page.unmount();
+  });
+
+  it.each([
+    ['under `data`', { data: { token: JWT, user: USER } }],
+    ['at the top level', { token: JWT, user: USER }],
+  ])('signs in with a JWT the answer carries %s (JWT mode)', async (_label, verify) => {
+    const page = await mountPage({ verify });
+
+    await page.submit();
+
+    expect(page.jwtToken.value).toBe(JWT);
+    expect(page.setUser).toHaveBeenCalledWith(USER, 'jwt');
+    expect(page.switchToJwtMode).not.toHaveBeenCalled();
+    page.unmount();
+  });
+
+  it('signs in with a JWT from the getSession fallback', async () => {
+    const page = await mountPage({ session: { data: { token: JWT, user: USER } }, verify: { data: {} } });
+
+    await page.submit();
+
+    expect(page.jwtToken.value).toBe(JWT);
+    expect(page.setUser).toHaveBeenCalledWith(USER, 'jwt');
+    page.unmount();
+  });
+
+  it.each([
+    ['a token with three parts but no JSON header', 'abc.def.ghi'],
+    ['a signed cookie value', `${SESSION_TOKEN}.c2lnbmF0dXJl`],
+  ])('never stores %s', async (_label, token) => {
+    const page = await mountPage({ verify: { data: { token, user: USER } } });
+
+    await page.submit();
+
+    expect(page.jwtToken.value).toBeNull();
+    expect(page.setUser).toHaveBeenCalledWith(USER, 'cookie');
     page.unmount();
   });
 
