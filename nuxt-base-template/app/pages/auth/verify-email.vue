@@ -182,14 +182,15 @@ async function resendVerificationEmail(): Promise<void> {
   }
 }
 
-/** "Send a new e-mail" to the address the visitor typed; from then on the page knows it. */
+/**
+ * "Send a new e-mail" to the address the visitor typed. It stays in the form and goes nowhere else:
+ * not into the URL, and not into the history entry, which keeps only what login and sign-up handed
+ * over.
+ */
 async function resendToTypedAddress(event: FormSubmitEvent<AddressSchema>): Promise<void> {
   if (resending.value || resendCooldown.value > 0) return;
 
-  if (await resendToAddress(event.data.email)) {
-    email.value = event.data.email;
-    rememberPage();
-  }
+  await resendToAddress(event.data.email);
 }
 
 /**
@@ -297,14 +298,25 @@ async function keepSecretsOutOfTheUrl(): Promise<void> {
 }
 
 /**
+ * Whether a token is sealed: a compact JWE (five parts), as nest-server 12.6.0+ puts into the link.
+ * Better Auth's own token, from a mail sent before the update, is a JWT (three parts) whose payload
+ * carries the address and the user id in plain text.
+ */
+function isSealed(value: string): boolean {
+  return value.split('.').length === 5;
+}
+
+/**
  * Note in this history entry what a reload needs: the address, the outcome of an accepted link, and
- * the token of a refused one.
+ * the token of a refused one. Only a sealed token: a readable one would put the address and the user
+ * id into the entry, and a reload then falls back to the address the page knows.
  *
  * `history.replaceState` is safe here, unlike for the token in the URL: the URL stays the one the
  * router already holds, and vue-router merges `history.state` whenever it rewrites this entry.
  */
 function rememberPage(): void {
-  window.history.replaceState({ ...window.history.state, ...verifyEmailState(email.value, { deadToken: deadToken.value, verified: verified.value }) }, '');
+  const keptToken = isSealed(deadToken.value) ? deadToken.value : '';
+  window.history.replaceState({ ...window.history.state, ...verifyEmailState(email.value, { deadToken: keptToken, verified: verified.value }) }, '');
 }
 
 function startCooldown(seconds: number): void {

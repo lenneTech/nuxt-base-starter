@@ -624,9 +624,12 @@ an address into a query: `tests/unit/auth/no-address-in-url.spec.ts` reads every
 `resendVerificationByToken` (nest-server 12.6.0+), a refused link's token goes to
 `POST /iam/resend-verification-email`; the API mails the address the token belongs to and answers it
 masked (`k***@example.com`), so nobody types the address and it never travels. The answer is the
-same for an account that is verified already, so the page promises no mail. The refused token stays
-in the history entry (`deadToken`), and only then: a 5xx says nothing about the link. Without the
-flag the page sends to the address it knows, and without one it asks for it in a field.
+same for an account that is verified already, so the page shows only the masked address the API
+answered. A refused token stays in the history entry (`deadToken`) only when it is sealed (a compact
+JWE): a readable token from a mail sent before 12.6.0 names the address and the user id, and a 5xx
+says nothing about the link. Without the flag the page sends to the address it knows, and without
+one it asks for it in a field; the typed address stays in the form, neither in the URL nor in the
+history entry.
 `tests/unit/pages/auth-verify-email.test.ts` pins every way; the E2E helper finds tokens of both log
 formats (`UserKey` from 12.6.0 on, the readable JWT before).
 

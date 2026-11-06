@@ -117,10 +117,11 @@ test.describe.serial('verify-email keeps the address and the token out of the UR
   });
 
   test('a refused link loses its token on arrival and still leads to a new mail', async ({ page }) => {
-    // Neither a token of Better Auth nor a sealed one: the API refuses it, and from 12.6.0 on cannot
-    // read it for a new mail either. An expired token, the case the resend exists for, cannot be made
-    // here; tests/unit/pages/auth-verify-email.test.ts pins the answer with a masked address.
-    const refused = 'refused-verification-token';
+    // Shaped like a sealed token (a compact JWE), but nothing the API can open: it refuses the link,
+    // and from 12.6.0 on cannot read it for a new mail either. An expired token, the case the resend
+    // exists for, cannot be made here; tests/unit/pages/auth-verify-email.test.ts pins the answer
+    // with a masked address.
+    const refused = 'eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..cmVmdXNlZA.cmVmdXNlZA.cmVmdXNlZA';
     await gotoAndWaitForHydration(page, `/auth/verify-email?token=${refused}`);
     await expect(page.getByRole('heading', { name: 'Verifizierung fehlgeschlagen' })).toBeVisible({ timeout: 15000 });
     await expectNoSecrets(page, refused);
@@ -145,5 +146,7 @@ test.describe.serial('verify-email keeps the address and the token out of the UR
     await page.getByRole('button', { name: 'Neue E-Mail senden' }).click();
     expect((await sent).ok()).toBe(true);
     await expectNoSecrets(page, refused, user.email);
+    // The typed address stays in the form: not in the history entry either, whatever key it might take.
+    expect(await page.evaluate(() => JSON.stringify(window.history.state))).not.toContain(user.email);
   });
 });

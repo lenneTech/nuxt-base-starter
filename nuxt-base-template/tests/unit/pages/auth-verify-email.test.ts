@@ -31,6 +31,10 @@ import { recallVerifyEmail, verifyEmailState } from '~/utils/verify-email-memory
 const API = 'http://api.test/iam';
 const RESEND = `${API}/resend-verification-email`;
 const SEALED = 'eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..aXY.Y2lwaGVy.dGFn';
+/** Shaped like a sealed token, but nothing the API can open. */
+const GARBLED = 'eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..Z2FyYmxlZA.Z2FyYmxlZA.Z2FyYmxlZA';
+/** Better Auth's own token from a mail sent before 12.6.0: its payload names the address and the user. */
+const READABLE = `eyJhbGciOiJIUzI1NiJ9.${Buffer.from(JSON.stringify({ email: 'max@test.com', userId: 'u1' })).toString('base64url')}.c2ln`;
 const RATE_LIMIT_DE = 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.';
 
 interface Options {
@@ -257,8 +261,9 @@ describe('verify-email against nest-server 12.6.0+ (the API takes the token)', (
     reloaded.unmount();
   });
 
-  it('asks for the address when the API cannot read the token, and forgets the token', async () => {
-    const page = await mountPage({ features: BY_TOKEN, query: { token: 'garbled' }, resend: () => ({ email: null, success: true }), verify: REFUSED });
+  it('asks for the address when the API cannot read the token, forgets the token, and keeps the typed address to the form', async () => {
+    const page = await mountPage({ features: BY_TOKEN, query: { token: GARBLED }, resend: () => ({ email: null, success: true }), verify: REFUSED });
+    expect(page.memory().deadToken).toBe(GARBLED);
 
     await page.clickResend();
 
@@ -269,7 +274,32 @@ describe('verify-email against nest-server 12.6.0+ (the API takes the token)', (
     expect((await submit!({ email: 'not-an-address' }))[0]).toBe('Bitte gib eine gültige E-Mail-Adresse ein.');
     expect(await submit!({ email: ' max@test.com ' })).toEqual([]);
     expect(page.sendVerificationEmail).toHaveBeenCalledWith({ callbackURL: 'http://app.test/auth/verify-email', email: 'max@test.com' });
-    expect(page.memory().email).toBe('max@test.com');
+    // The typed address goes neither into the URL nor into the history entry.
+    expect(page.route.query).toEqual({});
+    expect(JSON.stringify(window.history.state)).not.toContain('max@test.com');
+    expect(page.form()).toBeDefined();
+    page.unmount();
+  });
+
+  it('shows only the address the API masked, never one read from the token', async () => {
+    // A readable token names the address in full; the page must not show it, or anything built from it.
+    const page = await mountPage({ features: BY_TOKEN, query: { token: READABLE }, resend: () => ({ email: 'x***@example.org', success: true }), verify: REFUSED });
+
+    await page.clickResend();
+
+    expect(page.text()).toContain('x***@example.org');
+    expect(page.text()).not.toContain('max@test.com');
+    expect(page.text()).not.toContain('m***@test.com');
+    page.unmount();
+  });
+
+  it('asks for a new mail with a readable token too, but keeps it out of the history entry', async () => {
+    const page = await mountPage({ features: BY_TOKEN, query: { token: READABLE }, verify: REFUSED });
+
+    expect(JSON.stringify(window.history.state)).not.toContain(READABLE);
+    expect(page.memory().deadToken).toBe('');
+    await page.clickResend();
+    expect(page.resendRequests()).toEqual([[RESEND, { body: { token: READABLE }, method: 'POST' }]]);
     page.unmount();
   });
 
@@ -324,15 +354,32 @@ describe('verify-email against nest-server 12.6.0+ (the API takes the token)', (
 });
 
 describe('verify-email against a server before 12.6.0 (no resend by token)', () => {
-  it('sends the new mail to the address of the link, and keeps no token', async () => {
-    const page = await mountPage({ query: { email: 'max@test.com', token: 'readable.jwt.token' }, verify: REFUSED });
+  // As 2.37.0 against nest-server 12.5: the address of the link or of login and sign-up, Better
+  // Auth's own resend, no request to the new endpoint, no token in the history entry.
+  it.each([
+    ['a sealed token', SEALED],
+    ['a readable token', READABLE],
+  ])('sends the new mail to the address of the link with %s, as before, and keeps no token', async (_label, linkToken) => {
+    const page = await mountPage({ query: { email: 'max@test.com', token: linkToken }, verify: REFUSED });
 
     expect(page.route.query).toEqual({});
-    expect(page.memory().deadToken).toBe('');
+    expect(page.memory()).toEqual({ deadToken: '', email: 'max@test.com', verified: false });
+    expect(page.form()).toBeUndefined();
     await page.clickResend();
 
     expect(page.resendRequests()).toEqual([]);
     expect(page.sendVerificationEmail).toHaveBeenCalledWith({ callbackURL: 'http://app.test/auth/verify-email', email: 'max@test.com' });
+    expect(page.toasts.at(-1)).toMatchObject({ color: 'success', description: 'Eine neue Bestätigungs-E-Mail wurde gesendet.' });
+    page.unmount();
+  });
+
+  it('offers the resend to the address login or sign-up handed over, as before', async () => {
+    const page = await mountPage({ query: { fromRegister: 'true' }, state: verifyEmailState('max@test.com') });
+
+    expect(page.text()).toContain('max@test.com');
+    expect(page.button('Bestätigungs-E-Mail erneut senden (60s)')?.disabled).toBe(true);
+    expect(page.form()).toBeUndefined();
+    expect(page.resendRequests()).toEqual([]);
     page.unmount();
   });
 
