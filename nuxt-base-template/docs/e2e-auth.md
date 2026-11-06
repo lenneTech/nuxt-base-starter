@@ -54,12 +54,13 @@ found from inside `nuxt-base-template/`.
 
 All optional — each falls back to the classic local default.
 
-| Variable                           | Falls back to                           | Used for              |
-| ---------------------------------- | --------------------------------------- | --------------------- |
-| `NEST_SERVER_LOG`                  | the candidate list above                | explicit log location |
-| `NUXT_PUBLIC_API_URL` / `API_URL`  | `http://localhost:3000`                 | API base              |
-| `NUXT_PUBLIC_SITE_URL` / `APP_URL` | `http://localhost:3001`                 | app base              |
-| `NSC__MONGOOSE__URI` / `MONGO_URI` | `mongodb://127.0.0.1/nest-server-local` | test-data reset       |
+| Variable                           | Falls back to                           | Used for                                    |
+| ---------------------------------- | --------------------------------------- | ------------------------------------------- |
+| `NEST_SERVER_LOG`                  | the candidate list above                | explicit log location                       |
+| `NUXT_PUBLIC_API_URL` / `API_URL`  | `http://localhost:3000`                 | API base                                    |
+| `NUXT_PUBLIC_SITE_URL` / `APP_URL` | `http://localhost:3001`                 | app base                                    |
+| `NSC__MONGOOSE__URI` / `MONGO_URI` | `mongodb://127.0.0.1/nest-server-local` | test-data reset                             |
+| `E2E_EXPECT_AUTH_MODE`             | not checked                             | auth mode after sign-in (`cookie` or `jwt`) |
 
 Under `lt dev up` / `lt dev test` these are set for you via the `.lt-dev/.env` bridge, so the
 same suite runs unchanged against classic ports, a `lt dev` session, and CI.
@@ -162,66 +163,84 @@ skips.
 
 ## Configuration scenarios
 
-The suite detects the live configuration via `GET /iam/features` and adapts — it skips steps
-that do not apply. For full coverage, run it against all four. Restart the backend after each
-config change.
+The suite reads the feature flags from `GET /iam/features` and adapts: it skips steps that do not
+apply. The auth mode it cannot read there. `jwt` in that answer reports the JWT plugin, which is on
+by default in both modes, so `jwt=true` does not mean "JWT mode". The mode is a server setting, the
+top-level `cookies` of the nest-server config (`NSC__COOKIES=false` for the JWT mode). There is no
+`betterAuth.cookies`, and `NSC__BETTER_AUTH__COOKIES` changes nothing: a run switched that way was
+a cookie run.
+
+Declare the mode a run expects with `E2E_EXPECT_AUTH_MODE=cookie` or `E2E_EXPECT_AUTH_MODE=jwt`.
+`auth-lifecycle.spec.ts` then checks it after each sign-in against `authMode` in the app's
+`lt-auth-state` cookie, and fails on a mismatch. Without the variable it prints the mode it saw and
+checks nothing.
+
+For full coverage, run the suite against all four. Restart the backend after each config change.
 
 ### Scenario 1 — Zero config (everything enabled)
 
-Default `nest-server-starter` config, no changes needed.
+Default `nest-server-starter` config, no changes needed. `E2E_EXPECT_AUTH_MODE=cookie`.
 
-Expected: `jwt=false`, `emailVerification=true`, `signUpChecks=true`, `twoFactor=true`, `passkey=true`
+Expected: auth mode `cookie`, `jwt=true`, `emailVerification=true`, `signUpChecks=true`,
+`twoFactor=true`, `passkey=true`
 
 ### Scenario 2 — Cookies, no verification or checks
 
 ```ts
 betterAuth: {
-  cookies: true,
   emailVerification: false,
   signUpChecks: false,
 }
 ```
 
-Expected: `jwt=false`, `emailVerification=false`, `signUpChecks=false`, `twoFactor=true`, `passkey=true`
+`E2E_EXPECT_AUTH_MODE=cookie`. Expected: auth mode `cookie`, `jwt=true`, `emailVerification=false`,
+`signUpChecks=false`, `twoFactor=true`, `passkey=true`
 
 Effect: no terms checkbox, no verification step, direct login after registration.
 
 ### Scenario 3 — JWT mode, everything else enabled
 
 ```ts
-betterAuth: {
-  cookies: false,
-}
+cookies: false, // top level, next to `betterAuth`; or NSC__COOKIES=false
 ```
 
-Expected: `jwt=true`, `emailVerification=true`, `signUpChecks=true`, `twoFactor=true`, `passkey=true`
+`E2E_EXPECT_AUTH_MODE=jwt`. Expected: auth mode `jwt`, `jwt=true`, `emailVerification=true`,
+`signUpChecks=true`, `twoFactor=true`, `passkey=true`
 
 Effect: auth via JWT instead of cookies, all features active.
+
+Until nest-server 12.7.0 the JWT mode works same-origin only: start the app with
+`NUXT_PUBLIC_API_PROXY=true`, so it reaches the API through its own origin. Cross-origin it needs
+CORS with credentials, which comes with 12.7.0. Under nest-server 12.6.0 the 2FA sign-in fails in
+this mode, because the API answers the second factor with the raw session token, which the app
+does not store (see the 2.38.1 migration guide); 12.6.1 answers with a JWT.
 
 ### Scenario 4 — JWT mode, no verification or checks
 
 ```ts
+cookies: false, // top level; or NSC__COOKIES=false
 betterAuth: {
-  cookies: false,
   emailVerification: false,
   signUpChecks: false,
 }
 ```
 
-Expected: `jwt=true`, `emailVerification=false`, `signUpChecks=false`, `twoFactor=true`, `passkey=true`
+`E2E_EXPECT_AUTH_MODE=jwt`. Expected: auth mode `jwt`, `jwt=true`, `emailVerification=false`,
+`signUpChecks=false`, `twoFactor=true`, `passkey=true`. The same-origin note of scenario 3 applies.
 
 ## Running all four (for an agent or CI)
 
 For each scenario:
 
-1. Edit the `betterAuth` section in the config path for your backend option.
+1. Set the config for your backend option: the top-level `cookies` for the mode, the
+   `betterAuth` section for verification and checks.
 2. Restart the backend:
    ```bash
    pkill -f "nest-server" 2>/dev/null
    cd <backend-path> && npm run start > /tmp/nest-server.log 2>&1 &
    ```
 3. Wait until it answers: `curl -s http://localhost:3000/ > /dev/null`
-4. Run: `npx playwright test tests/e2e/auth-lifecycle.spec.ts`
+4. Run: `E2E_EXPECT_AUTH_MODE=<cookie|jwt> npx playwright test tests/e2e/auth-lifecycle.spec.ts`
 5. Read the configuration banner in the output to confirm which scenario was detected:
    ```
    ╔═════════════════════════════╗
