@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.38.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.37.0...v2.38.0) (2026-11-06)
+
+
+### Highlights for adopters
+
+* **Projects that move to nest-server 12.6.0 need this update first.** From 12.6.0 on, the verification mail links with a sealed token and no e-mail address. The old `/auth/verify-email` then offers no "send a new e-mail" for an expired link, and the E2E helper finds no verification token in the API log, so every spec that confirms an address fails. 2.38.0 sends a refused link's token for a new mail and shows the address the API answers masked; the E2E helper reads both log formats. It works with older nest-server versions too, so take it before the API update. Follow the [2.38.0 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.38.0/migration-guides/2.38.0-verify-email-resend-by-token.md).
+
+
+### Features
+
+* **auth:** send a new verification mail by the refused link's token (#35) ([5e21a48](https://github.com/lenneTech/nuxt-base-starter/commit/5e21a48be5617e69c9343b35b2c92414b7b07cc3))
+
+
+### Bug Fixes
+
+* **tooling:** stop the root pnpm run from warning that node_modules is out of date (#33) ([2e34d15](https://github.com/lenneTech/nuxt-base-starter/commit/2e34d1543683fcaa8156b748af9800a913f999a9))
+
+
+### Documentation
+
+* **auth:** name that the setup hint is only reachable at /auth/setup (#34) ([d0252ed](https://github.com/lenneTech/nuxt-base-starter/commit/d0252edb4f6482dbffbfe2ef2ece4a6b12d9754f))
+
+
+### Tests
+
+* **e2e:** check the refusal when a long-running API rate-limits unreadable tokens ([6318486](https://github.com/lenneTech/nuxt-base-starter/commit/63184862cff34ad50609b5dbf035295c144820c8))
+
 ## [2.37.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.36.0...v2.37.0) (2026-11-06)
 
 
