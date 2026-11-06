@@ -27,6 +27,12 @@ token sealed (a JWE nobody can read), and the line names the account by
 JWT, matched by the address in its payload. 12.6.0 prints the line only in the `local`, `ci` and
 `e2e` environments, so an API started otherwise leaves the suite without tokens.
 
+12.6.0 also counts tokens it cannot read at `POST /iam/resend-verification-email` per client
+address, 10 an hour per API process. `auth-verify-email-url.spec.ts` sends one per run, so against
+an API that keeps running it takes the refusal path from the 11th run in an hour and marks it with
+the annotation `rate-limited`. Restart the API, or use `lt dev test`, which starts a fresh one, to
+run the address-field path again.
+
 ### Where the log is looked for
 
 `tests/e2e/helpers/auth-backend.ts` → `readServerLog()` concatenates every candidate it finds,
