@@ -133,3 +133,33 @@ describe('translateError is not used as if it could return empty', () => {
     expect(source, `${page} uses translateError(...) || fallback, which never reaches the fallback.`).not.toMatch(/translateError\([^)]*\)\s*\|\|/);
   });
 });
+
+const SETTINGS_PAGES_DIR = 'app/pages/app/settings';
+
+function settingsPages(): string[] {
+  return readdirSync(SETTINGS_PAGES_DIR)
+    .filter((name) => name.endsWith('.vue'))
+    .sort();
+}
+
+function settingsCode(page: string): string {
+  return readFileSync(`${SETTINGS_PAGES_DIR}/${page}`, 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^[ \t]*\/\/.*$/gm, '');
+}
+
+describe('settings pages show no raw error message', () => {
+  it('finds the settings pages at all', () => {
+    expect(settingsPages()).toContain('security.vue');
+  });
+
+  it.each(settingsPages())('%s does not display a raw error message', (page) => {
+    // The same drift on the pages behind the sign-in: security.vue showed `error.message || '…'`
+    // when enabling or verifying 2FA, which read "Fehler #LTNS_0002: Invalid password" or Better
+    // Auth's English "Invalid code". `errorText(error.message, translateError, '…')` translates a
+    // coded message and replaces any other one with the page's German text.
+    expect(settingsCode(page), `${page} shows a raw error message. Use errorText(message, translateError, fallback).`).not.toMatch(
+      /description:\s*[\w.]*error\.message(?!\s*[?\w])/,
+    );
+  });
+});
