@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.38.2](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.1...v2.38.2) (2026-11-06)
+
+
+### Highlights for adopters
+
+* **The 2FA page signs in through the nuxt-extensions helpers, and auth errors read as German text.** `app/pages/auth/2fa.vue` completes the second factor with `useLtAuth().twoFactor.verifyTotp` / `verifyBackupCode` of nuxt-extensions 1.26.0 and no longer handles tokens itself. An expired challenge, too many attempts and a temporarily locked account each get their own message instead of "Code ungültig". The security settings page no longer shows raw `#LTNS_…` codes or Better Auth's English messages. Follow the [2.38.2 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.38.2/migration-guides/2.38.2-2fa-helpers-and-readable-errors.md); take the page and its test together.
+
+
+### Bug Fixes
+
+* **auth:** readable 2FA error texts, and the 2FA page signs in through the nuxt-extensions helpers (#38) ([4a64a67](https://github.com/lenneTech/nuxt-base-starter/commit/4a64a670a40b6f41efdd4acffd9887e9887c0ce2))
+
 ### [2.38.1](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.0...v2.38.1) (2026-11-06)
 
 
