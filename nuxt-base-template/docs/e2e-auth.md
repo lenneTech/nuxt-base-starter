@@ -54,13 +54,13 @@ found from inside `nuxt-base-template/`.
 
 All optional — each falls back to the classic local default.
 
-| Variable                           | Falls back to                           | Used for                                    |
-| ---------------------------------- | --------------------------------------- | ------------------------------------------- |
-| `NEST_SERVER_LOG`                  | the candidate list above                | explicit log location                       |
-| `NUXT_PUBLIC_API_URL` / `API_URL`  | `http://localhost:3000`                 | API base                                    |
-| `NUXT_PUBLIC_SITE_URL` / `APP_URL` | `http://localhost:3001`                 | app base                                    |
-| `NSC__MONGOOSE__URI` / `MONGO_URI` | `mongodb://127.0.0.1/nest-server-local` | test-data reset                             |
-| `E2E_EXPECT_AUTH_MODE`             | not checked                             | auth mode after sign-in (`cookie` or `jwt`) |
+| Variable                           | Falls back to                           | Used for                                              |
+| ---------------------------------- | --------------------------------------- | ----------------------------------------------------- |
+| `NEST_SERVER_LOG`                  | the candidate list above                | explicit log location                                 |
+| `NUXT_PUBLIC_API_URL` / `API_URL`  | `http://localhost:3000`                 | API base                                              |
+| `NUXT_PUBLIC_SITE_URL` / `APP_URL` | `http://localhost:3001`                 | app base                                              |
+| `NSC__MONGOOSE__URI` / `MONGO_URI` | `mongodb://127.0.0.1/nest-server-local` | test-data reset                                       |
+| `E2E_EXPECT_AUTH_MODE`             | not checked                             | auth mode of the password sign-in (`cookie` or `jwt`) |
 
 Under `lt dev up` / `lt dev test` these are set for you via the `.lt-dev/.env` bridge, so the
 same suite runs unchanged against classic ports, a `lt dev` session, and CI.
@@ -171,9 +171,12 @@ top-level `cookies` of the nest-server config (`NSC__COOKIES=false` for the JWT 
 a cookie run.
 
 Declare the mode a run expects with `E2E_EXPECT_AUTH_MODE=cookie` or `E2E_EXPECT_AUTH_MODE=jwt`.
-`auth-lifecycle.spec.ts` then checks it after each sign-in against `authMode` in the app's
-`lt-auth-state` cookie, and fails on a mismatch. Without the variable it prints the mode it saw and
-checks nothing.
+`auth-lifecycle.spec.ts` then checks it after the password sign-in of step 8 and fails on a
+mismatch. The signal is the API's httpOnly session cookie (`…session_token`): the sign-in sets it
+in the cookie mode and sets no cookie at all in the JWT mode (measured on nest-server 12.6.0). Not
+the app's `lt-auth-state`: its `authMode` turns to `jwt` in the cookie mode too, once
+`/iam/token` hands out a JWT. Without the variable the spec prints the mode it saw and checks
+nothing.
 
 For full coverage, run the suite against all four. Restart the backend after each config change.
 

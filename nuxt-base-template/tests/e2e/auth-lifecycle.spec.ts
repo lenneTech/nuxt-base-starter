@@ -85,9 +85,12 @@ async function cleanupAuthenticator(cdpSession: CDPSession, authenticatorId: str
  * The auth mode this run expects, from `E2E_EXPECT_AUTH_MODE` (`cookie` or `jwt`).
  *
  * `GET /iam/features` cannot tell: its `jwt` reports the JWT plugin, which is on in both modes.
- * The mode is the top-level `cookies` of the nest-server config (`NSC__COOKIES=false` for the JWT
- * mode), and the app shows it after a sign-in as `authMode` in the `lt-auth-state` cookie.
- * Unset, the run prints the mode it saw and checks nothing.
+ * Neither can the app's `lt-auth-state`: `switchToJwtMode()` sets its `authMode` to `jwt` in the
+ * cookie mode too, as soon as `/iam/token` hands out a JWT. The mode is the top-level `cookies` of
+ * the nest-server config (`NSC__COOKIES=false` for the JWT mode), and the one sign it leaves in the
+ * browser is the API's httpOnly session cookie: the password sign-in sets it in the cookie mode and
+ * sets no cookie at all in the JWT mode (measured on nest-server 12.6.0). Unset, the run prints the
+ * mode it saw and checks nothing.
  */
 const EXPECTED_AUTH_MODE = ((): 'cookie' | 'jwt' | null => {
   const declared = process.env.E2E_EXPECT_AUTH_MODE?.trim().toLowerCase();
@@ -106,18 +109,16 @@ function getConfigScenarioName(features: Features): string {
   return `Custom Config (mode=${mode}, emailVerification=${features.emailVerification}, signUpChecks=${features.signUpChecks})`;
 }
 
-/** After a sign-in: the mode the app signed in with (`lt-auth-state`), checked against the declared one. */
+/**
+ * After a password sign-in: the mode the API signed in with, read from its httpOnly session cookie
+ * (present in the cookie mode, absent in the JWT mode), checked against the declared one.
+ */
 async function expectAuthMode(page: Page): Promise<void> {
-  const state = (await page.context().cookies()).find((cookie) => cookie.name.endsWith('auth-state'));
-  let mode: unknown;
-  try {
-    mode = state ? (JSON.parse(decodeURIComponent(state.value)) as { authMode?: unknown }).authMode : undefined;
-  } catch {
-    mode = undefined;
-  }
-  console.info(`  Auth mode after sign-in: ${String(mode)}`);
+  const sessionCookie = (await page.context().cookies()).some((cookie) => cookie.name.endsWith('session_token'));
+  const mode = sessionCookie ? 'cookie' : 'jwt';
+  console.info(`  Auth mode after sign-in: ${mode} (API session cookie ${sessionCookie ? 'set' : 'not set'})`);
   if (EXPECTED_AUTH_MODE) {
-    expect(mode, `E2E_EXPECT_AUTH_MODE=${EXPECTED_AUTH_MODE}, but the app signed in with "${String(mode)}"`).toBe(EXPECTED_AUTH_MODE);
+    expect(mode, `E2E_EXPECT_AUTH_MODE=${EXPECTED_AUTH_MODE}, but the API signed in with the ${mode} mode`).toBe(EXPECTED_AUTH_MODE);
   }
 }
 
@@ -425,7 +426,6 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
     await waitForURLAndHydration(page, /\/app/, { timeout: 15000 });
     await expect(page.getByText(testUser.email).first()).toBeVisible({ timeout: 5000 });
     console.info('  Logged in with 2FA');
-    await expectAuthMode(page);
 
     // The JS-readable token cookie holds a JWT or nothing, never the session token. nest-server
     // answers the second factor with `{ token, user }`, and `token` is the session token the
