@@ -182,8 +182,8 @@ const grouped = computed(() => ({
                       <p class="mt-1 line-clamp-2 text-xs text-muted">{{ s.content }}</p>
                     </div>
                     <div class="flex shrink-0 items-center gap-1">
-                      <UButton v-if="canMutate(s)" size="sm" variant="ghost" icon="i-lucide-pencil" @click="edit(s)" />
-                      <UButton v-if="canMutate(s)" size="sm" variant="ghost" color="error" icon="i-lucide-trash" @click="onDelete(s)" />
+                      <UButton v-if="canMutate(s)" size="sm" variant="ghost" icon="i-lucide-pencil" :aria-label="`Vorlage „${s.name}“ bearbeiten`" @click="edit(s)" />
+                      <UButton v-if="canMutate(s)" size="sm" variant="ghost" color="error" icon="i-lucide-trash" :aria-label="`Vorlage „${s.name}“ löschen`" @click="onDelete(s)" />
                     </div>
                   </div>
                 </div>

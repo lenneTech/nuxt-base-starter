@@ -110,6 +110,15 @@ describe('which prompts the AI pages load', () => {
     page.unmount();
   });
 
+  it('names the icon buttons of a row, so a screen reader can tell them apart', async () => {
+    const page = await mount(AiPromptsPage, [{ content: 'Text', enabled: false, id: 'p1', name: 'Ausgeschaltet', ownerId: 'u1', scope: 'user' }]);
+
+    // Icon only, no text: without a label every row announces two buttons called "button".
+    const labels = [...page.root.querySelectorAll('[data-test="prompt-row"] [aria-label]')].map((element) => element.getAttribute('aria-label'));
+    expect(labels).toEqual(['Vorlage „Ausgeschaltet“ bearbeiten', 'Vorlage „Ausgeschaltet“ löschen']);
+    page.unmount();
+  });
+
   it('the chat picker asks for the active prompts only', async () => {
     const picker = await mount(AiPromptPicker);
 
