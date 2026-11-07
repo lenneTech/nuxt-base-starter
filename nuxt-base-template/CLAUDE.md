@@ -636,6 +636,12 @@ history entry.
 `tests/unit/pages/auth-verify-email.test.ts` pins every way; the E2E helper finds tokens of both log
 formats (`UserKey` from 12.6.0 on, the readable JWT before).
 
+**Locally, the page says where the link is.** A local API without SMTP sends no mail and only logs the
+link (`[EMAIL VERIFICATION] … URL: …` in its terminal). While the page waits for the link, it shows
+"Lokal ohne SMTP" with that hint, only when `runtimeConfig.public.appEnv` is exactly `local`
+(`NUXT_PUBLIC_APP_ENV=local`, or `nuxt dev` without the variable). Every other value, an empty one or
+none, shows nothing, so a deployed stage never does. Same wording and place as in the Angular starter.
+
 **Plausible runs only with an analytics host set explicitly.** `@nuxtjs/plausible` 4.0.0 is on by
 default and falls back to `https://plausible.io` without an `apiHost`. CI builds leave
 `NUXT_PLAUSIBLE_API_URL` unset, so before 2.37.0 every generated project reported its pageviews

@@ -250,7 +250,11 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
       // Should redirect to verify-email page
       await waitForURLAndHydration(page, /\/auth\/verify-email/, { timeout: 15000 });
       await expect(page.getByText('E-Mail bestätigen')).toBeVisible({ timeout: 5000 });
-      console.info('  Redirected to email verification (emailVerification enabled)');
+      // Without SMTP a local API only logs the link, so a local app (`appEnv` local) says where it is;
+      // every other stage shows nothing. The states are pinned in tests/unit/pages/auth-verify-email.test.ts.
+      const appEnv = await page.evaluate(() => (window as unknown as { __NUXT__?: { config?: { public?: { appEnv?: string } } } }).__NUXT__?.config?.public?.appEnv);
+      await expect(page.getByText('Lokal ohne SMTP')).toHaveCount(appEnv === 'local' ? 1 : 0);
+      console.info(`  Redirected to email verification (emailVerification enabled, appEnv ${appEnv ?? 'unknown'})`);
     } else {
       // Should show passkey prompt, skip it
       const laterButton = page.getByRole('button', { name: 'Später einrichten' });

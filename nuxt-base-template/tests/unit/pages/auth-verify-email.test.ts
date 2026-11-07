@@ -38,6 +38,8 @@ const READABLE = `eyJhbGciOiJIUzI1NiJ9.${Buffer.from(JSON.stringify({ email: 'ma
 const RATE_LIMIT_DE = 'Zu viele Anfragen. Bitte versuchen Sie es später erneut.';
 
 interface Options {
+  /** `runtimeConfig.public.appEnv`; left out, the key is missing, as in a config before 2.38.4. */
+  appEnv?: string;
   /** What `GET /iam/features` answers; `null` lets the request fail. */
   features?: null | Record<string, unknown>;
   /** The URL query the page is opened with. */
@@ -98,7 +100,9 @@ async function mountPage(options: Options = {}) {
   vi.stubGlobal('definePageMeta', vi.fn());
   vi.stubGlobal('useRoute', () => route);
   vi.stubGlobal('useRouter', () => ({ replace }));
-  vi.stubGlobal('useRuntimeConfig', () => ({ public: { apiUrl: 'http://api.test', siteUrl: 'http://app.test' } }));
+  vi.stubGlobal('useRuntimeConfig', () => ({
+    public: { apiUrl: 'http://api.test', siteUrl: 'http://app.test', ...(options.appEnv === undefined ? {} : { appEnv: options.appEnv }) },
+  }));
   vi.stubGlobal('useToast', () => ({ add: (toast: { color: string; description: string; title: string }) => toasts.push(toast) }));
   vi.stubGlobal('useLtAuthClient', () => ({ sendVerificationEmail, verifyEmail }));
   // As nuxt-extensions: the API's message from the response body wins over the thrown message.
@@ -209,6 +213,7 @@ async function mountPage(options: Options = {}) {
     form: () => (root.querySelector('[data-form]') ? forms.at(-1) : undefined),
     memory: () => recallVerifyEmail(window.history.state),
     resendRequests: () => fetch.mock.calls.filter(([url]) => url === RESEND),
+    root,
     route,
     sendVerificationEmail,
     text: () => root.textContent ?? '',
@@ -411,5 +416,53 @@ describe('verify-email without a link', () => {
     // UFormField shows the first message of a field.
     expect((await page.form()!({ email: '' }))[0]).toBe('Bitte gib deine E-Mail-Adresse ein.');
     page.unmount();
+  });
+});
+
+describe('the hint for a local API without SMTP', () => {
+  // Without SMTP the API sends no mail and only logs the link (`[EMAIL VERIFICATION] … URL: …`).
+  // Only a local stack says where to look; same wording and place as in the Angular starter.
+  const TITLE = 'Lokal ohne SMTP';
+  const TEXT = 'Den Bestätigungslink findest du im API-Terminal unter [EMAIL VERIFICATION].';
+
+  it('tells a local user where the link is right after sign-up', async () => {
+    const page = await mountPage({ appEnv: 'local', features: BY_TOKEN, query: { fromRegister: 'true' }, state: verifyEmailState('max@test.com') });
+
+    expect(page.text()).toContain(TITLE);
+    expect(page.text()).toContain(TEXT);
+    expect(page.root.querySelector('code')?.textContent).toBe('[EMAIL VERIFICATION]');
+    page.unmount();
+  });
+
+  it('keeps the hint after a new mail, which lands in the terminal too', async () => {
+    const page = await mountPage({ appEnv: 'local', features: BY_TOKEN, state: verifyEmailState('max@test.com') });
+
+    page.button('Bestätigungs-E-Mail erneut senden')?.click();
+    await settle();
+    expect(page.sendVerificationEmail).toHaveBeenCalledOnce();
+    expect(page.text()).toContain(TEXT);
+    page.unmount();
+  });
+
+  // Fail-closed: only exactly `local` shows it, so no deployed stage ever does.
+  it.each([['production'], ['development'], ['staging'], ['Local'], [''], [undefined]])('shows nothing for appEnv %j', async (appEnv) => {
+    const page = await mountPage({ appEnv, features: BY_TOKEN, query: { fromRegister: 'true' }, state: verifyEmailState('max@test.com') });
+
+    expect(page.text()).toContain('E-Mail bestätigen');
+    expect(page.text()).not.toContain(TITLE);
+    expect(page.text()).not.toContain('[EMAIL VERIFICATION]');
+    page.unmount();
+  });
+
+  it('shows nothing locally once there is a link: refused or accepted', async () => {
+    const refused = await mountPage({ appEnv: 'local', features: BY_TOKEN, query: { token: SEALED }, verify: REFUSED });
+    expect(refused.text()).toContain('Verifizierung fehlgeschlagen');
+    expect(refused.text()).not.toContain(TITLE);
+    refused.unmount();
+
+    const accepted = await mountPage({ appEnv: 'local', features: BY_TOKEN, query: { token: SEALED } });
+    expect(accepted.text()).toContain('E-Mail bestätigt');
+    expect(accepted.text()).not.toContain(TITLE);
+    accepted.unmount();
   });
 });
