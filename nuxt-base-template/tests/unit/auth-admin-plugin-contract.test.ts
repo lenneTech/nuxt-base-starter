@@ -4,10 +4,11 @@
  *
  * `ltExtensions.auth.enableAdmin` adds Better Auth's admin client plugin (`admin.createUser`,
  * `admin.setUserPassword`, …). nest-server registers no `admin()` plugin, so every one of these
- * calls answers 404, and `/iam/features` reports no admin feature. nuxt-extensions defaults the
- * option to `true` (1.28.0 too), so leaving the key out keeps the plugin: the config has to say
- * `false`. The admin area of the template goes by the user's role (`isAdminUser`), which this option
- * does not touch; `tests/e2e/auth-admin-role.spec.ts` walks it against a real API.
+ * calls answers 404, and `/iam/features` reports no admin feature. nuxt-extensions 4.0.0 defaults
+ * the option to `false`; up to 1.28.0 the default was `true`, so a project on an older (or vendored
+ * older) core keeps the plugin without the key. The config says `false` either way. The admin area
+ * of the template goes by the user's role (`isAdminUser`), which this option does not touch;
+ * `tests/e2e/auth-admin-role.spec.ts` walks it against a real API.
  *
  * A project whose API registers `admin()` itself sets the option to `true` and changes this test.
  *

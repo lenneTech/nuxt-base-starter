@@ -161,6 +161,26 @@ proxy or vanity domain, where users receive links pointing at the internal host.
 Use the `NUXT_PUBLIC_` form, not `NUXT_SITE_URL`: both reach the SEO config, but only
 the public form also populates `runtimeConfig.public.siteUrl` for the auth redirects.
 
+## Versioning
+
+The starter carries the version of the `@lenne.tech/nuxt-extensions` release it pins: starter
+4.0.0 is the template for nuxt-extensions 4.0.0. Every nuxt-extensions release gets its starter
+release with the same number. Changes to the starter alone do not change its version; they land
+on `main`, which `lt fullstack init` clones, and appear in the changelog of the next release.
+
+The numbers follow nuxt-extensions' schema:
+
+| Part  | Meaning                                                         |
+| ----- | --------------------------------------------------------------- |
+| MAJOR | The Nuxt major the release targets (`4.x.x` = Nuxt 4)           |
+| MINOR | A change a project has to migrate; the migration guide says how |
+| PATCH | A fix or an addition a project can take over without any change |
+
+The switch to this schema skips numbers: the starter goes from 2.38.5 to 4.0.0, and
+nuxt-extensions from 1.28.0 to 4.0.0. There is no starter 3.x and no nuxt-extensions 2.x or 3.x.
+The migration guides in [`migration-guides/`](./migration-guides) are named after the starter
+version they lead to.
+
 ## Requirements
 
 - Node.js ^22.22.3 or ^24.15.0 (the floor of Nuxt 4.6 and @nuxtjs/seo 6)

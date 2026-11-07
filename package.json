@@ -1,6 +1,6 @@
 {
   "name": "create-nuxt-base",
-  "version": "2.38.5",
+  "version": "4.0.0",
   "private": true,
   "description": "Nuxt 4 starter template (nuxt-base-template/) for lenne.Tech projects, scaffolded by the lt CLI (lt frontend nuxt / lt fullstack init).",
   "license": "MIT",
@@ -18,7 +18,7 @@
     "format": "oxfmt --disable-nested-config",
     "format:check": "oxfmt --check --disable-nested-config",
     "check:ci-placement": "node scripts/check-ci-placement.mjs",
-    "test:scripts": "node --test scripts/check-ci-placement.test.mjs scripts/root-workspace.test.mjs scripts/template-defaults.test.mjs",
+    "test:scripts": "node --test scripts/check-ci-placement.test.mjs scripts/root-workspace.test.mjs scripts/starter-version.test.mjs scripts/template-defaults.test.mjs",
     "test:unit": "cd nuxt-base-template && pnpm run test:unit"
   },
   "devDependencies": {
