@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.5...v4.0.0) (2026-11-07)
+
+
+### Highlights for adopters
+
+* **New version numbers: the starter carries the version of the nuxt-extensions release it pins.** Starter 4.0.0 is the template for `@lenne.tech/nuxt-extensions` 4.0.0, and every nuxt-extensions release gets its starter release with the same number. The numbers follow nuxt-extensions' new schema: **MAJOR** is the Nuxt major (4 = Nuxt 4), a **MINOR** is a change a project has to migrate, a **PATCH** can be taken over as is. The switch skips numbers: the starter goes from 2.38.5 to 4.0.0, nuxt-extensions from 1.28.0 to 4.0.0; there is no starter 3.x and no nuxt-extensions 2.x or 3.x. Changes to the starter alone no longer get a version of their own: they land on `main`, which `lt fullstack init` clones, and appear in the changelog of the next release.
+* **nuxt-extensions 4.0.0.** 1.28.0 plus three changed defaults. The default TUS endpoint is `/tus`, where nest-server serves TUS (it was `/files/upload`, nest-server's multipart route). `useLtFile().getFileUrl(id)` and `getDownloadUrl(id)` return `<API URL>/files/id/<id>`, which nest-server serves; before, they built `/files/<id>` on the app origin, which nest-server reads as a file name and answers 404, so every link to an uploaded file was dead. `getDownloadUrl`'s `filename` argument is ignored now. Better Auth's admin client plugin is off by default (`enableAdmin: false`). The template set `/tus` and `enableAdmin: false` already, and it builds no file URL itself, so its app code is unchanged.
+* **Links that answered 404 now reach the API's download rules.** nest-server-starter lets a signed-in user download their own files and an admin every file: it opens the route to signed-in users (`file.downloadRoles: [S_USER]`) and decides per file in `FileService.checkRights()`. nest-server's own `checkRights()` allows every file, so an API that widens `downloadRoles` without a per-file rule (`file.access: 'owner'` or its own `checkRights()`) would serve every user's files to anybody who signs up. The guide says how to check an API that was not made from nest-server-starter.
+* **File links are tested against a real API.** `tests/e2e/file-upload-link.spec.ts` uploads a file through the TUS endpoint, reads the stored file's id from `X-File-Id` and opens `<API>/files/id/<id>`: 200 for the owner, refused without a session and for another signed-in user. It needs an API on nest-server 11.42.13 or later.
+
+Follow the [2.38.x → 4.0.0 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.0/migration-guides/2.38.x-to-4.0.0.md).
+
+
+### Features
+
+* **deps:** nuxt-extensions 4.0.0, the starter takes over its version numbers (#42) ([3351e8c](https://github.com/lenneTech/nuxt-base-starter/commit/3351e8cb4434fc0126524ee4f496d08477fd88ed))
+
 ### [2.38.5](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.4...v2.38.5) (2026-11-07)
 
 
