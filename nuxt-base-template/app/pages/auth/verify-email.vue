@@ -26,6 +26,15 @@ const LINK_DEAD_MESSAGE = 'Dieser Link ist nicht (mehr) gültig. Bitte fordere e
 
 const SEND_FAILED_MESSAGE = 'Die E-Mail konnte nicht gesendet werden. Bitte versuche es später erneut.';
 
+/**
+ * A local API without SMTP sends no mail: it only logs the link, in the line `[EMAIL VERIFICATION] …`
+ * of its terminal, and nobody finds it there without being told. Only a local stack says where to
+ * look: `appEnv` is `local` there (`NUXT_PUBLIC_APP_ENV=local`, or `nuxt dev` without it). Fail-closed:
+ * every other value, an empty one or none, shows nothing, so no deployed stage ever shows the hint.
+ * Same wording and place as in the Angular starter.
+ */
+const showLocalMailHint = runtimeConfig.public.appEnv === 'local';
+
 // ============================================================================
 // Page Meta
 // ============================================================================
@@ -419,6 +428,10 @@ onUnmounted(() => {
           </p>
           <p class="mt-2 text-sm text-muted">Bitte klicke auf den Link in der E-Mail, um dein Konto zu aktivieren.</p>
         </div>
+
+        <UAlert v-if="showLocalMailHint" color="info" data-test="local-mail-hint" icon="i-lucide-terminal" title="Lokal ohne SMTP" variant="subtle">
+          <template #description>Den Bestätigungslink findest du im API-Terminal unter <code>[EMAIL VERIFICATION]</code>.</template>
+        </UAlert>
 
         <UAlert color="neutral" icon="i-lucide-info" title="Keine E-Mail erhalten?" variant="subtle">
           <template #description>
