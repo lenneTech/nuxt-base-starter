@@ -22,7 +22,7 @@ export const useNuxtApp = vi.fn(() => ({
           basePath: '/iam',
           loginPath: '/auth/login',
           twoFactorRedirectPath: '/auth/2fa',
-          enableAdmin: true,
+          enableAdmin: false,
           enableTwoFactor: true,
           enablePasskey: true,
         },

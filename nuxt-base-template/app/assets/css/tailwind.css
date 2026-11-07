@@ -1,5 +1,13 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+/*
+ * Tailwind only generates the classes it finds in its sources, and Nuxt UI adds only the app
+ * directories (`.nuxt/ui.css`). The `LtTransition*` components of nuxt-extensions sit in
+ * `node_modules`, so without this line their slide and scale classes are missing and the
+ * transitions run without movement. The path is relative to this file. In vendor mode the core is
+ * part of `app/` and the path does not exist; Tailwind ignores it. tests/unit/tailwind-sources.test.ts
+ */
+@source '../../../node_modules/@lenne.tech/nuxt-extensions/dist/runtime';
 
 @plugin "@tailwindcss/typography";
 

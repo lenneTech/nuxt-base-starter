@@ -337,6 +337,13 @@ It is used by every site that gates admin functionality:
 `isAdminUser(user)`. The Vitest spec at `tests/unit/utils/is-admin-user.test.ts`
 guards the contract (no user / `role:'admin'` / `roles:['admin']` / both / neither).
 
+**Better Auth's admin plugin is off** (`ltExtensions.auth.enableAdmin: false`, since 2.38.5).
+nest-server registers no `admin()` plugin, so every `admin.*` call of the auth client answers 404;
+admin features go through nest-server's own endpoints, gated by role. nuxt-extensions defaults the
+option to `true` (1.28.0 too), so the key has to stay. `tests/unit/auth-admin-plugin-contract.test.ts`
+pins it, and `tests/e2e/auth-admin-role.spec.ts` walks `/app/admin` without and with the role
+(`grantAdminRole`) and fails on any request to `/iam/admin/*`.
+
 ## Framework: @lenne.tech/nuxt-extensions
 
 This project consumes the framework in one of two modes:
@@ -404,6 +411,17 @@ benefits and the local patch disappears on the next sync.
 4. **When debugging auth issues**, read the auth proxy server route and middleware source
 5. **Check runtime composables** before creating new composables — may already exist. List the directory rather than grepping the docs for a name: `useBetterAuth` stood in this file for months after it became `useLtAuth`, and `useTusUpload` after it became `useLtTusUpload`, so a search for the documented name "proved" the feature did not exist
 6. **In vendor mode**, only edit `app/core/` for generally-useful changes and submit them upstream via `/lt-dev:frontend:contribute-nuxt-extensions-core`. Project-specific code belongs outside `app/core/`.
+
+### Tailwind sources
+
+Tailwind 4 generates only the classes it finds in its sources: the app directory (the Vite root is
+`srcDir`) and every `@source` of `app/assets/css/tailwind.css`. `node_modules` is not among them, and
+Nuxt UI adds only the app directories. So `tailwind.css` adds
+`node_modules/@lenne.tech/nuxt-extensions/dist/runtime`, whose `LtTransition*` components style
+themselves with Tailwind classes; without it, measured in a build, their slide and scale classes are
+missing. In vendor mode the path does not exist and Tailwind ignores it. A package you add that ships
+Tailwind classes needs its own `@source` line. `tests/unit/tailwind-sources.test.ts` runs Tailwind's
+compiler and scanner on the stylesheet and fails with the classes it would not generate.
 
 ## Authentication
 
