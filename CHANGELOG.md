@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.38.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.3...v2.38.4) (2026-11-07)
+
+
+### Highlights for adopters
+
+* **Locally, the verify-email page says where the link is.** A freshly generated project runs its API without SMTP, so signing up sends no mail and the API only logs the verification link in its terminal. While `/auth/verify-email` waits for the link, it now shows "Lokal ohne SMTP: Den Bestätigungslink findest du im API-Terminal unter `[EMAIL VERIFICATION]`." The hint appears only when `runtimeConfig.public.appEnv` is exactly `local` (`NUXT_PUBLIC_APP_ENV=local`, or `nuxt dev` without it); a deployed stage never shows it. Follow the [2.38.4 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.38.4/migration-guides/2.38.4-verify-email-local-smtp-hint.md).
+
+
+### Bug Fixes
+
+* **auth:** say locally where the verification link is when there is no SMTP (#40) ([7cd6f82](https://github.com/lenneTech/nuxt-base-starter/commit/7cd6f82c2025f380f6b673011cf931dc2e45e7c3))
+
 ### [2.38.3](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.2...v2.38.3) (2026-11-07)
 
 
