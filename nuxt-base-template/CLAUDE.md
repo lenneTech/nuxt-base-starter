@@ -339,8 +339,10 @@ guards the contract (no user / `role:'admin'` / `roles:['admin']` / both / neith
 
 **Better Auth's admin plugin is off** (`ltExtensions.auth.enableAdmin: false`, since 2.38.5).
 nest-server registers no `admin()` plugin, so every `admin.*` call of the auth client answers 404;
-admin features go through nest-server's own endpoints, gated by role. nuxt-extensions defaults the
-option to `true` (1.28.0 too), so the key has to stay. `tests/unit/auth-admin-plugin-contract.test.ts`
+admin features go through nest-server's own endpoints, gated by role. Since nuxt-extensions 4.0.0
+`false` is also the default (up to 1.28.0 it was `true`); the key stays, because a project on an
+older core keeps the plugin without it, and it is the line an API with its own `admin()` turns on.
+`tests/unit/auth-admin-plugin-contract.test.ts`
 pins it, and `tests/e2e/auth-admin-role.spec.ts` walks `/app/admin` without and with the role
 (`grantAdminRole`) and fails on any request to `/iam/admin/*`.
 

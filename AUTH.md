@@ -241,7 +241,7 @@ ltExtensions: {
   auth: {
     basePath: '/iam', // Must match the nest-server IAM mount point
     twoFactorRedirectPath: '/auth/2fa',
-    enableAdmin: true,
+    enableAdmin: false, // nest-server serves no Better Auth admin() plugin; true only for an API that does
     enableTwoFactor: true,
     enablePasskey: true,
   },
