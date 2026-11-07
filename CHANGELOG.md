@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.38.5](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.4...v2.38.5) (2026-11-07)
+
+
+### Highlights for adopters
+
+* **nuxt-extensions 1.28.0.** A fix release with no breaking change: one authenticated fetch with JWT renewal and `auth.basePath`, error translations that load after the mount instead of holding back the client start, and `LtTransitionFade` / `LtTransitionFadeScale` durations in the Tailwind 4 syntax, so they no longer fade in 0 s. `resetLtAuthClient()` is gone; `resetLtAuthClientSingleton()` from `@lenne.tech/nuxt-extensions/lib` does the same.
+* **The `LtTransition*` components now move in npm mode.** Tailwind 4 generates only the classes it finds in its sources, and neither the app directory nor Nuxt UI covers `node_modules`. So the slide and scale classes of the nuxt-extensions transition components were never generated: `LtTransitionSlide`, `LtTransitionSlideBottom` and `LtTransitionSlideRevert` did not slide, and `LtTransitionFadeScale` did not scale. `app/assets/css/tailwind.css` now adds the package's runtime with `@source`, and `tests/unit/tailwind-sources.test.ts` runs Tailwind's compiler and scanner on the stylesheet and fails for every class of the components it would not generate. Vendor-mode projects were not affected; the line is harmless there.
+* **Better Auth's admin client plugin is off.** nest-server registers no `admin()` plugin, so every `admin.*` call of the auth client answered 404, and nothing in the template makes one. `nuxt.config.ts` now sets `ltExtensions.auth.enableAdmin: false`; the admin area keeps going by the user's role. `tests/e2e/auth-admin-role.spec.ts` walks it against a real API and fails on any request to `/iam/admin/*`; it needs the API started with `PLAYWRIGHT=true`, which switches nest-server's 15-second role cache off, and `docs/e2e-auth.md` now starts it that way in every example. A project whose API registers `admin()` itself keeps `true`.
+
+Follow the [2.38.5 migration guide](https://github.com/lenneTech/nuxt-base-starter/blob/v2.38.5/migration-guides/2.38.5-nuxt-extensions-1.28.0.md).
+
+
+### Bug Fixes
+
+* **deps:** nuxt-extensions 1.28.0, Tailwind scans its components, the admin plugin is off (#41) ([d873221](https://github.com/lenneTech/nuxt-base-starter/commit/d873221a16b2f2d16a69eacaa55399a8b53eb730))
+
 ### [2.38.4](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.3...v2.38.4) (2026-11-07)
 
 
