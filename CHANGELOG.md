@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.1](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.0...v4.0.1) (2026-11-07)
+
+
+### Highlights for adopters
+
+* **nuxt-extensions 4.0.1.** No change to the package content: nuxt-extensions now publishes through npm's trusted publishing (OIDC), and a fix to its own `check:manifest` script came with it. Take it over as is: pin `"@lenne.tech/nuxt-extensions": "4.0.1"` and run `pnpm install`. There is no migration guide, since there is nothing to migrate.
+
+
+### Bug Fixes
+
+* **deps:** nuxt-extensions 4.0.1 (#43) ([b24b54d](https://github.com/lenneTech/nuxt-base-starter/commit/b24b54d5cfde654e06bd627a7dfc705187579b6f))
+
 ## [4.0.0](https://github.com/lenneTech/nuxt-base-starter/compare/v2.38.5...v4.0.0) (2026-11-07)
 
 
