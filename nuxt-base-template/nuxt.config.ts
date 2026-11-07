@@ -175,7 +175,11 @@ export default defineNuxtConfig({
       basePath: '/iam',
       loginPath: '/auth/login',
       twoFactorRedirectPath: '/auth/2fa',
-      enableAdmin: true,
+      // Better Auth's admin client plugin. Off: nest-server registers no admin() plugin, so every
+      // admin.* call answers 404, and nothing here calls one. The admin area goes by the user's
+      // role (isAdminUser). An API that registers admin() itself sets this to true.
+      // tests/unit/auth-admin-plugin-contract.test.ts, tests/e2e/auth-admin-role.spec.ts
+      enableAdmin: false,
       enableTwoFactor: true,
       enablePasskey: true,
       systemSetup: {

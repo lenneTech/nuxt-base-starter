@@ -90,11 +90,17 @@ is exactly why it stayed unnoticed until the suite first ran against a fresh CI 
 Any of these can serve the API on port 3000. Each needs its `betterAuth` section configured
 per the scenario you want to exercise.
 
+Start it with `PLAYWRIGHT=true`, as the CI job does. nest-server (11.25.6 or later) then reads a
+user's roles fresh on every request; otherwise it answers them from a 15-second cache. A role that
+`grantAdminRole` writes into the database does not reach that cache, so `auth-admin-role.spec.ts`
+fails against an API started without it: the new sign-in still carries no admin role. Under
+`lt dev up` and `lt dev test` the cache is off already (`LT_DEV_ACTIVE`).
+
 **Option A — `nest-server-starter` (standalone template)**
 
 ```bash
 cd <nest-server-starter>
-npm run start > /tmp/nest-server.log 2>&1 &
+PLAYWRIGHT=true npm run start > /tmp/nest-server.log 2>&1 &
 ```
 
 Config: `src/config.env.ts` → `betterAuth`
@@ -103,7 +109,7 @@ Config: `src/config.env.ts` → `betterAuth`
 
 ```bash
 cd <nest-server>
-npm run start > /tmp/nest-server.log 2>&1 &
+PLAYWRIGHT=true npm run start > /tmp/nest-server.log 2>&1 &
 ```
 
 Config: `src/config.env.ts` → `betterAuth`
@@ -112,7 +118,7 @@ Config: `src/config.env.ts` → `betterAuth`
 
 ```bash
 cd projects/api
-npm run start > /tmp/nest-server.log 2>&1 &
+PLAYWRIGHT=true npm run start > /tmp/nest-server.log 2>&1 &
 ```
 
 Config: `projects/api/src/config.env.ts` → `betterAuth`
@@ -144,7 +150,7 @@ The app shows its AI pages only while the API runs its AI module, read from the 
 switch the module and its MCP server on, with any of the options above:
 
 ```bash
-NSC__AI__ENCRYPTION_SECRET=<any 32 characters> NSC__AI__MCP__ENABLED=true npm run start > /tmp/nest-server.log 2>&1 &
+NSC__AI__ENCRYPTION_SECRET=<any 32 characters> NSC__AI__MCP__ENABLED=true PLAYWRIGHT=true npm run start > /tmp/nest-server.log 2>&1 &
 ```
 
 Check it with `curl -s localhost:3000/ai/status`: `{"mcp":true}` means both are on, 404 means the
@@ -244,7 +250,7 @@ For each scenario:
 2. Restart the backend:
    ```bash
    pkill -f "nest-server" 2>/dev/null
-   cd <backend-path> && npm run start > /tmp/nest-server.log 2>&1 &
+   cd <backend-path> && PLAYWRIGHT=true npm run start > /tmp/nest-server.log 2>&1 &
    ```
 3. Wait until it answers: `curl -s http://localhost:3000/ > /dev/null`
 4. Run: `E2E_EXPECT_AUTH_MODE=<cookie|jwt> npx playwright test tests/e2e/auth-lifecycle.spec.ts`
@@ -277,3 +283,12 @@ It deletes by exact email match and refuses anything that is not an `@test.com` 
 refuses a non-loopback `MONGO_URI` unless `E2E_ALLOW_REMOTE_DB=true` is set explicitly. Use
 `generateTestUser()` from `@lenne.tech/nuxt-extensions/testing` to get a correctly namespaced,
 per-run-unique address.
+
+`grantAdminRole(email)` gives such a user the admin role (`users.roles`), under the same two
+guards. A test user cannot grant itself a role through the API, so this is the suite's only way to
+an admin besides the setup. The app reads the roles at sign-in: sign in again after the call, against
+an API started with `PLAYWRIGHT=true` (see "Backend options"), whose role cache would otherwise hide
+the new role for 15 seconds.
+`auth-admin-role.spec.ts` uses it to walk `/app/admin` without and with the role, and fails on any
+request to `/iam/admin/*` (the template switches Better Auth's admin client plugin off, because
+nest-server serves no admin routes).
