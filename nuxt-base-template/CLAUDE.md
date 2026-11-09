@@ -365,6 +365,13 @@ This project consumes the framework in one of two modes:
 in npm mode from `node_modules/@lenne.tech/nuxt-extensions/`, in
 vendor mode directly from `app/core/`.
 
+**Version numbers:** since 4.0.0 the MAJOR of nuxt-extensions is the Nuxt major, a MINOR is a change
+a project has to migrate, and a PATCH can be taken over as is. The switch skipped numbers: after
+1.28.0 comes 4.0.0, and 2.x and 3.x do not exist. A note in this file such as "nuxt-extensions
+1.27.0+" therefore holds for 4.x too. The starter follows the same numbers (starter 4.0.0 pins
+nuxt-extensions 4.0.0; there is no starter 3.x). Starter versions name the migration guides of
+the nuxt-base-starter repository.
+
 ### Vendor Modification Policy
 
 When this project is in vendor mode, the copy in `app/core/` exists
@@ -430,6 +437,13 @@ compiler and scanner on the stylesheet and fails with the classes it would not g
 Auth is managed by `@lenne.tech/nuxt-extensions` via `useLtAuth()`. See the [nuxt-extensions CLAUDE.md](https://github.com/lenneTech/nuxt-extensions) for detailed auth cookie rules.
 
 Key rule: Never manually write to the auth-state cookie from custom middleware. Use `useLtAuth().setUser()` / `clearUser()` exclusively.
+
+**Removing the registration page does not close sign-up.** Deleting `app/pages/auth/register.vue`
+or its link leaves `POST /iam/sign-up/email` open on the API, and anybody can create an account with
+a plain request. A project without self sign-up sets
+`betterAuth.emailAndPassword.disableSignUp: true` in the API's config (from nest-server 12.3.0 this
+covers social providers too). `GET /iam/features` then reports `signUpEnabled: false`: `login.vue`
+hides its "Registrieren" link and `register.vue` sends the visitor to the login, so the page can stay.
 
 ### Configurable cookie names (optional)
 
