@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from '@tailwindcss/vite';
 
+import { SITE_NAME } from './app/utils/site';
 import pkg from './package.json';
 
 // Build identity surfaced under /app/admin/system so we can always tell which
@@ -31,7 +32,7 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'de',
       },
-      title: 'Nuxt Base Starter',
+      title: SITE_NAME,
       // No `maximum-scale` / `user-scalable=no`: blocking pinch zoom fails WCAG 1.4.4
       // (Android honours it; iOS ignores it). Their usual purpose, stopping iOS from
       // zooming into inputs under 16px, does not apply: Nuxt UI fields are 16px at the
@@ -412,7 +413,7 @@ export default defineNuxtConfig({
     // test enforces that, so the fallback cannot hide a forgotten one. Replace it per project,
     // like `name`.
     description: 'Nuxt-4-Anwendung auf Basis des lenne.Tech-Stacks.',
-    name: 'Nuxt Base Starter',
+    name: SITE_NAME,
     // No `url` here on purpose. nuxt-site-config's own `initSiteConfig()` already
     // reads NUXT_SITE_URL / NUXT_PUBLIC_SITE_URL — at build time with priority
     // `build` (-1) and again per request with priority `runtime` (0). A `url` set

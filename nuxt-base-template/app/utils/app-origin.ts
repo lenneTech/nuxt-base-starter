@@ -62,7 +62,7 @@ const ABSOLUTE_PATH_RE = /^\/(?![/\\])/;
  * stays `unknown` now that vendor mode is repaired.
  *
  * @param configured Usually `useRuntimeConfig().public.siteUrl`, fed by `NUXT_PUBLIC_SITE_URL`.
- * @see https://github.com/lenneTech/nuxt-base-starter — `NUXT_PUBLIC_SITE_URL` in `.env.example`
+ * @see `NUXT_PUBLIC_SITE_URL` in `.env.example`
  */
 export function resolveAppOrigin(configured?: unknown): string {
   const candidate = typeof configured === 'string' ? configured.trim() : '';
