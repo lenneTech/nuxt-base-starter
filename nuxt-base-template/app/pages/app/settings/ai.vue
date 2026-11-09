@@ -139,18 +139,14 @@ function pct(used: number, max?: number): number {
         <div>
           <div class="mb-1 flex justify-between text-sm">
             <span class="text-muted">Tokens</span>
-            <span class="font-medium">
-              {{ usage.user.usedTokens }}<template v-if="usage.user.maxTokens"> / {{ usage.user.maxTokens }}</template>
-            </span>
+            <span class="font-medium"> {{ usage.user.usedTokens }}<template v-if="usage.user.maxTokens"> / {{ usage.user.maxTokens }}</template> </span>
           </div>
           <UProgress v-if="usage.user.maxTokens" :model-value="pct(usage.user.usedTokens, usage.user.maxTokens)" />
           <p v-else class="text-xs text-muted">Unbegrenzt</p>
         </div>
         <div class="flex justify-between text-sm">
           <span class="text-muted">Anfragen</span>
-          <span class="font-medium">
-            {{ usage.user.usedPrompts }}<template v-if="usage.user.maxPrompts"> / {{ usage.user.maxPrompts }}</template>
-          </span>
+          <span class="font-medium"> {{ usage.user.usedPrompts }}<template v-if="usage.user.maxPrompts"> / {{ usage.user.maxPrompts }}</template> </span>
         </div>
         <p v-if="usage.user.resetAt" class="text-xs text-muted">Zurücksetzung: {{ new Date(usage.user.resetAt).toLocaleString('de-DE') }}</p>
       </div>

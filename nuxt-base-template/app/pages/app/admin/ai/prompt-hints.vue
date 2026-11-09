@@ -131,9 +131,7 @@ async function create(): Promise<void> {
 
     <UCard>
       <template #header>
-        <h2 class="font-semibold">
-          Zu prüfen <UBadge v-if="suggested.length" size="xs" color="warning">{{ suggested.length }}</UBadge>
-        </h2>
+        <h2 class="font-semibold">Zu prüfen <UBadge v-if="suggested.length" size="xs" color="warning">{{ suggested.length }}</UBadge></h2>
       </template>
       <div v-if="loading" class="py-8 text-center text-muted"><UIcon name="i-lucide-loader-circle" class="size-6 animate-spin" /></div>
       <p v-else-if="!suggested.length" class="py-8 text-center text-muted">Keine offenen Vorschläge.</p>

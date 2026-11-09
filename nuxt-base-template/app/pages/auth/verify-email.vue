@@ -443,9 +443,7 @@ onUnmounted(() => {
         </UAlert>
       </template>
 
-      <p v-if="maskedEmail" class="text-center text-sm text-muted" role="status">
-        Neue E-Mail angefordert für <strong>{{ maskedEmail }}</strong>
-      </p>
+      <p v-if="maskedEmail" class="text-center text-sm text-muted" role="status">Neue E-Mail angefordert für <strong>{{ maskedEmail }}</strong></p>
 
       <div class="flex w-full flex-col gap-3">
         <!-- Fallback: no address known, and no token the API takes instead -->

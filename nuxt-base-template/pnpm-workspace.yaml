@@ -221,7 +221,10 @@ overrides:
   # without it, and all three together resolve exactly one glob (14.0.3) and one minimatch
   # (11.0.4), with `pnpm audit` clean. A fourth, `archiver-utils>glob@<14.0.2` (archiver-utils
   # 5.0.2 via archiver 7, glob ^10), went on 2026-11-04: nitropack 2.13.6 moved to archiver 8,
-  # which does not use archiver-utils, and readdir-glob from 1.1.3 (minimatch ^5) to 3.0.0.
+  # which does not use archiver-utils, and readdir-glob from 1.1.3 (minimatch ^5) to 3.0.0. The
+  # rimraf entry, `rimraf>glob@<14.0.2`, went on 2026-11-09: rimraf 6.1.4 requests glob ^14.0.3
+  # itself, so the entry had become inert. The @vercel/nft entry moved to 14.0.4 with it, so the
+  # tree keeps exactly one glob.
   #
   # Shape and behaviour, measured 2026-11-01. glob 14 still exports `glob`, `globSync` and `sync`,
   # the only calls the three glob consumers make. minimatch 11 still exports the `Minimatch` class
@@ -243,11 +246,11 @@ overrides:
   #
   # Scoped per consumer on purpose. A bare `minimatch@<11.0.1` key would also reach the api's
   # consumers in an lt-monorepo (@nestjs/cli, @swc/cli, @ts-morph/common, nodemon), and some of
-  # them need the `makeRe()` that 11 removed. The rimraf entry does reach the api's rimraf there,
-  # which is harmless (same calls, `rimraf --glob` measured identical) and takes the vulnerable
-  # glob out of that tree too. Drop each entry once its consumer requests the patched major
+  # them need the `makeRe()` that 11 removed. An api on rimraf 6.1.3 brings its own
+  # `rimraf>glob@<14.0.2` entry (nest-server-starter does), which the hoist keeps for the
+  # monorepo root. Drop each entry once its consumer requests the patched major
   # itself; the child range makes it inert then, and `check-overrides.mjs` reports it.
-  '@vercel/nft>glob@<14.0.2': 14.0.3
+  '@vercel/nft>glob@<14.0.2': 14.0.4
   # esbuild dev-server advisories - transitive via vite tooling. The key covers both:
   #   - GHSA-g7r4-m6w7-qqqr (low): arbitrary file read via the dev server on Windows,
   #     >=0.27.3 <0.28.1, first patched 0.28.1. This is the one the `<0.28.1` bound encodes.
@@ -294,8 +297,6 @@ overrides:
   # minimatch 11 for readdir-glob (3.0.0 via archiver 8: minimatch ^10, `new Minimatch(…).match()`);
   # see the @vercel/nft entry, which also carries the 2026-11-04 measurement for this pair.
   'readdir-glob>minimatch@<11.0.1': 11.0.4
-  # glob 14 for rimraf (glob ^13, `glob`/`globSync` behind `--glob`); see the @vercel/nft entry.
-  'rimraf>glob@<14.0.2': 14.0.3
 
 patchedDependencies:
   # reka-ui 2.10.0+ hides every toast from screen readers. ToastAnnounce wraps the
