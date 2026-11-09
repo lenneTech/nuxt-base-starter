@@ -101,9 +101,7 @@ function fmt(n: number): string {
           </div>
           <div class="flex items-baseline justify-between gap-3">
             <dt class="text-muted">Verbraucht (kumulativ)</dt>
-            <dd class="tabular-nums font-medium">
-              {{ fmt(used) }} <span class="text-muted">({{ usedPercent.toFixed(1) }}%)</span>
-            </dd>
+            <dd class="tabular-nums font-medium">{{ fmt(used) }} <span class="text-muted">({{ usedPercent.toFixed(1) }}%)</span></dd>
           </div>
           <div class="flex items-baseline justify-between gap-3">
             <dt class="text-muted">Übrig</dt>

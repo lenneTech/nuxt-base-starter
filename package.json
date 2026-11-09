@@ -22,7 +22,7 @@
     "test:unit": "cd nuxt-base-template && pnpm run test:unit"
   },
   "devDependencies": {
-    "oxfmt": "0.75.0"
+    "oxfmt": "0.77.0"
   },
   "engines": {
     "node": ">= 22",
