@@ -25,6 +25,12 @@ cp .env.example .env
 
 Configure your `.env` file with the required values (see Environment Variables section below).
 
+The project's name and repository link live in `app/utils/site.ts`. `SITE_NAME` is the browser
+title and the name in the header. `SITE_REPO_URL` is the target of the GitHub buttons in header,
+footer and start page; `null` hides them. `lt fullstack init` and `lt frontend nuxt` set the name
+to the project name and the link to `null`. Keep both declarations on one line each: the CLI
+rewrites them as text (`tests/unit/site-contract.test.ts`).
+
 ## Development
 
 Start the development server on http://localhost:3001

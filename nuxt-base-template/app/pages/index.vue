@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+// Imported, not auto-imported: the unit test swaps the module to render the page without a repository.
+import { SITE_REPO_URL } from '~/utils/site';
+
 // ============================================================================
 // Variables
 // ============================================================================
@@ -8,8 +11,9 @@ const description = 'A modern Nuxt 4 starter template with TypeScript, Nuxt UI c
 
 // Bound, not written into the template: vue-tsc 3.3.14 stops type-checking a component's attributes at the
 // first `//` inside one, without an error (vuejs/language-tools#6322). See tests/unit/vue-tsc-url-attributes.test.ts.
+// `github` is the project's repository (app/utils/site.ts); `null` in a generated project, which hides the button.
 const links = {
-  github: 'https://github.com/lenneTech/nuxt-base-starter',
+  github: SITE_REPO_URL,
   nuxt: 'https://nuxt.com',
   nuxtUi: 'https://ui.nuxt.com',
 };
@@ -75,7 +79,7 @@ useSeoMeta({ description });
             {{ description }}
           </p>
           <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <UButton :to="links.github" target="_blank" size="xl" icon="i-lucide-github" color="primary"> View on GitHub </UButton>
+            <UButton v-if="links.github" :to="links.github" target="_blank" size="xl" icon="i-lucide-github" color="primary"> View on GitHub </UButton>
             <UButton :to="links.nuxtUi" target="_blank" size="xl" variant="outline" color="neutral" trailing-icon="i-lucide-arrow-right"> Nuxt UI Docs </UButton>
           </div>
         </div>

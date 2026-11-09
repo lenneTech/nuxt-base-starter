@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
 
+// Imported, not auto-imported: the unit test swaps the module to render the layout without a repository.
+import { SITE_REPO_URL } from '~/utils/site';
+
 const { isAuthenticated, signOut, user, validateSession } = useLtAuth();
 // AI links only while the API runs its AI module. ai.global.ts loads the status on /app routes;
 // on the other pages the watcher below does, once per app start and only for signed-in users:
@@ -64,9 +67,10 @@ const footerItems: NavigationMenuItem[] = [
   },
 ];
 
+// The project's repository (app/utils/site.ts); `null` in a generated project, which hides the GitHub buttons.
 // Bound, not written into the template: vue-tsc 3.3.14 stops type-checking a component's attributes at the
 // first `//` inside one, without an error (vuejs/language-tools#6322). See tests/unit/vue-tsc-url-attributes.test.ts.
-const githubUrl = 'https://github.com/lenneTech/nuxt-base-starter';
+const githubUrl = SITE_REPO_URL;
 </script>
 
 <template>
@@ -94,7 +98,7 @@ const githubUrl = 'https://github.com/lenneTech/nuxt-base-starter';
 
         <UColorModeButton />
 
-        <UTooltip text="Open on GitHub" :kbds="['meta', 'G']">
+        <UTooltip v-if="githubUrl" text="Open on GitHub" :kbds="['meta', 'G']">
           <UButton color="neutral" variant="ghost" :to="githubUrl" target="_blank" icon="i-simple-icons-github" aria-label="GitHub" />
         </UTooltip>
       </template>
@@ -114,7 +118,7 @@ const githubUrl = 'https://github.com/lenneTech/nuxt-base-starter';
       <template #right>
         <UButton icon="i-simple-icons-discord" color="neutral" variant="ghost" to="#" target="_blank" aria-label="Discord" />
         <UButton icon="i-simple-icons-x" color="neutral" variant="ghost" to="#" target="_blank" aria-label="X" />
-        <UButton icon="i-simple-icons-github" color="neutral" variant="ghost" to="#" target="_blank" aria-label="GitHub" />
+        <UButton v-if="githubUrl" icon="i-simple-icons-github" color="neutral" variant="ghost" :to="githubUrl" target="_blank" aria-label="GitHub" />
       </template>
     </UFooter>
   </div>
