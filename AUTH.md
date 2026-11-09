@@ -65,6 +65,13 @@ those names finds nothing today. That is not proof that the feature is missing. 
 | `app/pages/auth/setup.vue`             | First-run admin setup                           |
 | `app/pages/app/settings/security.vue`  | Manage passkeys and 2FA                         |
 
+**Removing the registration page does not close sign-up.** `POST /iam/sign-up/email` stays open
+on the API, and anybody can create an account with a plain request. A project without self
+sign-up sets `betterAuth.emailAndPassword.disableSignUp: true` in the API's config (from
+nest-server 12.3.0 this covers social providers too). `GET /iam/features` then reports
+`signUpEnabled: false`: `login.vue` hides its "Registrieren" link and `register.vue` sends the
+visitor to the login.
+
 ## Usage
 
 ### Basic Authentication

@@ -180,6 +180,14 @@ without a wildcard**: `redirectTo` is validated against that list and the reset 
 carries a live one-time token, so a wildcard hands that token to any origin it admits.
 nest-server warns at boot from 11.36.1 if it finds one.
 
+**No self sign-up? Close it in the API, not only in the app.** Deleting
+`app/pages/auth/register.vue` or its link removes the form, not the endpoint:
+`POST /iam/sign-up/email` stays open, and anybody can create an account with a plain request.
+A project that is invitation-only sets `betterAuth.emailAndPassword.disableSignUp: true` in the
+API's config (nest-server; from 12.3.0 it closes sign-up through social providers too).
+`GET /iam/features` then reports `signUpEnabled: false`, the login page hides its "Registrieren"
+link, and `/auth/register` sends visitors to the login, so the page can stay.
+
 Set `NUXT_PUBLIC_SITE_URL` on every deployed stage — it is the origin the reset and
 verification links are built from (see [Environment Variables](#environment-variables)).
 Unset, the app falls back to the browser's origin and logs a console warning; that is

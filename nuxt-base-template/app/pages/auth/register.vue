@@ -61,6 +61,10 @@ const passkeyLoading = ref<boolean>(false);
 // Redirect if registration is disabled. Never on the server: the flags are known there now (see
 // above), but a server-side navigateTo answers with a bare 302 that carries no payload, so the
 // toast explaining the redirect would never reach the browser.
+//
+// Registration is disabled in the API, never here: `betterAuth.emailAndPassword.disableSignUp: true`
+// makes `/iam/features` report `signUpEnabled: false`. Deleting this page instead leaves
+// `POST /iam/sign-up/email` open to anybody with a plain request (README, "No self sign-up?").
 watch(
   () => features.value.signUpEnabled,
   (val) => {
