@@ -18,7 +18,7 @@
     "format": "oxfmt --disable-nested-config",
     "format:check": "oxfmt --check --disable-nested-config",
     "check:ci-placement": "node scripts/check-ci-placement.mjs",
-    "test:scripts": "node --test scripts/check-ci-placement.test.mjs scripts/root-workspace.test.mjs scripts/starter-version.test.mjs scripts/template-defaults.test.mjs",
+    "test:scripts": "node --test scripts/check-ci-placement.test.mjs scripts/root-workspace.test.mjs scripts/next-guides.test.mjs scripts/starter-version.test.mjs scripts/template-defaults.test.mjs",
     "test:unit": "cd nuxt-base-template && pnpm run test:unit"
   },
   "devDependencies": {

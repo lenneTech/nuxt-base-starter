@@ -32,8 +32,11 @@ The switch skips numbers. nuxt-extensions goes from 1.28.0 to 4.0.0 (Nuxt 4); 2.
 exist. The starter follows from 2.38.5 to 4.0.0; there is no starter 3.x.
 
 Migration guides keep the starter version in their name (`migration-guides/<version>-<topic>.md`;
-the jump is `2.38.x-to-4.0.0.md`). A guide for a starter-only change is written with that change
-and renamed to the version it ships in by the release commit, together with the changelog link.
+the jump is `2.38.x-to-4.0.0.md`). A guide for a starter-only change is written with that change as
+`migration-guides/next-<topic>.md`, because its number is not known yet. The bump PR of the release
+it ships in renames it to `<version>-<topic>.md`, and the release commit links it in the changelog
+section. `scripts/next-guides.test.mjs` (part of `check`) fails while the root `version` is ahead of
+CHANGELOG.md and a `next-` guide is still there.
 
 This rule does not apply to projects generated from the starter: they carry their own version and
 upgrade nuxt-extensions on their own.
