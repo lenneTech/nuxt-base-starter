@@ -38,7 +38,9 @@ export default defineConfig({
   input: withOpenApiPath(apiUrl),
   output: {
     path: './app/api-client',
-    postProcess: ['oxlint', 'oxfmt'],
+    // oxfmt only: `.oxlintrc.json` ignores app/api-client/**, and oxlint on a path it ignores exits 1, which
+    // would fail every run before oxfmt formats the client (tests/unit/oxlint-generated-client.test.ts).
+    postProcess: ['oxfmt'],
   },
   // `@hey-api/transformers` is deliberately NOT in this list (DEV-2897). The
   // plugin emits `transformers.gen.ts` and makes `types.gen.ts` declare every
