@@ -103,7 +103,7 @@
   },
   "lint-staged": {
     "app/**/*.{ts,vue}": [
-      "oxlint --type-aware --fix",
+      "oxlint --type-aware --fix --no-error-on-unmatched-pattern",
       "oxfmt"
     ],
     "tests/**/*.ts": [
