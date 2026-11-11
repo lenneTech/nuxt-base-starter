@@ -35,6 +35,16 @@ function runFixture(entry: string, timeoutSeconds = 10, args: string[] = []): Pr
   });
 }
 
+/** Polls the condition every 100 ms; resolves true as soon as it holds, false after the timeout. */
+async function waitFor(condition: () => boolean | Promise<boolean>, timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await condition()) return true;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  return false;
+}
+
 /** Resolves true when something accepts a connection on the port. */
 function portAcceptsConnections(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -106,6 +116,9 @@ describe('check-server-start helpers', () => {
     expect(PID1_SIGNAL_PRELOAD[1]).toMatch(/^data:text\/javascript,/);
     expect(PID1_SIGNAL_PRELOAD[1]).toContain('process.on("SIGTERM",()=>{})');
     expect(PID1_SIGNAL_PRELOAD[1]).toContain('process.on("SIGINT",()=>{})');
+    // Without the parent watch a server that swallows the signals outlives a killed runner.
+    expect(PID1_SIGNAL_PRELOAD[1]).toContain('process.ppid');
+    expect(PID1_SIGNAL_PRELOAD[1]).toContain('.unref()');
   });
 });
 
@@ -155,6 +168,28 @@ describe('check-server-start CLI', () => {
     expect(output).toMatch(/did not exit within 1 s after SIGTERM/);
     expect(ms).toBeLessThan(10_000);
     expect(await portAcceptsConnections(port)).toBe(false);
+  });
+
+  it.skipIf(process.platform === 'win32')('takes the server down when the runner itself is killed during the shutdown step', async () => {
+    // The PID 1 preload makes the server swallow SIGTERM and SIGINT. A Ctrl-C to the process group, or a
+    // watchdog SIGKILLing the runner, ends the runner before its `finally` stops the server, which then
+    // kept listening under init for hours. The preload watches its parent and ends the server with it.
+    // Should this test fail, the fixture is left behind: the signal guard lets no test kill a process
+    // it did not spawn itself, so `no-shutdown.mjs` ends on its own after a minute.
+    const { NUXT_API_URL: _apiUrl, NUXT_PUBLIC_API_URL: _publicApiUrl, ...env } = process.env;
+    const child = spawn(process.execPath, [runner, '--entry=no-shutdown.mjs', '--timeout=10', '--graceful-shutdown=30'], { cwd: fixtures, env });
+    let output = '';
+    child.stdout.on('data', (d) => (output += d));
+    child.stderr.on('data', (d) => (output += d));
+    const closed = new Promise((resolve) => child.once('close', resolve));
+
+    expect(await waitFor(() => /rendered GET \/ with HTTP 200/.test(output), 15_000), output).toBe(true);
+    const port = Number(/Using free port: (\d+)/.exec(output)?.[1]);
+    expect(await portAcceptsConnections(port)).toBe(true);
+
+    child.kill('SIGKILL'); // the runner, our own child; the server is its child
+    await closed;
+    expect(await waitFor(async () => !(await portAcceptsConnections(port)), 3000), `port ${port} still open 3 s after the runner died`).toBe(true);
   });
 
   it.skipIf(process.platform === 'win32')('returns 1 when the shutdown exits with an error code', async () => {

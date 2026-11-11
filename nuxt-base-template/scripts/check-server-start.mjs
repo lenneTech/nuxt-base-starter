@@ -67,8 +67,18 @@ export function isRenderedStatus(status) {
  * or re-raises after its own handler ran, is swallowed instead of killing the process. The
  * process then ends only when the app closes everything that keeps the event loop alive.
  * Passed as a `data:` module so nothing is written to disk.
+ *
+ * Swallowing the signals also means nothing outside stops the server any more, so it must not
+ * outlive this runner. A Ctrl-C reaches the whole process group, and a watchdog SIGKILLs the
+ * runner: either way the runner dies before its `finally` stops the server, which went on
+ * listening for hours under init. The preload therefore watches its parent and SIGKILLs the
+ * server once it was re-parented. The timer is `unref`'d, so it keeps nothing alive and does not
+ * change the shutdown the step measures.
  */
-export const PID1_SIGNAL_PRELOAD = Object.freeze(['--import', 'data:text/javascript,process.on("SIGTERM",()=>{});process.on("SIGINT",()=>{});']);
+export const PID1_SIGNAL_PRELOAD = Object.freeze([
+  '--import',
+  'data:text/javascript,process.on("SIGTERM",()=>{});process.on("SIGINT",()=>{});const parent=process.ppid;setInterval(()=>{if(process.ppid!==parent)process.kill(process.pid,"SIGKILL")},250).unref();',
+]);
 
 /** Pure: whether the way a process ended counts as a clean shutdown — exit code 0, no signal. */
 export function isCleanShutdown(code, signal) {
