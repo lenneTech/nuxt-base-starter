@@ -58,7 +58,7 @@
   "dependencies": {
     "@better-auth/passkey": "1.7.19",
     "@lenne.tech/bug.lt": "1.6.10",
-    "@lenne.tech/nuxt-extensions": "4.0.1",
+    "@lenne.tech/nuxt-extensions": "4.0.2",
     "@nuxt/ui": "4.12.0",
     "@pinia/nuxt": "1.0.3",
     "@plausible-analytics/tracker": "0.4.7",
@@ -71,8 +71,8 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.99.0",
-    "@iconify-json/lucide": "1.2.152",
-    "@nuxt/test-utils": "4.3.4",
+    "@iconify-json/lucide": "1.2.153",
+    "@nuxt/test-utils": "4.4.0",
     "@nuxtjs/plausible": "4.0.0",
     "@nuxtjs/seo": "6.0.1",
     "@playwright/test": "1.65.0",
@@ -86,8 +86,8 @@
     "lint-staged": "17.6.0",
     "mongodb": "7.8.0",
     "nuxt": "4.6.4",
-    "oxfmt": "0.77.0",
-    "oxlint": "1.92.0",
+    "oxfmt": "0.78.0",
+    "oxlint": "1.93.0",
     "oxlint-tsgolint": "7.0.2006",
     "rimraf": "6.1.4",
     "simple-git-hooks": "2.14.0",
@@ -118,5 +118,5 @@
     "node": ">=22",
     "pnpm": "^11.0.0"
   },
-  "packageManager": "pnpm@11.28.10+sha512.672216f06e15c109b85471d49d3fbed17e6f03ead258df08c2bf5b4a5c33321ebfbf59476bce81325efada16ace0ac78548fd0bfcd7a51369e939182a3dd50e4"
+  "packageManager": "pnpm@11.28.11+sha512.740184d10f81f5d5b165be88560ee7ba62406c4134896abc27a580109eec2f47c1e41d91251c944c2cababcb1c22461799ebb72de2ec625af2030b0e36c735a3"
 }

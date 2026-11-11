@@ -6,9 +6,9 @@
  * browser can resolve. `buildLtApiUrl()` returns the internal address during SSR. That is right for a
  * request the server sends itself and wrong for every URL that ends up in the page: an `<img src>` or
  * a download link built with it points the browser at an address it cannot reach, so the image never
- * loads. A project on the stack lost its images in production that way. File URLs for the page come
- * from `useLtFile().getFileUrl()` / `getDownloadUrl()` (nuxt-extensions 4.0.0), which use the public
- * address on the server too.
+ * loads. A project on the stack lost its images in production that way. URLs for the page come from
+ * `buildLtPublicApiUrl()` (auto-imported since nuxt-extensions 4.0.2) and, for files,
+ * `useLtFile().getFileUrl()` / `getDownloadUrl()`, which use the public address on the server too.
  *
  * This spec renders every page under `app/pages` that has no route parameter: signed out, signed in,
  * and as admin. It fails when the server-rendered HTML, the Nuxt payload included, contains the host
