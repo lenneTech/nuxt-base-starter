@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.2](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.1...v4.0.2) (2026-11-11)
+
+
+### Highlights for adopters
+
+* **nuxt-extensions 4.0.2.** `buildLtPublicApiUrl()` is auto-imported now, and exported from `@lenne.tech/nuxt-extensions/lib`. It builds an API URL for the page from the public address, on the server too. `buildLtApiUrl()` and `getLtApiBase()` return the server-only `NUXT_API_URL` during SSR and are meant for requests. Nothing else changes for a project: pin `"@lenne.tech/nuxt-extensions": "4.0.2"` and run `pnpm install`.
+* **Server-rendered pages are checked for the internal API address.** `tests/e2e/ssr-internal-api-url.spec.ts` renders every page without a route parameter, signed out, signed in and as admin, and fails when the HTML contains the host of `NUXT_API_URL`. Built with `buildLtApiUrl()`, an image URL points every visitor at that internal host, and the image never loads; a project on the stack lost its images in production that way. The test needs an internal address of its own, so the E2E job starts the app with `NUXT_API_URL=http://127.0.0.1:3000`. In an `lt fullstack` monorepo that is the root CI; projects made with lt-monorepo 3.18.7 or later have the value already. Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.2/migration-guides/4.0.2-ssr-internal-api-url.md).
+* **"Neue Backup-Codes generieren" generates codes again.** The form in `app/components/Modal/ModalBackupCodes.vue` had no `:state`, so Nuxt UI's validation failed before the submit handler ran, and the button did nothing. Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.2/migration-guides/4.0.2-backup-codes-dialog.md).
+* **`/app/admin/system` reports a failed `GET /meta`.** An API outage looked like a local build with an unknown commit. The page now shows an error with "Erneut versuchen". Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.2/migration-guides/4.0.2-system-page-api-failure.md).
+* **"Passwort vergessen?" by keyboard, German labels in the header.** The link on `/auth/login` is in the Tab order again, and the header buttons say "Abmelden" and "Anmelden" instead of "Logout" and "Login". E2E specs that select `Logout` change to `page.getByLabel('Abmelden', { exact: true })`. Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.2/migration-guides/4.0.2-login-keyboard-and-german-labels.md).
+* **The project's name and repository link live in `app/utils/site.ts`.** The browser tab, the header and every GitHub link read `SITE_NAME` and `SITE_REPO_URL` from there, and the lt CLI sets both when it creates a project, so a new project no longer shows "Nuxt Base Starter" or links to this repository. Existing projects follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.2/migration-guides/4.0.2-site-name-and-repo-link.md).
+* **`check` proves the built server stops on SIGTERM.** `scripts/check-server-start.mjs --graceful-shutdown=10` sends SIGTERM after the render and fails when the server has not exited within Docker's stop grace period. The server it starts also ends when the runner dies. Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.2/migration-guides/4.0.2-check-graceful-shutdown.md).
+* **oxlint leaves the generated API client alone.** `.oxlintrc.json` ignores `app/api-client/**`, so `lint` no longer fails on code that `generate-types` writes. Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.2/migration-guides/4.0.2-oxlint-ignores-generated-client.md).
+* **Dependencies.** better-auth and `@better-auth/passkey` 1.7.19, in step with the API: run it on nest-server-starter 12.8.8 or later. Playwright 1.65.0, `@nuxt/test-utils` 4.4.0, oxlint 1.93.0, oxfmt 0.78.0 and pnpm 11.28.11. Two overrides in `pnpm-workspace.yaml` have higher targets, with their keys unchanged: `postcss-selector-parser@<6.1.5` goes to 6.1.6 and `readdir-glob>minimatch@<11.0.1` to 11.0.5. A project that carries these entries raises them the same way.
+
+
+### Features
+
+* **check:** prove the built server shuts down on SIGTERM (#49) ([fdd137f](https://github.com/lenneTech/nuxt-base-starter/commit/fdd137febfe62f8666a4cf86bec3d7198cb6a0ac))
+* **site:** keep the project name and repository link in app/utils/site.ts (#44) ([5ba4db9](https://github.com/lenneTech/nuxt-base-starter/commit/5ba4db967fcfca128f24e4412b1d14a6dab9c533))
+
+
+### Bug Fixes
+
+* **deps:** nuxt-extensions 4.0.2, oxlint 1.93.0 and oxfmt 0.78.0 (#57) ([ac22815](https://github.com/lenneTech/nuxt-base-starter/commit/ac22815c8ffb7aae4f530e8c12035c8710a819ba))
+* **a11y:** "Passwort vergessen?" by keyboard, "Abmelden" instead of "Logout" (#55) ([3c8e0c4](https://github.com/lenneTech/nuxt-base-starter/commit/3c8e0c492f625000312993eb076b612d5fbb654e))
+* **check:** end the server when the server-start runner dies (#54) ([232e1ac](https://github.com/lenneTech/nuxt-base-starter/commit/232e1ac02891217eba71eb87ac3ae7a28e330ed3))
+* **lint:** load the Node types in check-server-start.d.mts (#53) ([93d4bcb](https://github.com/lenneTech/nuxt-base-starter/commit/93d4bcb25de4522f0f96587cf294ef9544f8d098))
+* backup codes are generated again, /app/admin/system reports an API outage (#50) ([bc33433](https://github.com/lenneTech/nuxt-base-starter/commit/bc33433e1d5bc5a031f8d327bab1aedaa66aa4e6))
+* **lint:** leave the generated API client to its generator (#47) ([6e70a8f](https://github.com/lenneTech/nuxt-base-starter/commit/6e70a8f1d522630dfe3d92b75ac1cd7a6e7aa870))
+
+
+### Documentation
+
+* the versioning rule, and closing sign-up in the API (#45) ([8e68a3f](https://github.com/lenneTech/nuxt-base-starter/commit/8e68a3f77707b925a3e02f2d78b2447e893fb15a))
+
+
+### Tests
+
+* **e2e:** no server-only API address in server-rendered pages (#56) ([52ad68c](https://github.com/lenneTech/nuxt-base-starter/commit/52ad68c26ccd18b3d669e9b280905c32bf12c2c7))
+* **e2e:** leave the app before dropping the session (#51) ([55913f8](https://github.com/lenneTech/nuxt-base-starter/commit/55913f8f5295ee243267f29fd52728ff97df6fc1))
+
+
+### Chores
+
+* **deps:** better-auth 1.7.19, in step with nest-server-starter (#52) ([facb452](https://github.com/lenneTech/nuxt-base-starter/commit/facb452dd26f49aed356aed548f31b7951de1cbe))
+* **release:** fail a bump PR that still carries a next- guide (#48) ([ef8936f](https://github.com/lenneTech/nuxt-base-starter/commit/ef8936fb1957b49aa2ad364f0121a68ab6ee637c))
+* **deps:** better-auth 1.7.18, Playwright 1.65.0 and current tooling (#46) ([3108a5e](https://github.com/lenneTech/nuxt-base-starter/commit/3108a5eb030c8e886e47d252e9ae83ef11bd1e4a))
+
 ### [4.0.1](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.0...v4.0.1) (2026-11-07)
 
 
