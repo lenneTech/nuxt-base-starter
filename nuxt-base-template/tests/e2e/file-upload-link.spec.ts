@@ -27,6 +27,7 @@ import type { Page } from '@playwright/test';
 import { fillInput, generateTestUser, gotoAndWaitForHydration, waitForURLAndHydration } from '@lenne.tech/nuxt-extensions/testing';
 
 import { API_BASE, DEFAULT_FEATURES, FRONTEND_BASE, parseFeatures, resetTestData, waitForVerificationToken, type Features } from './helpers/auth-backend';
+import { dropSession } from './helpers/session';
 
 // =============================================================================
 // UI Helpers
@@ -171,7 +172,7 @@ test.describe('File links: an upload through the TUS endpoint is served at /file
 
     // Signed in is not enough either: another user's session is refused too. This is the line that
     // fails on an API that widened `file.downloadRoles` without a per-file rule (see the header).
-    await page.context().clearCookies();
+    await dropSession(page);
     await registerUser(page, other, features);
     const foreign = await page.request.get(fileUrl);
     expect(foreign.status(), `GET ${fileUrl} with another user's session`).not.toBe(200);

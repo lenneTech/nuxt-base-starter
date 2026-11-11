@@ -17,6 +17,7 @@ import type { Page, Route } from '@playwright/test';
 import { fillInput, generateTestUser, gotoAndWaitForHydration, waitForURLAndHydration } from '@lenne.tech/nuxt-extensions/testing';
 
 import { API_BASE, DEFAULT_FEATURES, FRONTEND_BASE, grantAdminRole, parseFeatures, resetTestData, waitForVerificationToken, type Features } from './helpers/auth-backend';
+import { dropSession } from './helpers/session';
 
 // =============================================================================
 // UI Helpers
@@ -106,7 +107,7 @@ test.describe('Admin system page: an API that does not report its build', () => 
     await resetTestData(user.email);
     await registerUser(page, user, features);
     await grantAdminRole(user.email);
-    await page.context().clearCookies();
+    await dropSession(page);
     await loginWithEmail(page, user.email, user.password);
 
     let failMeta = true;

@@ -20,6 +20,7 @@ import type { Page } from '@playwright/test';
 import { fillInput, generateTestUser, gotoAndWaitForHydration, waitForURLAndHydration } from '@lenne.tech/nuxt-extensions/testing';
 
 import { API_BASE, DEFAULT_FEATURES, FRONTEND_BASE, grantAdminRole, parseFeatures, resetTestData, waitForVerificationToken, type Features } from './helpers/auth-backend';
+import { dropSession } from './helpers/session';
 
 // =============================================================================
 // UI Helpers
@@ -130,7 +131,7 @@ test.describe('Admin area: the role decides, the admin plugin stays silent', () 
 
     await test.step('with the admin role and a new sign-in: the admin pages open', async () => {
       await grantAdminRole(user.email);
-      await page.context().clearCookies();
+      await dropSession(page);
       await loginWithEmail(page, user.email, user.password);
 
       await gotoAndWaitForHydration(page, '/app/admin');
