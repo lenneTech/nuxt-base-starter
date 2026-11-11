@@ -42,6 +42,10 @@ const passwordSchema = v.object({
 
 type PasswordSchema = InferOutput<typeof passwordSchema>;
 
+// UForm validates this state against the schema before it submits; without it, it validates
+// `undefined` and the button does nothing (tests/unit/uform-state-contract.test.ts).
+const passwordState = reactive<{ password: string }>({ password: '' });
+
 // ============================================================================
 // Functions
 // ============================================================================
@@ -98,9 +102,9 @@ function handleClose(): void {
         </template>
 
         <template v-else>
-          <UForm :schema="passwordSchema" class="space-y-4" @submit="generateBackupCodes">
+          <UForm :schema="passwordSchema" :state="passwordState" class="space-y-4" @submit="generateBackupCodes">
             <UFormField label="Passwort" name="password">
-              <UInput name="password" type="password" placeholder="Dein Passwort" />
+              <UInput v-model="passwordState.password" name="password" type="password" placeholder="Dein Passwort" autocomplete="current-password" />
             </UFormField>
             <UButton type="submit" block :loading="loading"> Neue Backup-Codes generieren </UButton>
           </UForm>

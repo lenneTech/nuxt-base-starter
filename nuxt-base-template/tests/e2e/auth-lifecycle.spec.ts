@@ -449,7 +449,7 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
   // Step 6: Delete Passkey
   // =========================================================================
 
-  test('Step 6: Delete Passkey', async ({ page }) => {
+  test('Step 6: Delete Passkey, generate new backup codes', async ({ page }) => {
     test.skip(!apiAvailable, 'Servers not running');
     test.skip(!totpSecret, 'TOTP secret not available (2FA required for login)');
 
@@ -470,6 +470,22 @@ test.describe.serial('Comprehensive Better-Auth E2E Flow', () => {
     // Verify passkey is removed
     await expect(page.getByText('E2E-Fingerprint')).not.toBeVisible({ timeout: 10000 });
     console.info('  Passkey "E2E-Fingerprint" deleted');
+
+    // New backup codes, with the password. The dialog's form once had no state: UForm validated
+    // `undefined`, the submit never fired, and the button did nothing (no request, no message).
+    await page.getByRole('button', { name: 'Backup-Codes anzeigen' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Backup-Codes' });
+    await expect(dialog).toBeVisible({ timeout: 10000 });
+    await fillInput(page, '[role="dialog"] input[name="password"]', testUser.password);
+    const generated = page.waitForResponse((resp) => resp.url().includes('/two-factor/generate-backup-codes'), { timeout: 15000 });
+    await dialog.getByRole('button', { name: 'Neue Backup-Codes generieren' }).click();
+    expect((await generated).status(), 'POST /two-factor/generate-backup-codes').toBe(200);
+    // Codes like `AbCd1-EfGh2`, one per cell of the grid.
+    await expect(dialog.locator('.font-mono > span')).toHaveCount(10, { timeout: 10000 });
+    // The footer button; the header's X carries the same name.
+    await dialog.getByRole('button', { name: 'Schließen' }).last().click();
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
+    console.info('  10 new backup codes generated');
 
     // Logout
     await logout(page);

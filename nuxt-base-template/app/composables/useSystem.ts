@@ -49,6 +49,12 @@ export function useSystem() {
 
   const apiMeta = useState<ApiMeta | null>('system:apiMeta', () => null);
   const isLoadingMeta = useState<boolean>('system:isLoadingMeta', () => false);
+  /**
+   * `GET /meta` failed. Kept apart from an `unknown` commit on purpose: `buildsMatch` ignores
+   * `unknown` (a local build has none), so a failed request folded into it looked exactly like a
+   * local build, and an API outage went unnoticed on the page meant to show a broken rollout.
+   */
+  const apiMetaFailed = useState<boolean>('system:apiMetaFailed', () => false);
 
   /**
    * Whether App and API run on the SAME build, judged by COMMIT SHA (not the
@@ -63,14 +69,22 @@ export function useSystem() {
     return api === appCommit.value;
   });
 
-  /** Fetch the API build identity from the public GET /meta endpoint. */
+  /**
+   * Fetch the API build identity from the public GET /meta endpoint. A call while one is running
+   * sends no second request (a retry pressed twice); it resolves to the current value.
+   */
   async function fetchApiMeta(): Promise<ApiMeta | null> {
+    if (isLoadingMeta.value) {
+      return apiMeta.value;
+    }
     isLoadingMeta.value = true;
     try {
       apiMeta.value = await $fetch<ApiMeta>(buildLtApiUrl('/meta'));
+      apiMetaFailed.value = false;
       return apiMeta.value;
     } catch {
       apiMeta.value = null;
+      apiMetaFailed.value = true;
       return null;
     } finally {
       isLoadingMeta.value = false;
@@ -98,6 +112,7 @@ export function useSystem() {
 
   return {
     apiMeta: computed(() => apiMeta.value),
+    apiMetaFailed: computed(() => apiMetaFailed.value),
     appCommit,
     appVersion,
     buildsMatch,
