@@ -423,12 +423,15 @@ benefits and the local patch disappears on the next sync.
 
 ### URLs in the page use the public API address
 
-During SSR, `buildLtApiUrl()` returns `NUXT_API_URL`, the address the app server reaches the API at.
-On a cluster that is an internal name (`http://api:3000`) no browser resolves. It is for requests
-only. A URL that ends up in the HTML (`src`, `srcset`, `href`, an avatar, a download link) comes from
-`useLtFile().getFileUrl(id)` / `getDownloadUrl(id)`, which use `NUXT_PUBLIC_API_URL` on the server
-too. Built with `buildLtApiUrl()`, every server-rendered image points at the internal host and never
-loads; a project on the stack lost its images in production that way.
+During SSR, `buildLtApiUrl()` and `getLtApiBase()` return `NUXT_API_URL`, the address the app server
+reaches the API at. On a cluster that is an internal name (`http://api:3000`) no browser resolves.
+They are for requests only (`$fetch`, `ltAuthFetch`). A URL that ends up in the HTML (`src`,
+`srcset`, `href`, an avatar, a download link, a CSS `url()`, a value in `useState`) comes from
+`buildLtPublicApiUrl(path)` (auto-imported since nuxt-extensions 4.0.2) or, for a file,
+`useLtFile().getFileUrl(id)` / `getDownloadUrl(id)`. They use `NUXT_PUBLIC_API_URL` (or `/api`
+behind the dev proxy) on the server too, so server and browser render the same string. Built with
+`buildLtApiUrl()`, every server-rendered image points at the internal host and never loads; a
+project on the stack lost its images in production that way.
 `tests/e2e/ssr-internal-api-url.spec.ts` renders every page without a route parameter, signed out,
 signed in and as admin, with a `NUXT_API_URL` of its own, and fails when its host is in the HTML.
 Where the CI job gives both addresses the same host it skips; `docs/e2e-auth.md` names the CI files

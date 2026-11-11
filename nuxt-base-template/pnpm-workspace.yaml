@@ -142,6 +142,13 @@ onlyBuiltDependencies:
 # to archiver 8, and archiver 8 no longer depends on archiver-utils. The fresh lockfiles with
 # and without the entry were identical apart from the entry line itself. Each of the other
 # eight audit entries still reopens its own advisory on its own. Nine entries now.
+# The `rimraf>glob` entry went on 2026-11-09 (see the @vercel/nft entry). Eight entries now.
+# Re-run 2026-11-11 (starter 4.0.2 maintenance, pnpm 11.28.11), same method plus one fresh
+# resolve per entry: each of the seven audit entries reopens its own advisory on its own (zod
+# high, three js-yaml highs, @nuxt/ui, glob + minimatch, esbuild, postcss-selector-parser,
+# minimatch), and the resolve without any override puts no overridden package above the version
+# its entry delivers (@iconify/vue 5.0.5 aside, which is the hold). Two targets raised within
+# their major: postcss-selector-parser 6.1.6 and readdir-glob's minimatch 11.0.5 (see the entries).
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -293,10 +300,23 @@ overrides:
   #
   # The key stays below the first patched version (see the selector note above). Drop this
   # entry once @tailwindcss/typography requests >=6.1.5 itself.
-  'postcss-selector-parser@<6.1.5': 6.1.5
+  #
+  # Target raised 6.1.5 -> 6.1.6 on 2026-11-11 (key unchanged). 6.1.6 (2026-11-08, `legacy-v6`
+  # dist-tag, newest 6.x) is a second security release of the line: its changelog reports linear
+  # parsing on "four more kinds of crafted input, closing a CPU exhaustion vulnerability" (no GHSA
+  # id published yet) and inlines `cssesc`. The tarball diff touches only the parser loops and the
+  # escaping helper. typography 0.5.20 is still the newest release and still pins 6.0.10, and no
+  # 7.x copy resolves in this tree.
+  'postcss-selector-parser@<6.1.5': 6.1.6
   # minimatch 11 for readdir-glob (3.0.0 via archiver 8: minimatch ^10, `new Minimatch(…).match()`);
   # see the @vercel/nft entry, which also carries the 2026-11-04 measurement for this pair.
-  'readdir-glob>minimatch@<11.0.1': 11.0.4
+  #
+  # Target raised 11.0.4 -> 11.0.5 on 2026-11-11 (key unchanged). glob 14.0.4 requests
+  # minimatch ^11.0.5 itself, so 11.0.4 had become a second, older copy next to glob's. 11.0.5 is
+  # the newest 11.x past the one-day release-age gate; no advisory covers any 11.x. readdir-glob
+  # 4.0.0 (2026-11-09) requests ^11.0.1 itself, but archiver 8.0.0, its only consumer and still the
+  # newest release, asks for ^3.0.0; this entry turns inert once archiver moves to readdir-glob 4.
+  'readdir-glob>minimatch@<11.0.1': 11.0.5
 
 patchedDependencies:
   # reka-ui 2.10.0+ hides every toast from screen readers. ToastAnnounce wraps the
