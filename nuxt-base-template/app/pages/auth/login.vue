@@ -271,7 +271,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
         </template>
 
         <template #password-hint>
-          <ULink to="/auth/forgot-password" class="text-primary font-medium" tabindex="-1">Passwort vergessen?</ULink>
+          <ULink to="/auth/forgot-password" class="text-primary font-medium">Passwort vergessen?</ULink>
         </template>
 
         <template #footer>

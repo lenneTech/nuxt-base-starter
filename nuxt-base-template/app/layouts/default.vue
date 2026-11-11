@@ -88,12 +88,12 @@ const githubUrl = SITE_REPO_URL;
       <template #right>
         <template v-if="isAuthenticated">
           <span class="text-sm text-muted hidden sm:inline">{{ user?.email }}</span>
-          <UTooltip text="Logout">
-            <UButton color="neutral" variant="ghost" icon="i-lucide-log-out" aria-label="Logout" @click="handleLogout" />
+          <UTooltip text="Abmelden">
+            <UButton color="neutral" variant="ghost" icon="i-lucide-log-out" aria-label="Abmelden" @click="handleLogout" />
           </UTooltip>
         </template>
         <template v-else>
-          <UButton color="primary" variant="soft" to="/auth/login" icon="i-lucide-log-in" label="Login" />
+          <UButton color="primary" variant="soft" to="/auth/login" icon="i-lucide-log-in" label="Anmelden" />
         </template>
 
         <UColorModeButton />
