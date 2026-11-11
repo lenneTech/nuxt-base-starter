@@ -1,6 +1,12 @@
+/// <reference types="node" />
+
 /**
  * Public surface of `scripts/check-server-start.mjs`, so the unit tests can import
  * its helpers under `strict`. Everything not declared here is internal.
+ *
+ * The reference above brings in the Node types for `NodeJS.*`. oxlint's type-aware pass reads this
+ * file outside the test program, where `NodeJS.Signals` was otherwise an error type, and
+ * `no-redundant-type-constituents` warned about `NodeJS.Signals | null` on every `lint`.
  */
 
 export interface ServerStartOptions {
