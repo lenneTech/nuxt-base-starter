@@ -206,6 +206,11 @@ jobs:
       NSC__MONGOOSE__URI: mongodb://127.0.0.1:27017/app-ci
       API_URL: http://localhost:3000
       NUXT_PUBLIC_API_URL: http://localhost:3000
+      # Where the app server reaches the API during SSR: another name for the same
+      # API than the public one, as on a cluster, where it is an internal host no
+      # browser resolves. tests/e2e/ssr-internal-api-url.spec.ts fails when a page
+      # renders it into the HTML, and skips when both names are the same.
+      NUXT_API_URL: http://127.0.0.1:3000
       NUXT_PUBLIC_SITE_URL: http://localhost:3001
       # Relaxes rate limiting and disables the Better-Auth user cache, so a
       # freshly promoted admin is recognised immediately.

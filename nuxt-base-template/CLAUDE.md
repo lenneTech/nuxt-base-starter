@@ -421,6 +421,19 @@ benefits and the local patch disappears on the next sync.
 5. **Check runtime composables** before creating new composables — may already exist. List the directory rather than grepping the docs for a name: `useBetterAuth` stood in this file for months after it became `useLtAuth`, and `useTusUpload` after it became `useLtTusUpload`, so a search for the documented name "proved" the feature did not exist
 6. **In vendor mode**, only edit `app/core/` for generally-useful changes and submit them upstream via `/lt-dev:frontend:contribute-nuxt-extensions-core`. Project-specific code belongs outside `app/core/`.
 
+### URLs in the page use the public API address
+
+During SSR, `buildLtApiUrl()` returns `NUXT_API_URL`, the address the app server reaches the API at.
+On a cluster that is an internal name (`http://api:3000`) no browser resolves. It is for requests
+only. A URL that ends up in the HTML (`src`, `srcset`, `href`, an avatar, a download link) comes from
+`useLtFile().getFileUrl(id)` / `getDownloadUrl(id)`, which use `NUXT_PUBLIC_API_URL` on the server
+too. Built with `buildLtApiUrl()`, every server-rendered image points at the internal host and never
+loads; a project on the stack lost its images in production that way.
+`tests/e2e/ssr-internal-api-url.spec.ts` renders every page without a route parameter, signed out,
+signed in and as admin, with a `NUXT_API_URL` of its own, and fails when its host is in the HTML.
+Where the CI job gives both addresses the same host it skips; `docs/e2e-auth.md` names the CI files
+that set it, the root CI of an `lt fullstack` monorepo included.
+
 ### Tailwind sources
 
 Tailwind 4 generates only the classes it finds in its sources: the app directory (the Vite root is

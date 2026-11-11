@@ -58,12 +58,25 @@ All optional — each falls back to the classic local default.
 | ---------------------------------- | --------------------------------------- | ----------------------------------------------------- |
 | `NEST_SERVER_LOG`                  | the candidate list above                | explicit log location                                 |
 | `NUXT_PUBLIC_API_URL` / `API_URL`  | `http://localhost:3000`                 | API base                                              |
+| `NUXT_API_URL`                     | unset (SSR uses the public API base)    | SSR address check (see below)                         |
 | `NUXT_PUBLIC_SITE_URL` / `APP_URL` | `http://localhost:3001`                 | app base                                              |
 | `NSC__MONGOOSE__URI` / `MONGO_URI` | `mongodb://127.0.0.1/nest-server-local` | test-data reset                                       |
 | `E2E_EXPECT_AUTH_MODE`             | not checked                             | auth mode of the password sign-in (`cookie` or `jwt`) |
 
 Under `lt dev up` / `lt dev test` these are set for you via the `.lt-dev/.env` bridge, so the
 same suite runs unchanged against classic ports, a `lt dev` session, and CI.
+
+**The SSR address check needs `NUXT_API_URL` with a host of its own.**
+`tests/e2e/ssr-internal-api-url.spec.ts` renders every page and fails when the HTML contains the host
+of `NUXT_API_URL`, the address the app server uses during SSR. On a cluster that is an internal name
+no browser resolves, so a URL built from it for an `<img src>` or a link is dead. The spec can only
+tell it from the public address when the two differ, so the CI job that runs the suite sets
+`NUXT_API_URL=http://127.0.0.1:3000` next to `NUXT_PUBLIC_API_URL=http://localhost:3000`: here
+`.github/workflows/test.yml`, job `e2e-auth`; in an `lt fullstack` monorepo the root CI
+(`.gitlab-ci.yml` job `app:test`, `.github/workflows/test.yml` job `app-test`), since no CI runs
+`projects/app/.github/`. A local run does the same. With one address for both (`lt dev up`, a CI job
+that sets both to `localhost`, or `NUXT_API_URL` unset) it skips, and the pipeline stays green
+without having checked anything.
 
 ### An empty database is its own state
 
