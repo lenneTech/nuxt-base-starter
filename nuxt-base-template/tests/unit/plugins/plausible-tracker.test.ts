@@ -229,6 +229,24 @@ describe('app/plugins/plausible.client.ts', () => {
     expect(transformRequest()({ d: 'staging.example', n: 'pageview', r: null, u: 'https://staging.example/' })).toBeNull();
   });
 
+  // `NUXT_PUBLIC_PLAUSIBLE_IGNORED_HOSTNAMES=staging.example` arrives as a string, not a list. The
+  // module takes it since 4.1.0; read as "no list", it reported the stage's traffic after all.
+  it('drops events from a single hostname set on the stage as a string, as the module does', async () => {
+    withHost('https://stats.example', { ignoredHostnames: 'staging.example' });
+    Object.defineProperty(window, 'location', { value: new URL('https://staging.example/') });
+    (await templatePlugin()).setup();
+
+    expect(transformRequest()({ d: 'staging.example', n: 'pageview', r: null, u: 'https://staging.example/' })).toBeNull();
+    expect(tracker.init).toHaveBeenCalledWith(expect.objectContaining({ captureOnLocalhost: true }));
+  });
+
+  it('treats a blank hostname from the stage as none', async () => {
+    withHost('https://stats.example', { ignoredHostnames: '  ' });
+    (await templatePlugin()).setup();
+
+    expect(tracker.init).toHaveBeenCalledWith(expect.objectContaining({ captureOnLocalhost: false }));
+  });
+
   it('provides `$plausible` for the module composables and `reportPageviews`', async () => {
     withHost('https://stats.example');
 

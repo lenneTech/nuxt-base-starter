@@ -197,8 +197,9 @@ describe('optimizeDeps.include covers the client code', () => {
   });
 
   it('pre-bundles every package the client code imports', () => {
-    // A module's own `optimizeDeps.include.push(…)` covers its entry as well as nuxt.config.ts does:
-    // `app/plugins/plausible.client.ts` imports the tracker that @nuxtjs/plausible pushes.
+    // A module's own `optimizeDeps.include.push(…)` covers its entry as well as nuxt.config.ts does.
+    // Do not lean on it for a package `app/` imports: @nuxtjs/plausible pushed its tracker up to
+    // 4.0.0 and stopped in 4.1.0, which left `plugins/plausible.client.ts` uncovered.
     const covered = new Set([...optimizeDeps('include'), ...optimizeDeps('exclude'), ...moduleIncludes().map(({ entry }) => entry)]);
     const missing = [...clientImports()]
       .filter(([specifier]) => !covered.has(specifier) && !isModuleManaged(specifier))
@@ -255,13 +256,22 @@ function resolvesFromRoot(entry: string): boolean {
   return true;
 }
 
+/**
+ * The file that holds a module's code: `dist/module.mjs` of a package, or the source of a local
+ * module. Vendor mode registers nuxt-extensions as `./app/core/module`, which is `app/core/module.ts`.
+ */
+function moduleFile(module: string): string {
+  if (!/^\.{1,2}\//.test(module)) return join(ROOT, 'node_modules', ...packageName(module).split('/'), 'dist', 'module.mjs');
+  return join(ROOT, /\.m?[jt]s$/.test(module) ? module : `${module}.ts`);
+}
+
 /** The entries the modules in `nuxt.config.ts` push into `vite.optimizeDeps.include` themselves. */
 function moduleIncludes(): { entry: string; module: string }[] {
   const config = readFileSync(join(ROOT, 'nuxt.config.ts'), 'utf8');
   const block = config.match(/^ {2}modules: \[([\s\S]*?)^ {2}\],/m)?.[1] ?? '';
   const modules = [...block.matchAll(/^\s*['"]([^'"]+)['"]/gm)].map((match) => match[1] as string);
   return modules.flatMap((module) => {
-    const file = join(ROOT, 'node_modules', ...packageName(module).split('/'), 'dist', 'module.mjs');
+    const file = moduleFile(module);
     if (!existsSync(file)) return [];
     return [...readFileSync(file, 'utf8').matchAll(/optimizeDeps\.include\.push\(([^)]*)\)/g)].flatMap((call) =>
       [...(call[1] as string).matchAll(/['"]([^'"]+)['"]/g)].map((literal) => ({ entry: literal[1] as string, module })),
@@ -274,14 +284,25 @@ function moduleIncludes(): { entry: string; module: string }[] {
  * entries included. One that does not pre-bundles nothing, and Nuxt says so on every `nuxt dev`
  * start of every generated project: `WARN [NUXT_B7002] Some vite.optimizeDeps.include entries
  * could not be resolved`. Under pnpm's isolated layout that happens to any module that pushes the
- * bare name of its own dependency: @nuxtjs/plausible 4.0.0 does it with `@plausible-analytics/tracker`
- * (nuxt-modules/plausible#52, open). The template declares the tracker itself, at the version the
- * module resolves, so the entry finds the same copy the module's client plugin imports.
+ * bare name of its own dependency: @nuxtjs/plausible did it with `@plausible-analytics/tracker` up to
+ * 4.0.0 (nuxt-modules/plausible#52, fixed in 4.1.0, which pushes nothing). nuxt-extensions pushes
+ * `tus-js-client > url-parse`, which resolves because the template declares `tus-js-client`. In
+ * vendor mode that push sits in `app/core/module.ts`, and is checked there.
  */
 describe('optimizeDeps.include entries resolve (NUXT_B7002)', () => {
+  it.each([
+    ['@nuxtjs/plausible', join('node_modules', '@nuxtjs', 'plausible', 'dist', 'module.mjs')],
+    ['./app/core/module', join('app', 'core', 'module.ts')],
+    ['./modules/own.mjs', join('modules', 'own.mjs')],
+  ])('reads the module %s from %s', (module, file) => {
+    expect(relative(ROOT, moduleFile(module))).toBe(file);
+  });
+
   it('finds the entries the modules add', () => {
-    // Without this a broken scan would find nothing and pass the check below.
-    expect(moduleIncludes().map(({ module }) => module)).toContain('@nuxtjs/plausible');
+    // Without this a broken scan would find nothing and pass the check below. The anchor is
+    // nuxt-extensions, under the name each mode registers it by: npm mode reads its push from
+    // `node_modules`, vendor mode from `app/core/module.ts`.
+    expect(moduleIncludes().map(({ module }) => module)).toEqual(expect.arrayContaining([expect.stringMatching(/^(?:@lenne\.tech\/nuxt-extensions|\.\/app\/core\/module)$/)]));
   });
 
   it('resolves every entry from the project root', () => {

@@ -36,9 +36,7 @@ export default defineNuxtPlugin({
       return;
     }
 
-    const ignoredHostnames = Array.isArray(options.ignoredHostnames)
-      ? options.ignoredHostnames.filter((hostname): hostname is string => typeof hostname === 'string')
-      : ['localhost'];
+    const ignoredHostnames = hostnameList(options.ignoredHostnames);
     const isIgnoredHostname = hostnameFilter(ignoredHostnames, options.ignoreSubDomains === true);
     // After `nuxt:router`, which is a core plugin and runs before every `pre` plugin of the app.
     const isStaticRoute = staticRoutes(useRouter());
@@ -97,6 +95,18 @@ function maskedProps(props: CustomProperties, isStaticRoute: IsStaticRoute): Cus
     return props;
   }
   return typeof url === 'string' && /^https?:\/\//i.test(url) ? { ...rest, url: analyticsUrl(url, isStaticRoute) } : rest;
+}
+
+/**
+ * `ignoredHostnames` as the module reads it. Since @nuxtjs/plausible 4.1.0 that includes a single
+ * hostname: `NUXT_PUBLIC_PLAUSIBLE_IGNORED_HOSTNAMES=staging.example` passes `destr()` as a string,
+ * and only a JSON array becomes a list. A blank value counts as none.
+ */
+function hostnameList(value: unknown): string[] {
+  if (typeof value === 'string') {
+    return value.trim() ? [value.trim()] : ['localhost'];
+  }
+  return Array.isArray(value) ? value.filter((hostname): hostname is string => typeof hostname === 'string') : ['localhost'];
 }
 
 /** The module's own rule for `ignoredHostnames` beyond `localhost`, which the tracker handles itself. */

@@ -244,7 +244,7 @@ export default defineNuxtConfig({
     '@lenne.tech/bug.lt', // Bug reporting to Linear
     '@vueuse/nuxt', // Vue composition utilities
     '@nuxt/ui', // NuxtUI component library
-    '@nuxtjs/plausible', // Privacy-friendly analytics — `@plausible-analytics/tracker` is declared in package.json for it, so its optimizeDeps entry resolves (NUXT_B7002, see tests/unit/optimize-deps-contract.test.ts)
+    '@nuxtjs/plausible', // Privacy-friendly analytics — `app/plugins/plausible.client.ts` imports `@plausible-analytics/tracker` itself, so the tracker is a dependency in package.json (pnpm is strict) and an entry in `vite.optimizeDeps.include` below
     '@nuxtjs/seo', // SEO optimization (sitemap, robots, og-image)
     '@pinia/nuxt', // State management — `pinia` is its required peer dependency (kept explicit in package.json; do not drop it as "unused")
   ],
@@ -476,8 +476,9 @@ export default defineNuxtConfig({
       // Everything `app/` imports is enforced by `tests/unit/optimize-deps-contract.test.ts`,
       // and so is the nuxt-extensions runtime, which vendor mode moves into `app/core/`: that
       // is where the better-auth entries come from. Other modules' runtime imports stay
-      // invisible to it.
-      include: ['@better-auth/passkey/client', 'better-auth/client/plugins', 'better-auth/vue', 'qrcode', 'valibot'],
+      // invisible to it. `@plausible-analytics/tracker` is imported by
+      // `app/plugins/plausible.client.ts`; @nuxtjs/plausible added the entry itself up to 4.0.0.
+      include: ['@better-auth/passkey/client', '@plausible-analytics/tracker', 'better-auth/client/plugins', 'better-auth/vue', 'qrcode', 'valibot'],
     },
     plugins: [tailwindcss() as any],
     server: {
