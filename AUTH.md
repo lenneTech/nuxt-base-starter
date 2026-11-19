@@ -181,11 +181,10 @@ code to a fixed German text and then removes it too. `login_required`, `interact
 would have needed a page at the provider, which one click on the provider button shows. Details:
 the template's `CLAUDE.md`, section "Sign-in through a social provider".
 
-**Tenant id, `scope` and `disableProfilePhoto` need the nest-server release after 12.9.4 that
-passes provider options through (lenneTech/nest-server#777).** Up to 12.9.4 the API hands Better
-Auth only client id, client secret and `disableSignUp` and drops the rest without a warning.
-Microsoft then signs in through `common`: every Microsoft organisation and personal accounts get in,
-although the configuration names one tenant.
+**Tenant id, `scope` and `disableProfilePhoto` need `@lenne.tech/nest-server` 12.10.0 or later.** Up
+to 12.9.4 the API hands Better Auth only client id, client secret and `disableSignUp` and drops the
+rest without a warning. Microsoft then signs in through `common`: every Microsoft organisation and
+personal accounts get in, although the configuration names one tenant.
 
 ### Session Validation
 

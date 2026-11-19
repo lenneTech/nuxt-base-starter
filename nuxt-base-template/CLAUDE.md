@@ -590,11 +590,11 @@ and a neutral icon for ids it does not know). A click calls `useLtAuth().signIn.
 comes back to `/auth/callback`, which runs `validateSession()` and goes on to the deep link once the
 auth state is stored where the route guard reads it (see the callback paragraph below).
 
-**Tenant id, `scope` and `disableProfilePhoto` need the nest-server release after 12.9.4 that
-passes provider options through (lenneTech/nest-server#777).** Up to 12.9.4 `buildSocialProviders`
-hands Better Auth only `clientId`, `clientSecret` and `disableSignUp` and drops the rest without a
-warning. Microsoft then signs in through `common`: every Microsoft organisation and personal accounts
-get in, although the configuration names one tenant.
+**Tenant id, `scope` and `disableProfilePhoto` need `@lenne.tech/nest-server` 12.10.0 or later.** Up
+to 12.9.4 `buildSocialProviders` hands Better Auth only `clientId`, `clientSecret` and
+`disableSignUp` and drops the rest without a warning. Microsoft then signs in through `common`:
+every Microsoft organisation and personal accounts get in, although the configuration names one
+tenant.
 
 **Both URLs come from `appUrl()` and `safeRedirectTarget()`, never from the query.**
 `callbackURL` is `/auth/callback?redirect=<target>`, `errorCallbackURL` is
