@@ -217,6 +217,12 @@ button, without a loop; after "Abmelden" it stayed on the login form. A refused 
 "Kein Zugang". The provider's own error text never reaches the page: the server redirects it out
 of the URL before rendering. Details: `CLAUDE.md`, section "Sign-in through a social provider".
 
+**Tenant id, `scope` and `disableProfilePhoto` need the nest-server release after 12.9.4 that
+passes provider options through (lenneTech/nest-server#777).** Up to 12.9.4 the API hands Better
+Auth only client id, client secret and `disableSignUp` and drops the rest without a warning.
+Microsoft then signs in through `common`: every Microsoft organisation and personal accounts get in,
+although the configuration names one tenant.
+
 Symptom guide when a reset does not arrive: a `403 INVALID_REDIRECT_URL` means the origin
 is missing from `trustedOrigins` or `NUXT_PUBLIC_SITE_URL` is wrong; a
 `RESET_PASSWORD_DISABLED` means the backend is older than 11.36.1; no error at all plus no

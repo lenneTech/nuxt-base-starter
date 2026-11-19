@@ -385,18 +385,20 @@ describe('every sign-out sets the "signed out" mark', () => {
   // A sign-out that does not set the mark lets the silent attempt sign the visitor straight back
   // in, in this tab or any other, because the provider session outlives the app's. New call sites
   // have to be covered too.
+  // Paths are compared with `/`: on Windows `readdirSync` and `relative()` return `\`, and the
+  // vendored core (`app/core/`, vendor mode) has sign-out calls of its own that are not app code.
   const appDir = join(templateRoot, 'app');
   const files = readdirSync(appDir, { recursive: true })
     .map(String)
-    .filter((file) => (file.endsWith('.vue') || file.endsWith('.ts')) && !file.startsWith('core/'))
+    .filter((file) => (file.endsWith('.vue') || file.endsWith('.ts')) && file.split(/[/\\]/)[0] !== 'core')
     .map((file) => join(appDir, file));
-  const callers = files.filter((file) => /\bsignOut\(/.test(readFileSync(file, 'utf8')));
+  const callers = files.filter((file) => /\bsignOut\(/.test(readFileSync(file, 'utf8'))).map((file) => relative(templateRoot, file).replaceAll('\\', '/'));
 
   it('finds the sign-out call sites', () => {
-    expect(callers.map((file) => relative(templateRoot, file)).sort()).toEqual(expect.arrayContaining(['app/layouts/default.vue', 'app/pages/app/index.vue']));
+    expect([...callers].sort()).toEqual(expect.arrayContaining(['app/layouts/default.vue', 'app/pages/app/index.vue']));
   });
 
-  it.each(callers.map((file) => relative(templateRoot, file)))('%s sets the "signed out" mark', (file) => {
+  it.each(callers)('%s sets the "signed out" mark', (file) => {
     expect(readFileSync(join(templateRoot, file), 'utf8')).toMatch(/\.markSignedOut\(\)/);
   });
 });

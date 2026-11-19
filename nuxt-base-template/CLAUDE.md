@@ -590,6 +590,12 @@ and a neutral icon for ids it does not know). A click calls `useLtAuth().signIn.
 comes back to `/auth/callback`, which runs `validateSession()` and goes on to the deep link once the
 auth state is stored where the route guard reads it (see the callback paragraph below).
 
+**Tenant id, `scope` and `disableProfilePhoto` need the nest-server release after 12.9.4 that
+passes provider options through (lenneTech/nest-server#777).** Up to 12.9.4 `buildSocialProviders`
+hands Better Auth only `clientId`, `clientSecret` and `disableSignUp` and drops the rest without a
+warning. Microsoft then signs in through `common`: every Microsoft organisation and personal accounts
+get in, although the configuration names one tenant.
+
 **Both URLs come from `appUrl()` and `safeRedirectTarget()`, never from the query.**
 `callbackURL` is `/auth/callback?redirect=<target>`, `errorCallbackURL` is
 `/auth/login?redirect=<target>`, both absolute: Better Auth resolves a relative value against the
@@ -696,8 +702,9 @@ reached with `error` never starts the silent attempt.
 `guest.global` and `sign-in-error-text.global` only `/auth/login`). Without a session it sends the
 visitor to the login page with `?error=session_missing`.
 
-**A session is not yet a completed sign-in.** `auth.global` reads the user from the `lt-auth-state`
-cookie in `document.cookie` (on the server from the request's cookie), and so does every reload. A
+**A session is not yet a completed sign-in.** `auth.global` reads the user from the auth-state
+cookie in `document.cookie` (on the server from the request's cookie, `readAuthStateUser()`), and so
+does every reload. A
 browser drops a cookie over 4096 bytes on write, while `useLtAuth()` keeps reporting the user from
 the ref `useCookie` holds in memory. Going on then, the guard sends the visitor to
 `/auth/login?redirect=…` without `error`, the marks are cleared, and the login page starts the next
