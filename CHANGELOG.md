@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.3](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.2...v4.0.3) (2026-11-19)
+
+
+### Highlights for adopters
+
+* **nuxt-extensions 4.0.3.** `useLtAuth()` and the auth client gain `signIn.social`, and an inline profile photo (`data:` URL, as Microsoft's provider stores it) no longer pushes the `lt-auth-state` cookie past the browser's size limit and signs users out. Nothing to do for a project beyond `"@lenne.tech/nuxt-extensions": "4.0.3"` and `pnpm install`.
+* **Sign-in through social providers.** The login page shows a button for every provider `GET /iam/features` lists, and `NUXT_PUBLIC_AUTH_SILENT_PROVIDER=<id>` adds a silent attempt (`prompt=none`) that takes over an existing provider session. Nothing changes while the API configures no provider. For Microsoft Entra ID the API needs `@lenne.tech/nest-server` 12.10.0 or later: 12.9.4 and older drop the tenant id without a warning, and Microsoft then admits every organisation and personal accounts. Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.3/migration-guides/4.0.3-nuxt-icon-and-tooling.md), step 6.
+* **The route guards read the auth cookie as nuxt-extensions does.** With `NUXT_PUBLIC_COOKIE_PREFIX` set, `auth.global` and `admin.global` read a cookie the library never wrote and sent every signed-in user to the login page. They now go through `readAuthStateUser()`. Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.3/migration-guides/4.0.3-nuxt-icon-and-tooling.md), step 5.
+* **The `@iconify/vue` hold goes.** `@nuxt/icon` 2.6.3 installs the app's `/_nuxt_icon` endpoint with `@iconify/vue` 5.0.5 again. Removing the override alone keeps `@nuxt/icon` 2.6.2 next to 5.0.5, the pair that loads icons from `api.iconify.design`; step 2 of the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.3/migration-guides/4.0.3-nuxt-icon-and-tooling.md) lifts both.
+* **`check` is green again after GHSA-gcqx-w48m-w2h4 was withdrawn.** GitHub withdrew the deepmerge advisory on 2026-11-16, and every project that carries its suppression has failed `check:suppressions` since. Delete the entry: [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.3/migration-guides/4.0.3-deepmerge-advisory-withdrawn.md).
+* **`@nuxtjs/plausible` 4.1.0.** The template imports the tracker itself, so `@plausible-analytics/tracker` belongs in its own `vite.optimizeDeps.include`. Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.3/migration-guides/4.0.3-plausible-tracker-include.md).
+* **Dependencies.** `@nuxt/ui` 4.12.2 (raise the `@nuxt/ui@<4.8.1` override target with it), Playwright 1.65.1, vitest 5.1.1, oxlint 1.94.0 with `oxlint-tsgolint` 7.0.2007, oxfmt 0.79.0 and pnpm 11.28.12. The Playwright CI image has to move to `v1.65.1-noble` together with the package. better-auth stays on 1.7.19, in step with the API.
+
+
+### Features
+
+* **auth:** sign-in through social providers, with an optional silent attempt (#58) ([0e4a3ff](https://github.com/lenneTech/nuxt-base-starter/commit/0e4a3ff2dffefbc83568cc59fd7f62b462355e7d))
+
+
+### Bug Fixes
+
+* **auth:** route guards read the auth cookie as nuxt-extensions does ([5691480](https://github.com/lenneTech/nuxt-base-starter/commit/56914803ff83dab75599a232ae51b39846e232f7))
+* **deps:** nuxt-extensions 4.0.3, @nuxt/ui 4.12.2, @iconify/vue hold and deepmerge suppression gone ([968af61](https://github.com/lenneTech/nuxt-base-starter/commit/968af61578c41c168b24190695ae4da8ef483148))
+* **deps:** @nuxtjs/plausible 4.1.0 with the tracker in the template's own optimizeDeps.include ([1779b05](https://github.com/lenneTech/nuxt-base-starter/commit/1779b0583a40c84195eb741af82cbb915e6ec2b4))
+
+
 ### [4.0.2](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.1...v4.0.2) (2026-11-11)
 
 
