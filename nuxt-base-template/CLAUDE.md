@@ -476,7 +476,7 @@ ltExtensions: {
 }
 ```
 
-Each key is independent — set only the one you need. The starter's global middleware (`app/middleware/auth.global.ts`, `guest.global.ts`, `admin.global.ts`) reads the resolved cookie name from `useRuntimeConfig().public.ltExtensions.auth.cookieNames.state` and falls back to the default.
+Each key is independent — set only the one you need. The starter's global middleware (`app/middleware/auth.global.ts`, `guest.global.ts`, `admin.global.ts`) takes the user from `readAuthStateUser()` (`app/utils/auth-state-user.ts`), which reads the cookie as nuxt-extensions does: the name from `getLtAuthCookieNames()` (an explicit `cookieNames.state`, else `<prefix>-auth-state` with `NUXT_PUBLIC_COOKIE_PREFIX`, else `lt-auth-state`) and, of two cookies with that name, the one that carries a user. Before 4.0.3 the guards read `cookieNames.state` or `lt-auth-state` and the first cookie only, so with a prefix set they read a cookie the library never wrote. Never parse the cookie in a guard again; `tests/unit/middleware/auth-guards.test.ts` checks it. Not `useLtAuth()` either: in a route middleware its `useCookie` calls leave a cookie listener behind on every navigation.
 
 ### First admin — `/auth/setup` follows the HTTP-init status
 
