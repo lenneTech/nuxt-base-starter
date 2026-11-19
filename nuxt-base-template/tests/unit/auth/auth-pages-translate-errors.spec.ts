@@ -34,11 +34,15 @@ const AUTH_PAGES_DIR = 'app/pages/auth';
 /**
  * Pages that legitimately never surface a backend error.
  *
- * Empty on purpose, and it should stay that way: every current page talks to the API. An
- * entry here needs a reason in a comment, not just a name — the point of the guard is that
+ * An entry here needs a reason in a comment, not just a name — the point of the guard is that
  * skipping translation must be a decision somebody wrote down.
  */
-const EXEMPT: readonly string[] = [];
+const EXEMPT: readonly string[] = [
+  // The last step of a sign-in through a social provider. It shows one fixed status text and asks
+  // `validateSession()`, which answers true or false, never an error message. Without a session it
+  // sends the visitor to the login page with a code of its own, and `login.vue` (not exempt) words it.
+  'callback.vue',
+];
 
 function authPages(): string[] {
   return readdirSync(AUTH_PAGES_DIR)

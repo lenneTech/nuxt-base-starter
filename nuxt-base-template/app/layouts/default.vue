@@ -26,6 +26,10 @@ onMounted(() => {
 });
 
 async function handleLogout() {
+  // Keeps the login page, in this tab and every other of this browser, from signing the visitor
+  // straight back in through the provider session, which outlives the app's
+  // (app/utils/social-sign-in.ts).
+  socialSignInMarks.markSignedOut();
   await signOut();
   await navigateTo('/auth/login');
 }

@@ -36,15 +36,16 @@ Then `cd` into the project and run `pnpm run dev`. The development server starts
 
 Complete authentication system using [Better Auth](https://www.better-auth.com/):
 
-| Feature            | Description                                           |
-| ------------------ | ----------------------------------------------------- |
-| Email/Password     | Standard auth with client-side SHA256 hashing         |
-| Two-Factor (2FA)   | TOTP-based 2FA with backup codes                      |
-| Passkey/WebAuthn   | Passwordless authentication (Touch ID, Face ID, etc.) |
-| Password Reset     | Email-based password reset flow                       |
-| Session Management | SSR-compatible cookie-based sessions                  |
+| Feature            | Description                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| Email/Password     | Standard auth with client-side SHA256 hashing                                         |
+| Two-Factor (2FA)   | TOTP-based 2FA with backup codes                                                      |
+| Passkey/WebAuthn   | Passwordless authentication (Touch ID, Face ID, etc.)                                 |
+| Social providers   | SSO through providers the API configures (e.g. Microsoft Entra ID), optionally silent |
+| Password Reset     | Email-based password reset flow                                                       |
+| Session Management | SSR-compatible cookie-based sessions                                                  |
 
-Pre-built auth pages: login, register, forgot-password, reset-password, 2fa
+Pre-built auth pages: login, register, forgot-password, reset-password, 2fa, callback
 
 📖 **See [AUTH.md](./AUTH.md) for detailed documentation**
 

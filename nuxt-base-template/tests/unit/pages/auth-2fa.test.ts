@@ -23,11 +23,12 @@
  * components are stubs. The UForm stub validates with the page's own schema before it emits `submit`.
  */
 import * as v from 'valibot';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { computed, createApp, defineComponent, h, nextTick, reactive, ref, type PropType } from 'vue';
 
 import TwoFactorPage from '~/pages/auth/2fa.vue';
 import { errorText } from '~/utils/error-text';
+import { socialSignInMarks } from '~/utils/social-sign-in';
 
 /** Better Auth's opaque session token, as nest-server 12.6.0 puts it into the 2FA answer. */
 const SESSION_TOKEN = 'Xq3RkV8mT2pLw9sJ4nYc7bDf1gHa6eZu';
@@ -57,6 +58,7 @@ async function mountPage(answer: unknown = { data: { token: SESSION_TOKEN, user:
   vi.stubGlobal('useRoute', () => ({ query: {} }));
   vi.stubGlobal('safeRedirectTarget', () => '/app');
   vi.stubGlobal('errorText', errorText);
+  vi.stubGlobal('socialSignInMarks', socialSignInMarks);
   vi.stubGlobal('useToast', () => ({ add: (toast: { color: string; description: string; title: string }) => toasts.push(toast) }));
   // As nuxt-extensions: a coded message comes back translated, anything else unchanged.
   vi.stubGlobal('useLtErrorTranslation', () => ({ translateError: (message: string) => (message.startsWith('#LTNS_0002:') ? PASSWORD_WRONG_DE : message) }));
@@ -208,6 +210,37 @@ describe('2fa page error texts', () => {
     await page.submit();
 
     expect(page.toasts.at(-1)?.description).toBe(PASSWORD_WRONG_DE);
+    page.unmount();
+  });
+});
+
+describe('2fa page and the marks of the silent sign-in', () => {
+  // The second factor completes a sign-in, so a later visit after the session expired may try the
+  // silent sign-in through a social provider again (app/utils/social-sign-in.ts).
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    window.localStorage.clear();
+  });
+
+  it('clears them once the code is accepted', async () => {
+    socialSignInMarks.markSilentAttempt();
+    socialSignInMarks.markSignedOut();
+    const page = await mountPage();
+
+    await page.submit('123456');
+
+    expect(page.navigateTo).toHaveBeenCalledWith('/app');
+    expect(socialSignInMarks.maySignInSilently()).toBe(true);
+    page.unmount();
+  });
+
+  it('keeps them when the code is refused', async () => {
+    socialSignInMarks.markSignedOut();
+    const page = await mountPage({ error: { message: 'Invalid code' } });
+
+    await page.submit('123456');
+
+    expect(socialSignInMarks.maySignInSilently()).toBe(false);
     page.unmount();
   });
 });
