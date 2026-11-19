@@ -1,6 +1,6 @@
 {
   "name": "create-nuxt-base",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "private": true,
   "description": "Nuxt 4 starter template (nuxt-base-template/) for lenne.Tech projects, scaffolded by the lt CLI (lt frontend nuxt / lt fullstack init).",
   "license": "MIT",
@@ -22,7 +22,7 @@
     "test:unit": "cd nuxt-base-template && pnpm run test:unit"
   },
   "devDependencies": {
-    "oxfmt": "0.78.0"
+    "oxfmt": "0.79.0"
   },
   "engines": {
     "node": ">= 22",

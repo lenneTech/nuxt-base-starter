@@ -17,9 +17,9 @@ import { describe, expect, it } from 'vitest';
  * API answers and the icons render. The only trace is a request to a third-party host on the
  * first client-side navigation after sign-in.
  *
- * `pnpm-workspace.yaml` holds @iconify/vue at 5.0.4 until @nuxt/icon handles the new default.
- * This test runs the code the two installed packages ship, so it goes red when they drift apart
- * again, and stays green on a release that makes the override unnecessary.
+ * `pnpm-workspace.yaml` held @iconify/vue at 5.0.4 until @nuxt/icon 2.6.3 (nuxt/icon#574)
+ * accepted any Iconify API host as the default; the hold went in starter 4.0.3. This test runs the
+ * code the two installed packages ship, so it goes red when they drift apart again.
  */
 
 const LOCAL_ENDPOINT = '/_nuxt_icon';

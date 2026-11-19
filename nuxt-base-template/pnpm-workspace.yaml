@@ -32,28 +32,12 @@
 # its package no longer resolves to a vulnerable version.
 # ----------------------------------------------------------------------------------
 auditConfig:
-  ignoreGhsas:
-    # GHSA-gcqx-w48m-w2h4 (low): deepmerge <=4.3.1, mergeObject() does not validate the keys it
-    # writes, so a crafted SOURCE object can poison the prototype of the returned object.
-    #
-    # Path: nuxt > @nuxt/nitro-server > nitropack > @rollup/plugin-node-resolve 16.0.3 >
-    # deepmerge 4.3.1, the only consumer in the tree.
-    #
-    # Not fixable: (1) no override target. 4.3.1 (2023-03-16) is the newest deepmerge on npm, and
-    # GitHub lists no first patched version. Raising the consumer does not help: 16.0.3 is the
-    # newest @rollup/plugin-node-resolve and still requests ^4.2.2. (2) No patch: there is no
-    # patched release whose shape a consumer would need adapting to, and writing our own fix into
-    # the library is not what step 2 is for.
-    #
-    # Residual risk, none reachable: plugin-node-resolve calls deepmerge exactly once, at module
-    # load, as `deepMerge({}, defaults)`, where `defaults` is its own hard-coded options constant.
-    # No input, from a developer or anyone else, ever reaches the merge. It runs only inside
-    # `nuxt build` / `nuxt dev`, and `.output/` contains no deepmerge.
-    #
-    # Delete when `pnpm audit` is clean without this entry, i.e. a patched deepmerge resolves or
-    # plugin-node-resolve drops it; `check-suppressions.mjs` reports both. First reported by
-    # `pnpm audit` on 2026-10-28 (advisory published 2026-09-18). Verified 2026-10-28.
-    - GHSA-gcqx-w48m-w2h4
+  # No entry. The list stays as the place for the next one, under the rules above.
+  ignoreGhsas: []
+    # The deepmerge entry (GHSA-gcqx-w48m-w2h4, deepmerge <=4.3.1 via nitropack >
+    # @rollup/plugin-node-resolve) was removed on 2026-11-19: GitHub withdrew the advisory on
+    # 2026-11-16, `check-suppressions.mjs` and `check-overrides.mjs` reported it WITHDRAWN, and
+    # `pnpm audit` stays clean without the entry. deepmerge 4.3.1 still resolves.
     # The node-forge entry (GHSA-86w9-cpqp-85rv, node-forge <=1.4.0 via nitropack > listhen) was
     # removed on 2026-10-28. node-forge 1.4.1 (published 2026-10-27) fixes it, its changelog lists
     # the "ASN.1 extra field in DigestAlgorithm" forgery, and it cleared the one-day release-age
@@ -158,6 +142,12 @@ onlyBuiltDependencies:
 # resolve without any override puts no overridden package above the version its entry delivers
 # (@iconify/vue 5.0.5 aside, which is the hold). readdir-glob's minimatch raised to 11.0.8 (see
 # the entry). Seven entries now.
+# 2026-11-19 (starter 4.0.3 maintenance): the `@iconify/vue` hold went. @nuxt/icon 2.6.3
+# (2026-11-17) treats any Iconify API host as the default provider (nuxt/icon#574, fixing #571)
+# and requests @iconify/vue ^5.0.5 itself, so the 5.0.4 pin would now sit below its consumer's
+# range. A fresh resolve without the entry gives @nuxt/icon 2.6.3 with @iconify/vue 5.0.5, and
+# `tests/unit/icon-endpoint-contract.test.ts` stays green on it. readdir-glob's minimatch raised to
+# 11.0.9 (see the entry). Six entries now.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -172,19 +162,6 @@ onlyBuiltDependencies:
 # and pins the OLD version, silently re-introducing the patched CVEs. hono is owned
 # by nest-server's overrides. Do not add it back.
 overrides:
-  # @iconify/vue held at 5.0.4. Not an advisory: without it the browser loads icons from
-  # Iconify's public API (nuxt/icon#571). 5.0.5 (2026-11-01) made the default API provider two
-  # hosts, api and api2.iconify.design. @nuxt/icon 2.6.2 installs the app's `localApiEndpoint`
-  # ('/_nuxt_icon', nuxt.config.ts) in the browser only while the provider still equals its own
-  # copy of the default, a one-host list, so with 5.0.5 the endpoint is never installed and every
-  # icon outside the client bundle comes from api.iconify.design. Measured 2026-11-03: signing in
-  # fetched `lucide.json?icons=sun-medium` and `simple-icons.json` from there, and no request
-  # reached /_nuxt_icon. Where a CSP or a firewall blocks that host, those icons do not render.
-  # 5.0.4 is inside both consumers' ranges (@nuxt/icon ^5.0.4, @nuxt/ui ^5.0.3) and stays the only
-  # copy in the tree; @nuxt/icon itself stays on 2.6.2. `tests/unit/icon-endpoint-contract.test.ts`
-  # runs both packages' own code and fails while they disagree. Drop this entry once a @nuxt/icon
-  # release handles the two-host default: remove it, `pnpm install`, and the test stays green.
-  '@iconify/vue': 5.0.4
   # zod <4.6.6 (GHSA-mrhx-c7xc-m3w5, high, first patched 4.6.6); via @lenne.tech/bug.lt, whose
   # newest release (1.6.9) hard-pins zod EXACTLY at 4.1.13, so no bump can fix it. Every other
   # zod consumer (better-auth, @nuxt/ui, the @nuxtjs/seo modules) already resolves 4.6.7 on its
@@ -211,6 +188,11 @@ overrides:
   # Re-checked 2026-10-24: GHSA-gj2h-2fpw-fhv9 is still the only @nuxt/ui advisory, still
   # `<4.8.1`, and bug.lt 1.6.9 is still the newest release with its 4.2.1 pin.
   #
+  # Raised 4.12.0 -> 4.12.2 (key unchanged) together with the app's own @nuxt/ui dependency.
+  # Re-checked 2026-11-19: GHSA-gj2h-2fpw-fhv9 is still the only @nuxt/ui advisory, still
+  # `<4.8.1`, and bug.lt 1.6.10, the newest release, still pins 4.2.1. 4.12.2 still pins reka-ui
+  # 2.11.0 exactly, so the reka-ui patch below stays in use.
+  #
   # This entry ALSO keeps the tree on exactly one unhead major (build integrity). bug.lt's
   # hard-pinned @nuxt/ui@4.2.1 carries `@unhead/vue@2` / `unhead@2`; with two unhead majors,
   # Nitro's externals tracer copies a partial second copy into
@@ -224,7 +206,7 @@ overrides:
   # range. `tests/unit/unhead-single-major.test.ts` still guards the invariant on the
   # lockfile. If this entry is ever dropped (bug.lt moving to a patched @nuxt/ui), re-check
   # `pnpm why unhead` for a single major first. Verified 2026-10-07.
-  '@nuxt/ui@<4.8.1': 4.12.0
+  '@nuxt/ui@<4.8.1': 4.12.2
   # esbuild dev-server advisories - transitive via vite tooling. The key covers both:
   #   - GHSA-g7r4-m6w7-qqqr (low): arbitrary file read via the dev server on Windows,
   #     >=0.27.3 <0.28.1, first patched 0.28.1. This is the one the `<0.28.1` bound encodes.
@@ -321,11 +303,16 @@ overrides:
   # 11.x and past the one-day release-age gate; no advisory covers any 11.x. The tree now resolves
   # exactly one minimatch.
   #
+  # Target raised 11.0.8 -> 11.0.9 on 2026-11-19 (key unchanged), for the same reason again: a fresh
+  # resolve gave glob's minimatch 11.0.9, so new projects would have carried 11.0.8 for readdir-glob next to it.
+  # 11.0.9 (2026-11-16) is the newest 11.x and past the one-day release-age gate; no advisory covers
+  # any 11.x. archiver 8.0.0 is still the newest release and still asks for readdir-glob ^3.0.0.
+  #
   # Drop this entry once readdir-glob's consumer requests the patched major: readdir-glob 4.0.0
   # (2026-11-09) requests ^11.0.1 itself, but archiver 8.0.0, its only consumer and still the
   # newest release, asks for ^3.0.0. The child range makes the entry inert once archiver moves to
   # readdir-glob 4, and `check-overrides.mjs` reports it.
-  'readdir-glob>minimatch@<11.0.1': 11.0.8
+  'readdir-glob>minimatch@<11.0.1': 11.0.9
 
 patchedDependencies:
   # reka-ui 2.10.0+ hides every toast from screen readers. ToastAnnounce wraps the
@@ -338,7 +325,7 @@ patchedDependencies:
   # is aria-hidden as well, so the same edit would change nothing there. It is a backport, not our
   # own fix: byte for byte the change upstream merged in unovue/reka-ui#3050 on 2026-10-26, which
   # no release carries yet (newest: 2.11.0).
-  # @nuxt/ui 4.12.0 pins reka-ui EXACTLY at 2.11.0, so the exact key cannot drift while @nuxt/ui
+  # @nuxt/ui 4.12.2 pins reka-ui EXACTLY at 2.11.0, so the exact key cannot drift while @nuxt/ui
   # stays put. `tests/unit/toast-live-region.test.ts` checks the behaviour, not the patch, and
   # stays after the patch is gone.
   #
