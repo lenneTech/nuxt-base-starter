@@ -5,6 +5,8 @@
 import type { AuthFormField, FormSubmitEvent } from '@nuxt/ui';
 import type { InferOutput } from 'valibot';
 
+import type { SocialSignInError } from '~/utils/social-sign-in';
+
 import * as v from 'valibot';
 
 // ============================================================================
@@ -30,9 +32,11 @@ interface SignInResponse {
 // Composables
 // ============================================================================
 const toast = useToast();
-const { signIn, setUser, validateSession, authenticateWithPasskey, features } = useLtAuth();
+const { signIn, setUser, validateSession, authenticateWithPasskey, features, fetchFeatures } = useLtAuth();
 const { translateError } = useLtErrorTranslation();
 const route = useRoute();
+const router = useRouter();
+const config = useRuntimeConfig();
 
 // ============================================================================
 // Computed
@@ -62,6 +66,16 @@ const redirectTarget = computed(() => safeRedirectTarget(route.query.redirect));
  */
 const redirectQuery = computed(() => (typeof route.query.redirect === 'string' ? { redirect: redirectTarget.value } : {}));
 
+/** One button per provider the API lists in `/iam/features` (see `app/utils/social-sign-in.ts`). */
+const socialProviders = computed(() => socialProvidersOf(features.value));
+const socialButtons = computed(() => socialProviders.value.map((id) => ({ id, ...socialProviderDisplay(id) })));
+
+/** The provider for the silent attempt: `NUXT_PUBLIC_AUTH_SILENT_PROVIDER`, while the API lists it. */
+const silentProvider = computed(() => silentSignInProvider(config.public.authSilentProvider, socialProviders.value));
+
+/** True once `/iam/features` has answered: it starts empty on the client and fills with the answer. */
+const featuresArrived = computed(() => Object.keys(features.value ?? {}).length > 0);
+
 // ============================================================================
 // Page Meta
 // ============================================================================
@@ -78,6 +92,172 @@ useHead({
 // ============================================================================
 const loading = ref<boolean>(false);
 const passkeyLoading = ref<boolean>(false);
+/** The provider whose sign-in is starting; its button spins, the others wait. */
+const socialLoading = ref<null | string>(null);
+
+/**
+ * Why the provider or Better Auth sent the browser back here (`?error=` on `errorCallbackURL`).
+ *
+ * Read ONCE into state: on mount the URL loses `error` (see `withoutSignInError`), and the message
+ * stays until the user starts a new sign-in. Only the code is mapped. `error_description` never
+ * gets here: `sign-in-error-text.global.ts` redirects it out of the URL before the page renders.
+ */
+const socialError = ref<null | SocialSignInError>(socialSignInError(route.query.error));
+
+/** Reached with an `error`: the silent attempt never starts then, or it would loop. */
+const arrivedWithError = hasSignInError(route.query);
+
+/**
+ * Where the silent attempt stands: `waiting` until the page knows whether it runs, `running` while
+ * it does, `off` for the form.
+ *
+ * With `NUXT_PUBLIC_AUTH_SILENT_PROVIDER` set and no `error` in the URL, the page starts in
+ * `waiting`, on the server too: both know the runtime config and the query, so the server and the
+ * client's first render show the same checking state and hydration matches. What the server cannot
+ * know (the marks in browser storage, the provider list) is decided after mount, and every way that
+ * rules the attempt out ends in `off`: a mark, blocked storage, a list without the provider, a failed
+ * `/iam/features`, or no answer within `SILENT_SIGN_IN_FEATURES_TIMEOUT_MS`.
+ */
+const silentPhase = ref<'off' | 'running' | 'waiting'>(configuredSilentProvider(config.public.authSilentProvider) && !arrivedWithError ? 'waiting' : 'off');
+
+/** The form is hidden behind "Anmeldung wird geprüft …" while the attempt waits or runs. */
+const silentChecking = computed(() => silentPhase.value !== 'off');
+
+/** The fallback timer of the `waiting` phase. */
+let silentWaitTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** No silent attempt in this page view: the form takes over. A running attempt is left alone. */
+function stopWaitingForSilentSignIn(): void {
+  clearTimeout(silentWaitTimer);
+  if (silentPhase.value === 'waiting') {
+    silentPhase.value = 'off';
+  }
+}
+
+/**
+ * Parameters of a sign-in through `provider`.
+ *
+ * Both URLs are absolute app URLs: Better Auth resolves a relative one against the API origin.
+ * They are built from the app origin, a fixed path and the validated deep-link target, never from
+ * raw query input. Better Auth appends `?error=` to `errorCallbackURL`.
+ */
+function socialSignInParams(provider: string, prompt: 'none' | 'select_account') {
+  const redirect = encodeURIComponent(redirectTarget.value);
+  return {
+    additionalParams: { prompt },
+    callbackURL: appUrl(`/auth/callback?redirect=${redirect}`, config.public.siteUrl),
+    errorCallbackURL: appUrl(`/auth/login?redirect=${redirect}`, config.public.siteUrl),
+    provider,
+  };
+}
+
+/**
+ * Interactive sign-in: `prompt=select_account` lets the user pick or switch the account at the
+ * provider. On success the browser leaves for the provider, so the button keeps spinning.
+ */
+async function onSocialSignIn(provider: string): Promise<void> {
+  socialError.value = null;
+  socialLoading.value = provider;
+
+  try {
+    const result = (await signIn.social(socialSignInParams(provider, 'select_account'))) as SignInResponse;
+    if (result?.error) {
+      socialLoading.value = null;
+      toast.add({
+        color: 'error',
+        description: result.error.message ? translateError(result.error.message) : 'Die Anmeldung ist gerade nicht möglich. Bitte versuche es später erneut.',
+        title: 'Anmeldung fehlgeschlagen',
+      });
+    }
+  } catch {
+    socialLoading.value = null;
+    toast.add({
+      color: 'error',
+      description: 'Ein unerwarteter Fehler ist aufgetreten',
+      title: 'Fehler',
+    });
+  }
+}
+
+/**
+ * Silent sign-in: `prompt=none` makes the provider answer without showing anything, signed in when
+ * the visitor has a session there, otherwise back here with `?error=login_required` (or another code
+ * that means a page would be needed at the provider). It starts only from `waiting` (never with an
+ * `error` in the URL, never after the page gave up waiting). The marks allow it once per tab, and
+ * after "Abmelden" in no tab of this browser until the next completed sign-in
+ * (`app/utils/social-sign-in.ts`); the "attempted" mark is set before the request, and without it
+ * the attempt does not start.
+ */
+async function startSilentSignIn(provider: string): Promise<void> {
+  if (silentPhase.value !== 'waiting') {
+    return;
+  }
+  if (!socialSignInMarks.maySignInSilently() || !socialSignInMarks.markSilentAttempt()) {
+    stopWaitingForSilentSignIn();
+    return;
+  }
+  clearTimeout(silentWaitTimer);
+  silentPhase.value = 'running';
+
+  try {
+    const result = (await signIn.social(socialSignInParams(provider, 'none'))) as SignInResponse;
+    if (result?.error) {
+      silentPhase.value = 'off';
+    }
+  } catch {
+    // Nothing to tell the visitor, who did not ask for this attempt; the form takes over.
+    silentPhase.value = 'off';
+  }
+}
+
+/**
+ * Decides after mount whether the silent attempt runs; the server rendered `waiting` without knowing.
+ *
+ * The tab's marks and storage are known at once. The provider list arrives with `/iam/features`:
+ * listing the provider starts the attempt, anything else shows the form. `fetchFeatures()` resolves
+ * with the list unchanged when the request failed, so a failure shows the form at once instead of
+ * after the timeout; the timeout covers an API that does not answer.
+ */
+function decideSilentSignIn(): void {
+  if (!socialSignInMarks.maySignInSilently()) {
+    stopWaitingForSilentSignIn();
+    return;
+  }
+
+  silentWaitTimer = setTimeout(stopWaitingForSilentSignIn, SILENT_SIGN_IN_FEATURES_TIMEOUT_MS);
+
+  watch(
+    [silentProvider, featuresArrived],
+    ([provider, arrived]) => {
+      if (provider) {
+        void startSilentSignIn(provider);
+      } else if (arrived) {
+        // The API answered and does not list the provider.
+        stopWaitingForSilentSignIn();
+      }
+    },
+    { immediate: true },
+  );
+
+  if (silentPhase.value === 'waiting' && !featuresArrived.value) {
+    void fetchFeatures()
+      .catch(() => undefined)
+      .then(() => {
+        if (!featuresArrived.value) {
+          stopWaitingForSilentSignIn();
+        }
+      });
+  }
+}
+
+/** Back from the provider via the back/forward cache: the page is restored with a spinner that never ends. */
+function onPageShow(event: PageTransitionEvent): void {
+  if (event.persisted) {
+    socialLoading.value = null;
+    clearTimeout(silentWaitTimer);
+    silentPhase.value = 'off';
+  }
+}
 
 const fields: AuthFormField[] = [
   {
@@ -112,6 +292,7 @@ type Schema = InferOutput<typeof schema>;
  * Uses authenticateWithPasskey from composable which supports JWT mode (challengeId)
  */
 async function onPasskeyLogin(): Promise<void> {
+  socialError.value = null;
   passkeyLoading.value = true;
 
   try {
@@ -136,6 +317,8 @@ async function onPasskeyLogin(): Promise<void> {
       await validateSession();
     }
 
+    // Signed in: a later visit after the session expired may try the silent sign-in again.
+    socialSignInMarks.clear();
     await navigateTo(redirectTarget.value);
   } catch (err: unknown) {
     // Handle WebAuthn-specific errors
@@ -176,9 +359,34 @@ onMounted(() => {
 });
 
 // ============================================================================
+// Sign-in through a social provider: clean URL, silent attempt
+// ============================================================================
+onMounted(() => {
+  window.addEventListener('pageshow', onPageShow);
+
+  // The code is in `socialError` now, so it leaves the URL too: a reload must not bring the message
+  // back. `sign-in-error-text.global.ts` removed `error_description` before the page rendered;
+  // `redirect` and every other parameter stay.
+  if (arrivedWithError) {
+    void router.replace({ hash: route.hash, query: withoutSignInError(route.query) });
+  }
+
+  // `/iam/features` arrives after the start, so the attempt waits for the provider list.
+  if (silentPhase.value === 'waiting') {
+    decideSilentSignIn();
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('pageshow', onPageShow);
+  clearTimeout(silentWaitTimer);
+});
+
+// ============================================================================
 // Functions
 // ============================================================================
 async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
+  socialError.value = null;
   loading.value = true;
 
   try {
@@ -229,8 +437,9 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
     // Check if login was successful (user data in response)
     const userData = result.data?.user;
     if (userData) {
-      // Auth state is already stored by useLtAuth
-      // Navigate to app
+      // Auth state is already stored by useLtAuth. Signed in: a later visit after the session
+      // expired may try the silent sign-in again.
+      socialSignInMarks.clear();
       await navigateTo(redirectTarget.value);
     } else {
       toast.add({
@@ -253,7 +462,20 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
 <template>
   <UPageCard class="w-md" variant="naked">
-    <div ref="formRoot">
+    <!-- Always in the DOM, so screen readers announce the text when it appears. -->
+    <p role="status" :class="silentChecking ? 'text-center text-muted' : 'sr-only'">{{ silentChecking ? 'Anmeldung wird geprüft …' : '' }}</p>
+    <div v-show="!silentChecking" ref="formRoot">
+      <!-- role="alert": `callback.vue` comes here by a client-side navigation, so neither focus nor the title change; the role is what announces the failure. -->
+      <UAlert
+        v-if="socialError"
+        role="alert"
+        color="error"
+        variant="subtle"
+        icon="i-lucide-shield-alert"
+        :title="socialError.title"
+        :description="socialError.description"
+        class="mb-4"
+      />
       <UAuthForm
         :schema="schema"
         title="Anmelden"
@@ -277,6 +499,20 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
         <template #footer>
           <div class="flex flex-col gap-4">
             <USeparator label="oder" />
+
+            <UButton
+              v-for="provider in socialButtons"
+              :key="provider.id"
+              block
+              color="neutral"
+              variant="outline"
+              :icon="provider.icon"
+              :loading="socialLoading === provider.id"
+              :disabled="socialLoading !== null && socialLoading !== provider.id"
+              @click="onSocialSignIn(provider.id)"
+            >
+              Mit {{ provider.label }} anmelden
+            </UButton>
 
             <UButton block color="neutral" variant="outline" icon="i-lucide-key" :loading="passkeyLoading" @click="onPasskeyLogin"> Mit Passkey anmelden </UButton>
 

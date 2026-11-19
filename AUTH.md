@@ -6,13 +6,14 @@ This document describes the Better Auth integration in the nuxt-base-starter tem
 
 The template uses [Better Auth](https://www.better-auth.com/) for authentication with the following features:
 
-| Feature               | Status | Description                            |
-| --------------------- | ------ | -------------------------------------- |
-| Email & Password      | ✅     | Standard email/password authentication |
-| Two-Factor Auth (2FA) | ✅     | TOTP-based 2FA with backup codes       |
-| Passkey (WebAuthn)    | ✅     | Passwordless authentication            |
-| Session Management    | ✅     | Cookie-based sessions with SSR support |
-| Password Hashing      | ✅     | Client-side SHA256 hashing             |
+| Feature               | Status | Description                                                 |
+| --------------------- | ------ | ----------------------------------------------------------- |
+| Email & Password      | ✅     | Standard email/password authentication                      |
+| Two-Factor Auth (2FA) | ✅     | TOTP-based 2FA with backup codes                            |
+| Passkey (WebAuthn)    | ✅     | Passwordless authentication                                 |
+| Social providers      | ✅     | SSO through providers the API configures, optionally silent |
+| Session Management    | ✅     | Cookie-based sessions with SSR support                      |
+| Password Hashing      | ✅     | Client-side SHA256 hashing                                  |
 
 ## Architecture
 
@@ -50,20 +51,23 @@ those names finds nothing today. That is not proof that the feature is missing. 
 
 ## Files
 
-| File                                   | Purpose                                         |
-| -------------------------------------- | ----------------------------------------------- |
-| `nuxt.config.ts` (`ltExtensions.auth`) | Auth configuration: base path, enabled features |
-| `app/middleware/auth.global.ts`        | Redirects anonymous visitors to the login       |
-| `app/middleware/guest.global.ts`       | Keeps signed-in users off the auth pages        |
-| `app/middleware/admin.global.ts`       | Guards `/app/admin/**`                          |
-| `app/pages/auth/login.vue`             | Login page (email/password and passkey)         |
-| `app/pages/auth/register.vue`          | Registration page                               |
-| `app/pages/auth/2fa.vue`               | Two-factor authentication page                  |
-| `app/pages/auth/verify-email.vue`      | E-mail verification                             |
-| `app/pages/auth/forgot-password.vue`   | Password reset request                          |
-| `app/pages/auth/reset-password.vue`    | Password reset form                             |
-| `app/pages/auth/setup.vue`             | First-run admin setup                           |
-| `app/pages/app/settings/security.vue`  | Manage passkeys and 2FA                         |
+| File                                          | Purpose                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------ |
+| `nuxt.config.ts` (`ltExtensions.auth`)        | Auth configuration: base path, enabled features                    |
+| `app/middleware/auth.global.ts`               | Redirects anonymous visitors to the login                          |
+| `app/middleware/guest.global.ts`              | Keeps signed-in users off the auth pages                           |
+| `app/middleware/admin.global.ts`              | Guards `/app/admin/**`                                             |
+| `app/middleware/sign-in-error-text.global.ts` | Strips a provider's error text from the login URL before rendering |
+| `app/pages/auth/login.vue`                    | Login page (email/password, passkey, social providers)             |
+| `app/pages/auth/callback.vue`                 | Last step of a sign-in through a social provider                   |
+| `app/utils/social-sign-in.ts`                 | Provider buttons, silent-attempt marks, `?error=` texts            |
+| `app/pages/auth/register.vue`                 | Registration page                                                  |
+| `app/pages/auth/2fa.vue`                      | Two-factor authentication page                                     |
+| `app/pages/auth/verify-email.vue`             | E-mail verification                                                |
+| `app/pages/auth/forgot-password.vue`          | Password reset request                                             |
+| `app/pages/auth/reset-password.vue`           | Password reset form                                                |
+| `app/pages/auth/setup.vue`                    | First-run admin setup                                              |
+| `app/pages/app/settings/security.vue`         | Manage passkeys and 2FA                                            |
 
 **Removing the registration page does not close sign-up.** `POST /iam/sign-up/email` stays open
 on the API, and anybody can create an account with a plain request. A project without self
@@ -138,6 +142,44 @@ const result = await authClient.twoFactor.verifyBackupCode({
   code: 'backup-code-here',
 });
 ```
+
+### Social Providers (SSO)
+
+The API configures the providers (`betterAuth.socialProviders.<id>` in nest-server; redirect URI at
+the provider: `<API URL>/iam/callback/<id>`; for Microsoft Entra ID client id, client secret, tenant
+id and `disableProfilePhoto: true`, because Better Auth stores the photo as an inline image, which
+the library leaves out of the auth-state cookie, and the API saves a Microsoft Graph request per
+sign-in), and `GET /iam/features` lists them as
+`socialProviders`. The login page shows a button per provider; the click goes through
+`useLtAuth().signIn.social()` (nuxt-extensions 4.0.3+):
+
+```typescript
+await signIn.social({
+  additionalParams: { prompt: 'select_account' },
+  callbackURL: appUrl(`/auth/callback?redirect=${encodeURIComponent(target)}`, config.public.siteUrl),
+  errorCallbackURL: appUrl(`/auth/login?redirect=${encodeURIComponent(target)}`, config.public.siteUrl),
+  provider: 'microsoft',
+});
+```
+
+`target` is `safeRedirectTarget(route.query.redirect)`, never the raw query. The browser leaves for
+the provider and returns to `/auth/callback`, which calls `validateSession()` and goes on only when
+`isLtAuthenticated()` finds the user in the `lt-auth-state` cookie the route guard reads; when the
+browser did not store it, the page sends the visitor to the login page with
+`?error=session_missing` instead of into a loop of silent attempts. With
+`NUXT_PUBLIC_AUTH_SILENT_PROVIDER=<id>` the login page first tries once per tab with
+`prompt: 'none'`. After "Abmelden" no tab of this browser tries until the next completed sign-in: the
+"signed out" mark is in `localStorage`, shared by every tab and kept after they close, while the
+"attempted" mark stays per tab in `sessionStorage`. Its first
+paint, already in the server's HTML, is "Anmeldung wird geprüft …" instead of the form; the form
+appears as soon as the page knows the attempt will not run (a mark in browser storage, the provider
+not listed, `/iam/features` failed or no answer within three seconds). A
+provider error comes back as `?error=` on the login page: `sign-in-error-text.global.ts` redirects
+the provider's `error_description` out of the URL before the page renders, and the page maps the
+code to a fixed German text and then removes it too. `login_required`, `interaction_required`,
+`consent_required` and `account_selection_required` get no message: they mean the silent attempt
+would have needed a page at the provider, which one click on the provider button shows. Details:
+the template's `CLAUDE.md`, section "Sign-in through a social provider".
 
 ### Session Validation
 
@@ -313,12 +355,14 @@ The following endpoints are provided by the nest-server backend:
 
 ### Authentication
 
-| Endpoint             | Method | Description                 |
-| -------------------- | ------ | --------------------------- |
-| `/iam/sign-in/email` | POST   | Email/password sign in      |
-| `/iam/sign-up/email` | POST   | Email/password registration |
-| `/iam/sign-out`      | POST   | Sign out                    |
-| `/iam/session`       | GET    | Get current session         |
+| Endpoint              | Method | Description                                                                     |
+| --------------------- | ------ | ------------------------------------------------------------------------------- |
+| `/iam/sign-in/email`  | POST   | Email/password sign in                                                          |
+| `/iam/sign-up/email`  | POST   | Email/password registration                                                     |
+| `/iam/sign-out`       | POST   | Sign out                                                                        |
+| `/iam/session`        | GET    | Get current session                                                             |
+| `/iam/sign-in/social` | POST   | Start a sign-in through a social provider                                       |
+| `/iam/callback/:id`   | GET    | The provider's redirect target; sets the session and redirects to `callbackURL` |
 
 ### Passkey (WebAuthn)
 

@@ -166,8 +166,9 @@ generating from a foreign contract used to succeed silently (DEV-2802).
 - Email/password authentication with client-side SHA256 password hashing
 - Two-factor authentication (2FA/TOTP) with backup codes
 - Passkey/WebAuthn support
+- Sign-in through social providers the API configures (single sign-on, e.g. Microsoft Entra ID), optionally silent
 - Password reset flow
-- Pre-built pages: login, register, forgot-password, reset-password, 2fa
+- Pre-built pages: login, register, forgot-password, reset-password, 2fa, callback (social sign-in)
 - Route middleware: `auth.global.ts`, `admin.global.ts`, `guest.global.ts`
 
 **Requirements:** the backend must run `@lenne.tech/nest-server` **11.36.1+** for the
@@ -192,6 +193,29 @@ Set `NUXT_PUBLIC_SITE_URL` on every deployed stage — it is the origin the rese
 verification links are built from (see [Environment Variables](#environment-variables)).
 Unset, the app falls back to the browser's origin and logs a console warning; that is
 right for a single-origin deployment and wrong behind a proxy or vanity domain.
+
+**Sign-in through a social provider (SSO).** Configure the provider in the API
+(`betterAuth.socialProviders.<id>` in nest-server, for example `microsoft` with client id, client
+secret, tenant id and `disableProfilePhoto: true`; redirect URI at the provider:
+`<API URL>/iam/callback/<id>`). Better Auth would store the Microsoft photo as an inline image, which
+the library leaves out of the auth-state cookie, so the app would not show it anyway, and the API
+saves a Microsoft Graph request per sign-in. `GET /iam/features`
+then lists it, and the login page shows a button for it. With
+`NUXT_PUBLIC_AUTH_SILENT_PROVIDER=<id>` the login page also tries once per tab to take over an
+existing provider session without showing anything (`prompt=none`); without one, or when the
+provider would have to show its consent screen or account picker, the form stays without a message.
+With that setting the page opens with "Anmeldung wird geprüft …" instead of the form, already in the
+server's HTML, and shows the form as soon as it knows the attempt will not run: a mark in browser
+storage, the provider not listed, `/iam/features` failed or no answer within three seconds.
+After "Abmelden" no tab of this browser signs in silently until the next completed sign-in (the mark
+is in `localStorage`, shared by every tab and kept after they close). When the app
+cannot store the sign-in (a browser drops an auth-state cookie over 4096 bytes), the callback page
+sends the visitor to the login page with a message instead of starting the next attempt. Measured with
+Microsoft Entra ID (single tenant, Chromium): with a provider session the user was in the app
+after about two seconds without interaction; without one the login page showed the provider
+button, without a loop; after "Abmelden" it stayed on the login form. A refused account sees
+"Kein Zugang". The provider's own error text never reaches the page: the server redirects it out
+of the URL before rendering. Details: `CLAUDE.md`, section "Sign-in through a social provider".
 
 Symptom guide when a reset does not arrive: a `403 INVALID_REDIRECT_URL` means the origin
 is missing from `trustedOrigins` or `NUXT_PUBLIC_SITE_URL` is wrong; a
@@ -320,6 +344,7 @@ NUXT_LINEAR_TEAM_NAME=            # Bug reporting
 NUXT_LINEAR_PROJECT_NAME=         # Bug reporting
 NUXT_API_SCHEMA=../api/schema.gql # OpenAPI schema path
 NUXT_PUBLIC_STORAGE_PREFIX=base-dev      # Local storage prefix
+NUXT_PUBLIC_AUTH_SILENT_PROVIDER=        # Social provider id for the silent sign-in on the login page (e.g. microsoft); empty = off
 ```
 
 ## Project Structure

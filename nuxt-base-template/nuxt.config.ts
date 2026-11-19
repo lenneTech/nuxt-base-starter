@@ -376,6 +376,15 @@ export default defineNuxtConfig({
       siteUrl: '',
       // NUXT_PUBLIC_WEB_PUSH_KEY overrides this
       webPushKey: '',
+      // NUXT_PUBLIC_AUTH_SILENT_PROVIDER: the social provider (an id from `/iam/features` →
+      // `socialProviders`, e.g. `microsoft`) for the silent sign-in on the login page. A visitor
+      // without an app session is signed in once per tab with `prompt=none` when they have a
+      // session at the provider; after "Abmelden" in no tab of this browser until the next
+      // completed sign-in. Set, the login page renders
+      // "Anmeldung wird geprüft …" instead of the form until it knows the attempt will not run.
+      // Empty = off (the default): the login page only shows a button per provider. See
+      // app/utils/social-sign-in.ts.
+      authSilentProvider: '',
       // API Proxy: Routes client-side /api/* requests through the Vite dev proxy
       // to the backend (localhost:3000). Required for same-origin cookies during
       // local development. Set NUXT_PUBLIC_API_PROXY=true in .env ONLY for local dev.

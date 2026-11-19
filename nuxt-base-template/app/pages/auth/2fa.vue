@@ -97,6 +97,9 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
       return;
     }
 
+    // Signed in: a later visit after the session expired may try the silent sign-in again
+    // (app/utils/social-sign-in.ts).
+    socialSignInMarks.clear();
     await navigateTo(redirectTarget.value);
   } finally {
     loading.value = false;

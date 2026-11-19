@@ -47,7 +47,7 @@ really does arrive as a number — in **both** modes. `app/utils/app-origin.ts` 
 
 - **Framework:** Nuxt 4.x with TypeScript 6.0.x
 - **UI:** NuxtUI 4.x + TailwindCSS 4.x
-- **Auth:** Better Auth (email/password, 2FA/TOTP, passkeys/WebAuthn)
+- **Auth:** Better Auth (email/password, 2FA/TOTP, passkeys/WebAuthn, social providers / SSO)
 - **Forms:** Valibot validation
 - **API:** @hey-api/client-fetch with generated types (`types.gen.ts`, `sdk.gen.ts`)
 - **State:** Pinia + VueUse + `useState()` for SSR-safe state
@@ -503,9 +503,11 @@ it needs `E2E_SETUP_CASE=closed|open` and skips without it (see its header).
 ### Redirect-aware auth flows — `safeRedirectTarget`
 
 `auth.global` sends an unauthenticated visitor to `/auth/login?redirect=<to.fullPath>`
-so a shared deep link survives the sign-in. Four places read that value back:
-`guest.global` (already signed in), `login.vue`, `2fa.vue`, and `verify-email.vue`
-(which carries it onward rather than consuming it).
+so a shared deep link survives the sign-in. Five places read that value back:
+`guest.global` (already signed in), `login.vue`, `2fa.vue`, `callback.vue` (after a
+social provider), and `verify-email.vue` (which carries it onward rather than consuming
+it). `login.vue` also puts the validated value into the `callbackURL` and
+`errorCallbackURL` of a social sign-in, so it survives the trip to the provider.
 
 **Rule:** never read `route.query.redirect` directly. Always go through
 `safeRedirectTarget()` (`app/utils/safe-redirect-target.ts`, auto-imported), exactly
@@ -552,7 +554,8 @@ Two contracts worth knowing before reusing it:
   loopback hosts. `path` must be a single-slash absolute path, same contract as
   `safeRedirectTarget`.
 
-Current call sites: `pages/auth/forgot-password.vue` and `pages/auth/verify-email.vue`.
+Current call sites: `pages/auth/forgot-password.vue`, `pages/auth/verify-email.vue` and
+`pages/auth/login.vue` (the two URLs of a social sign-in).
 `tests/unit/utils/app-origin.test.ts` pins the resolver;
 `tests/unit/runtime-config-contract.test.ts` pins that every documented
 `NUXT_PUBLIC_*` variable actually has a `runtimeConfig.public` key to land in — the
@@ -570,6 +573,149 @@ work, check both:
   `redirectTo` is validated against that list, and the reset redirect carries a live
   one-time token — a wildcard hands it to any origin it admits. nest-server warns at boot
   from 11.36.1.
+
+### Sign-in through a social provider (SSO) — `app/utils/social-sign-in.ts`
+
+**Enable a provider on the API, not here.** Configure it in nest-server under
+`betterAuth.socialProviders.<id>` (for Microsoft Entra ID: `microsoft` with client id, client secret,
+tenant id and `disableProfilePhoto: true`, because Better Auth stores the photo as an inline image,
+which the library leaves out of the auth-state cookie, so the app would not show it anyway, and the
+API saves a Microsoft Graph request per sign-in) and register `<API URL>/iam/callback/<id>` as the
+redirect URI at the provider. The
+app origin has to be in the API's `trustedOrigins`, as for the reset links. `GET /iam/features`
+then lists the provider in `socialProviders`, and `login.vue` shows a button "Mit <Name> anmelden"
+for it next to the passkey button (label and icon from `socialProviderDisplay()`, a capitalised id
+and a neutral icon for ids it does not know). A click calls `useLtAuth().signIn.social()`
+(nuxt-extensions 4.0.3+) with `prompt: 'select_account'`. The browser leaves for the provider and
+comes back to `/auth/callback`, which runs `validateSession()` and goes on to the deep link once the
+auth state is stored where the route guard reads it (see the callback paragraph below).
+
+**Both URLs come from `appUrl()` and `safeRedirectTarget()`, never from the query.**
+`callbackURL` is `/auth/callback?redirect=<target>`, `errorCallbackURL` is
+`/auth/login?redirect=<target>`, both absolute: Better Auth resolves a relative value against the
+API origin, and `trustedOrigins` is the only check on what it is given.
+
+**Silent attempt, opt-in.** `NUXT_PUBLIC_AUTH_SILENT_PROVIDER=<id>` (`runtimeConfig.public.authSilentProvider`,
+empty = off) makes the login page try once to take over the visitor's provider session with
+`prompt: 'none'`, as soon as `/iam/features` lists that provider. With a provider session the visitor
+lands in the app without typing anything; without one the provider sends the browser back with
+`?error=login_required` and the form stays, without a message. The same holds for the codes a
+provider answers when it would have to show a prompt, its consent screen or its account picker
+(table below): one click on the provider button shows that page.
+
+**With the setting, the first paint is the checking state, not the form.** The setting is for
+deployments where single sign-on is the normal way in, and a form that is taken away after a moment
+invites typing into it. So the server renders "Anmeldung wird geprüft …" (`role="status"`) with the
+form hidden (`v-show`, so `display: none`: not visible, not focusable, not in the accessibility
+tree), and the client's first render is the same, because both read only the runtime config and the
+query (`silentPhase` in `login.vue` starts as `waiting`). The marks live in browser storage, which the
+server cannot see, so the page decides after mount and shows the form as soon as it knows no attempt
+will run: a mark is set, storage is blocked, `/iam/features` answered without the provider or failed
+(the page awaits `fetchFeatures()`, which resolves either way), or no answer came within
+`SILENT_SIGN_IN_FEATURES_TIMEOUT_MS` (three seconds, `app/utils/social-sign-in.ts`; a cold `nuxt dev`
+measured 2.8 seconds from the first paint, scripts included). A list that arrives after that starts
+nothing: the visitor may be typing by then. When the attempt starts, the checking state simply
+continues until the browser leaves. Reached with `error`, the server renders the form and the
+message; without the setting it renders the form. Never read the marks while rendering: the server
+would decide without them and hydration would not match (`auth-login-social.test.ts` renders on a
+server without storage and hydrates).
+
+Measured with Microsoft Entra ID (single tenant, Chromium, November 2026): with an existing provider
+session the silent attempt signed the user in without interaction, about two seconds from the first
+request to the app page; without a provider session it came back with `error=login_required`, and
+the login page showed the provider button, without a loop; after "Abmelden" the page stayed on the
+login form although the provider session still existed. While the "signed out" mark was kept per
+tab, a new tab of the same browser sent `prompt=none` within four seconds of "Abmelden" in the first
+and was in the app again without a click; that is why the mark is shared by every tab now.
+
+Two marks keep the attempt from looping or from undoing a sign-out, under fixed keys with a prefix of
+their own:
+
+- **"Attempted"**, per tab, in `sessionStorage` (`lt-social-sign-in:silent-attempted`). Set before
+  the request; it stops a loop within one tab. A new tab may try once of its own.
+- **"Signed out"**, for every tab of this browser, in `localStorage` (`lt-social-sign-in:signed-out`).
+  Set by both sign-out buttons (`layouts/default.vue`, `pages/app/index.vue`). `localStorage` is
+  shared by every tab of the origin and kept after the tabs close, so after "Abmelden" no tab of this
+  browser signs in silently until the next completed sign-in.
+
+Either mark stops the attempt. Every completed sign-in clears both, from both stores: password and
+passkey on `login.vue`, the second factor on `2fa.vue`, a provider on `callback.vue` (once the auth
+state is stored, see below). A later visit after the session expired may then try again. A "signed
+out" mark an earlier version left in `sessionStorage` still counts in its tab, and `clear()` removes
+it. When either store is missing, blocked or throws, no silent attempt runs, because nothing would
+stop the next one or remember the sign-out. A new sign-out call site must set the mark
+(`socialSignInMarks.markSignedOut()`; `tests/unit/utils/social-sign-in.test.ts` fails otherwise), and
+a new way to sign in should call `socialSignInMarks.clear()` where it knows it succeeded.
+
+No project namespace in the keys: both stores are per origin, and `NUXT_PUBLIC_STORAGE_PREFIX` has no
+effect (no `runtimeConfig.public` key receives it, and no runtime code of this template or of
+nuxt-extensions 4.0.2 reads it; the library mentions it only in comments). Two projects that run one after the other on the same
+origin (`localhost:3001`) share the marks, as they share the auth cookies; `lt dev up` gives each
+project an origin of its own.
+
+**`?error=` is read once, mapped, and removed from the URL.** The code goes through
+`socialSignInError()`:
+
+| Code                                                                                       | Message                                                           |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `login_required`, `interaction_required`, `consent_required`, `account_selection_required` | none: the silent attempt would have needed a page at the provider |
+| `access_denied`, `signup_disabled`, `unauthorized_client`                                  | "Kein Zugang": the account is not enabled for this application    |
+| `account_not_linked`                                                                       | an account with this address signs in another way                 |
+| `state_mismatch`, `state_not_found`, `please_restart_the_process`                          | the sign-in took too long or was interrupted, start it again      |
+| anything else (`email_not_verified`, `internal_server_error`, `session_missing`, …)        | generic text, naming the code only when it looks like one         |
+
+With `prompt=none` a provider answers the four codes of the first row instead of showing its sign-in,
+a prompt, its consent screen or its account picker (OpenID Connect Core 1.0, 3.1.2.6).
+`consent_required` is what every user of a tenant without admin consent gets: a provider session,
+but no consent to the app yet. One click on the provider button (`prompt=select_account`) shows that
+page and signs the user in, so the form appears without a message. An interactive sign-in never
+answers these codes; a user who declines consent there comes back with `access_denied` (RFC 6749,
+4.1.2.1).
+
+`account_not_linked` was measured with a local account and a provider account of the same address.
+The state codes come from nest-server, which sends a callback whose state it cannot read (a sign-in
+that took longer than ten minutes at the provider, a callback opened twice) to
+`<appUrl>/auth/login?error=<code>` instead of Better Auth's error page on the API host. They arrive
+without `redirect`, because the state that carried it is gone, and the page falls back to `/app`.
+
+Never render `error_description` or any other query text: anybody can send a link to the login page
+with a text of their choice, and Microsoft writes a long text with trace and correlation ids there.
+`app/middleware/sign-in-error-text.global.ts` answers a `/auth/login` URL with `error_description`
+with a redirect to the same URL without it (302 on the server, `replace` on the client), keeping
+`error`, `redirect` and everything else, so the page never renders or serialises the text: not in
+the HTML, not in the SSR payload, not in the address bar or the history, out of reach of analytics
+and the bug reporter. Its file name makes it run after `guest.global.ts`, so a signed-in visitor
+still goes straight to the deep link. The page then reads the code once into component state and
+replaces the URL without `error` (`withoutSignInError()`), so a reload does not bring a stale
+message back. The alert stays until the next sign-in starts, and it carries `role="alert"`:
+`callback.vue` comes to the login page by a client-side navigation, so neither focus nor the title
+changes, and without the role a screen-reader user would never hear that the sign-in failed. A page
+reached with `error` never starts the silent attempt.
+
+`callback.vue` has no global middleware in its way (`auth.global` and `admin.global` guard `/app`,
+`guest.global` and `sign-in-error-text.global` only `/auth/login`). Without a session it sends the
+visitor to the login page with `?error=session_missing`.
+
+**A session is not yet a completed sign-in.** `auth.global` reads the user from the `lt-auth-state`
+cookie in `document.cookie` (on the server from the request's cookie), and so does every reload. A
+browser drops a cookie over 4096 bytes on write, while `useLtAuth()` keeps reporting the user from
+the ref `useCookie` holds in memory. Going on then, the guard sends the visitor to
+`/auth/login?redirect=…` without `error`, the marks are cleared, and the login page starts the next
+silent attempt at once: app, API and provider loop, a session row per round, and the form never
+shows. So after `validateSession()` the page goes on only when `isLtAuthenticated()` (the library's
+read of `document.cookie`, auto-imported, without the in-memory fallback) finds the user. Otherwise it
+leaves the marks and takes the no-session path, `?error=session_missing`: the login page shows the
+message and starts no attempt. The library leaves an inline profile photo out of the cookie, the
+commonest cause, but the check holds for any other.
+
+Tests: `tests/unit/utils/social-sign-in.test.ts` (helper, every sign-out call site),
+`tests/unit/middleware/sign-in-error-text-global.test.ts` (the redirect and its order after
+`guest.global`), `tests/unit/pages/auth-login-social.test.ts` (including the server render, the
+hydration and every way to the form), `tests/unit/pages/auth-callback.test.ts` (including a session
+whose auth state the browser did not store) and the marks cases in `tests/unit/pages/auth-2fa.test.ts`
+(the pages), `tests/e2e/auth-social-sign-in.spec.ts` (browser against a stubbed API, including the
+served HTML and the first paint with JavaScript off; the silent part needs the app started with
+`NUXT_PUBLIC_AUTH_SILENT_PROVIDER=microsoft`).
 
 ### Auth error handling — translate, then classify by `code`
 
