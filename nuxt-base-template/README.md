@@ -221,6 +221,8 @@ of the URL before rendering. Details: `CLAUDE.md`, section "Sign-in through a so
 to 12.9.4 the API hands Better Auth only client id, client secret and `disableSignUp` and drops the
 rest without a warning. Microsoft then signs in through `common`: every Microsoft organisation and
 personal accounts get in, although the configuration names one tenant.
+Take 12.10.1 or later: the security release on top of 12.10.0 closes unauthenticated DoS paths in
+the GraphQL upload parser and the complexity check.
 
 Symptom guide when a reset does not arrive: a `403 INVALID_REDIRECT_URL` means the origin
 is missing from `trustedOrigins` or `NUXT_PUBLIC_SITE_URL` is wrong; a
