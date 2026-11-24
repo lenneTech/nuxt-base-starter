@@ -257,6 +257,16 @@ cookies: false, // top level, next to `betterAuth`; or NSC__COOKIES=false
 
 Effect: auth via JWT instead of cookies, all features active.
 
+Steps 4 and 7 switch 2FA on and off. Since nest-server 12.11.0 a JWT is bound to its session, and
+both switches replace the session, so after each one the spec asks `GET /iam/get-session` with the
+bearer from the app's token cookie alone (`lt-jwt-token` by default, renamed by
+`NUXT_PUBLIC_COOKIE_PREFIX` or `ltExtensions.auth.cookieNames.token`), from Playwright's `request`
+fixture without the browser's cookies.
+The Better-Auth routes the API forwards set a session cookie in the JWT mode too, and a request
+through the browser context would be answered through it. The check needs nuxt-extensions 4.0.5
+and nest-server 12.11.1: with nuxt-extensions 4.0.4 step 4 fails, against nest-server 12.11.0
+step 7 (measured 2026-11-24). In the cookie mode both steps ask with the session cookie.
+
 Until nest-server 12.7.0 the JWT mode works same-origin only: start the app with
 `NUXT_PUBLIC_API_PROXY=true`, so it reaches the API through its own origin. Cross-origin it needs
 CORS with credentials, which comes with 12.7.0.
