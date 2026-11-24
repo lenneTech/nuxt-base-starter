@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.5](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.4...v4.0.5) (2026-11-24)
+
+
+### Highlights for adopters
+
+* **nuxt-extensions 4.0.5.** It matters for the JWT mode, an API with `cookies: false`.
+  * Since nest-server 12.11.0 a JWT is bound to its session, and switching 2FA on or off replaces the session.
+  * `useLtAuthClient().twoFactor.verifyTotp`, `verifyBackupCode`, `enable`, `disable` and `changePassword` now store the JWT the API sends with the answer.
+  * `setUser(user)` without a mode keeps the JWT mode for the same user.
+  * Switching 2FA off needs nest-server 12.11.1 on the API side.
+
+  The cookie mode, the template's default, behaves as before. A project only needs `"@lenne.tech/nuxt-extensions": "4.0.5"` and `pnpm install`.
+* **`@nuxt/ui` 4.13.1 and `@nuxtjs/seo` 6.1.0.** Raise the `@nuxt/ui@<4.8.1` override target with the dependency. Menu and sidebar toggles now carry `aria-expanded`. The sitemap is plain XML by default; set `sitemap: { xsl: true }` to keep the stylesheet. Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.5/migration-guides/4.0.5-jwt-after-2fa-and-tooling.md), steps 1 and 2.
+* **oxlint 1.95.0 and oxfmt 0.80.0.** Neither changed a file or reported a finding in the template. Run `pnpm dedupe` after the update.
+* **Session check after 2FA in the auth E2E.** Steps 4 and 7 of `auth-lifecycle.spec.ts` check that the app is still signed in after switching 2FA on and off. In the JWT mode the check sends only the bearer. To take it over, follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.5/migration-guides/4.0.5-jwt-after-2fa-and-tooling.md), step 3, which is optional.
+* **Held on purpose:**
+  * better-auth 1.7.19, in step with nest-server-starter 12.11.1
+  * TypeScript 6.0.3
+  * `@vueuse/nuxt` 14.4.0
+
+
+### Bug Fixes
+
+* **deps:** nuxt-extensions 4.0.5, @nuxt/ui 4.13.1, @nuxtjs/seo 6.1.0, oxlint 1.95.0 and oxfmt 0.80.0 ([7a1c59d](https://github.com/lenneTech/nuxt-base-starter/commit/7a1c59df52470f60f81a678fd3eb8aad82028eb6))
+
+
+### Tests
+
+* **e2e:** the app stays signed in after switching 2FA on and off ([05266e4](https://github.com/lenneTech/nuxt-base-starter/commit/05266e4b8d95837a5b4ced0482d763fe74704140))
+
+
 ### [4.0.4](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.3...v4.0.4) (2026-11-24)
 
 
