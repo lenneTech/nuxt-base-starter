@@ -595,6 +595,8 @@ to 12.9.4 `buildSocialProviders` hands Better Auth only `clientId`, `clientSecre
 `disableSignUp` and drops the rest without a warning. Microsoft then signs in through `common`:
 every Microsoft organisation and personal accounts get in, although the configuration names one
 tenant.
+Take 12.10.1 or later: the security release on top of 12.10.0 closes unauthenticated DoS paths in
+the GraphQL upload parser and the complexity check.
 
 **Both URLs come from `appUrl()` and `safeRedirectTarget()`, never from the query.**
 `callbackURL` is `/auth/callback?redirect=<target>`, `errorCallbackURL` is

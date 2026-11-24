@@ -185,6 +185,8 @@ the template's `CLAUDE.md`, section "Sign-in through a social provider".
 to 12.9.4 the API hands Better Auth only client id, client secret and `disableSignUp` and drops the
 rest without a warning. Microsoft then signs in through `common`: every Microsoft organisation and
 personal accounts get in, although the configuration names one tenant.
+Take 12.10.1 or later: the security release on top of 12.10.0 closes unauthenticated DoS paths in
+the GraphQL upload parser and the complexity check.
 
 ### Session Validation
 
