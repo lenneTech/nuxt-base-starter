@@ -160,6 +160,8 @@ onlyBuiltDependencies:
 # postcss-selector-parser, minimatch), every target is the newest release in its major, and the
 # resolve without any override puts no overridden package above the version its entry delivers.
 # @nuxt/ui target raised to 4.13.0 with the app's own dependency. Five entries now.
+# Starter 4.0.5 maintenance (2026-11-24): @nuxt/ui target raised to 4.13.1 with the app's own
+# dependency; the other four entries unchanged. Five entries.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -210,6 +212,11 @@ overrides:
   # `<4.8.1`, and bug.lt 1.6.10, the newest release, still pins 4.2.1. 4.13.0 still pins reka-ui
   # 2.11.0 exactly, so the reka-ui patch below stays in use.
   #
+  # Raised 4.13.0 -> 4.13.1 (key unchanged) together with the app's own @nuxt/ui dependency.
+  # Re-checked 2026-11-24: GHSA-gj2h-2fpw-fhv9 is still the only @nuxt/ui advisory, still
+  # `<4.8.1`, and bug.lt 1.6.10, the newest release, still pins 4.2.1. 4.13.1 still pins reka-ui
+  # 2.11.0 exactly, so the reka-ui patch below stays in use.
+  #
   # This entry ALSO keeps the tree on exactly one unhead major (build integrity). bug.lt's
   # hard-pinned @nuxt/ui@4.2.1 carries `@unhead/vue@2` / `unhead@2`; with two unhead majors,
   # Nitro's externals tracer copies a partial second copy into
@@ -223,7 +230,7 @@ overrides:
   # range. `tests/unit/unhead-single-major.test.ts` still guards the invariant on the
   # lockfile. If this entry is ever dropped (bug.lt moving to a patched @nuxt/ui), re-check
   # `pnpm why unhead` for a single major first. Verified 2026-10-07.
-  '@nuxt/ui@<4.8.1': 4.13.0
+  '@nuxt/ui@<4.8.1': 4.13.1
   # js-yaml quadratic CPU consumption via YAML merge-key chains (GHSA-52cp-r559-cp3m, high),
   # incompletely fixed in 4.3.0 — the follow-up advisory is patched only in 4.3.1.
   # Transitive via @hey-api/openapi-ts>@hey-api/json-schema-ref-parser.
@@ -332,7 +339,7 @@ patchedDependencies:
   # is aria-hidden as well, so the same edit would change nothing there. It is a backport, not our
   # own fix: byte for byte the change upstream merged in unovue/reka-ui#3050 on 2026-10-26, which
   # no release carries yet (newest: 2.11.0).
-  # @nuxt/ui 4.13.0 pins reka-ui EXACTLY at 2.11.0, so the exact key cannot drift while @nuxt/ui
+  # @nuxt/ui 4.13.1 pins reka-ui EXACTLY at 2.11.0, so the exact key cannot drift while @nuxt/ui
   # stays put. `tests/unit/toast-live-region.test.ts` checks the behaviour, not the patch, and
   # stays after the patch is gone.
   #
