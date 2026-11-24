@@ -148,6 +148,18 @@ onlyBuiltDependencies:
 # range. A fresh resolve without the entry gives @nuxt/icon 2.6.3 with @iconify/vue 5.0.5, and
 # `tests/unit/icon-endpoint-contract.test.ts` stays green on it. readdir-glob's minimatch raised to
 # 11.0.9 (see the entry). Six entries now.
+# Re-run 2026-11-23 (starter 4.0.4 maintenance, pnpm 11.28.12), same method plus one fresh resolve
+# per entry: the `esbuild@<0.28.1` entry (GHSA-g7r4-m6w7-qqqr, >=0.27.3 <0.28.1, and
+# GHSA-67mh-4wv8-2f99, <=0.24.2) was removed. nitropack 2.13.6 requests esbuild ^0.28.2 itself and
+# every other consumer (vite 8.3.8, unplugin, nuxt-seo-utils, @unhead/bundler) takes it as a peer, so
+# the fresh lockfiles with and without the entry held the identical package set (one esbuild,
+# 0.28.2) with a clean `pnpm audit`. Without any override the resolve adds only 0.25.12, through
+# bug.lt's @nuxt/ui 4.2.1, which the @nuxt/ui entry lifts and which neither advisory covers.
+# nest-server-starter resolves no esbuild, so an lt-monorepo loses nothing either. Each of the five
+# other entries still reopens its own advisory on its own (zod high, @nuxt/ui, three js-yaml highs,
+# postcss-selector-parser, minimatch), every target is the newest release in its major, and the
+# resolve without any override puts no overridden package above the version its entry delivers.
+# @nuxt/ui target raised to 4.13.0 with the app's own dependency. Five entries now.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
@@ -193,6 +205,11 @@ overrides:
   # `<4.8.1`, and bug.lt 1.6.10, the newest release, still pins 4.2.1. 4.12.2 still pins reka-ui
   # 2.11.0 exactly, so the reka-ui patch below stays in use.
   #
+  # Raised 4.12.2 -> 4.13.0 (key unchanged) together with the app's own @nuxt/ui dependency.
+  # Re-checked 2026-11-23: GHSA-gj2h-2fpw-fhv9 is still the only @nuxt/ui advisory, still
+  # `<4.8.1`, and bug.lt 1.6.10, the newest release, still pins 4.2.1. 4.13.0 still pins reka-ui
+  # 2.11.0 exactly, so the reka-ui patch below stays in use.
+  #
   # This entry ALSO keeps the tree on exactly one unhead major (build integrity). bug.lt's
   # hard-pinned @nuxt/ui@4.2.1 carries `@unhead/vue@2` / `unhead@2`; with two unhead majors,
   # Nitro's externals tracer copies a partial second copy into
@@ -206,17 +223,7 @@ overrides:
   # range. `tests/unit/unhead-single-major.test.ts` still guards the invariant on the
   # lockfile. If this entry is ever dropped (bug.lt moving to a patched @nuxt/ui), re-check
   # `pnpm why unhead` for a single major first. Verified 2026-10-07.
-  '@nuxt/ui@<4.8.1': 4.12.2
-  # esbuild dev-server advisories - transitive via vite tooling. The key covers both:
-  #   - GHSA-g7r4-m6w7-qqqr (low): arbitrary file read via the dev server on Windows,
-  #     >=0.27.3 <0.28.1, first patched 0.28.1. This is the one the `<0.28.1` bound encodes.
-  #   - GHSA-67mh-4wv8-2f99 (medium): any website can send requests to the dev server and
-  #     read the response, <=0.24.2, first patched 0.25.0.
-  # (This comment previously cited GHSA-67mh for the 0.27.3-0.28.1 window; that range
-  # belongs to GHSA-g7r4.) 0.28.2 is the newest 0.28.x. Verified 2026-09-27.
-  # Re-verified 2026-10-03: key matches the advisory database, 0.28.2 is still the newest
-  # 0.28.x, and a fresh resolve without this entry brings esbuild 0.27.7 (GHSA-g7r4) back.
-  'esbuild@<0.28.1': 0.28.2
+  '@nuxt/ui@<4.8.1': 4.13.0
   # js-yaml quadratic CPU consumption via YAML merge-key chains (GHSA-52cp-r559-cp3m, high),
   # incompletely fixed in 4.3.0 — the follow-up advisory is patched only in 4.3.1.
   # Transitive via @hey-api/openapi-ts>@hey-api/json-schema-ref-parser.
@@ -325,7 +332,7 @@ patchedDependencies:
   # is aria-hidden as well, so the same edit would change nothing there. It is a backport, not our
   # own fix: byte for byte the change upstream merged in unovue/reka-ui#3050 on 2026-10-26, which
   # no release carries yet (newest: 2.11.0).
-  # @nuxt/ui 4.12.2 pins reka-ui EXACTLY at 2.11.0, so the exact key cannot drift while @nuxt/ui
+  # @nuxt/ui 4.13.0 pins reka-ui EXACTLY at 2.11.0, so the exact key cannot drift while @nuxt/ui
   # stays put. `tests/unit/toast-live-region.test.ts` checks the behaviour, not the patch, and
   # stays after the patch is gone.
   #
