@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.4](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.3...v4.0.4) (2026-11-24)
+
+
+### Highlights for adopters
+
+* **nuxt-extensions 4.0.4.** Against an API that reports `jwt: false` in `GET /iam/features` (nest-server with `betterAuth.jwt: false`), the app no longer asks `/iam/token` for a JWT. Every page load of a cookie-only project used to cost one or two 404s with a console error. A project only needs `"@lenne.tech/nuxt-extensions": "4.0.4"` and `pnpm install`.
+* **`@nuxt/ui` 4.13.0.** Raise the `@nuxt/ui@<4.8.1` override target with it. Three fixes change behaviour, but the template uses none of the affected patterns:
+  * `UButton` without `to`/`href`
+  * `UTable` while loading
+  * `compare` with `null`
+
+  Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.4/migration-guides/4.0.4-nuxt-ui-and-tooling.md), step 1.
+* **Tooling and pnpm 11.29.0.** The release raises `oxlint-tsgolint` to 7.0.2008, vue to 3.5.46, lint-staged to 17.6.2 and mongodb to 7.9.1.
+  * Run `pnpm dedupe` after the update; without it, `@vue/compiler-*` 3.5.45 stays next to vue 3.5.46.
+  * Copy the `packageManager` line, which pins pnpm 11.29.0, into every `package.json`.
+
+  The [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.4/migration-guides/4.0.4-nuxt-ui-and-tooling.md), step 2, has the details.
+* **The `esbuild@<0.28.1` override can go.** nitropack 2.13.6 requests a patched esbuild itself. Removing the override is optional: [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.4/migration-guides/4.0.4-nuxt-ui-and-tooling.md), step 3.
+* **nest-server 12.10.1 for single sign-on.** AUTH.md and the template docs now name 12.10.1. It is the security release on top of 12.10.0 and closes unauthenticated DoS paths in the GraphQL upload parser and the complexity check.
+* **Held on purpose:**
+  * better-auth 1.7.19, in step with the API
+  * TypeScript 6.0.3, because vue-tsc does not yet run on TypeScript 7
+  * `@vueuse/nuxt` 14.4.0, because `@nuxt/ui` still requires `@vueuse/core` 14. A project that raised it to 15 goes back: [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.4/migration-guides/4.0.4-nuxt-ui-and-tooling.md), step 4.
+
+
+### Bug Fixes
+
+* **deps:** nuxt-extensions 4.0.4, @nuxt/ui 4.13.0, pnpm 11.29.0 and tooling ([684fa02](https://github.com/lenneTech/nuxt-base-starter/commit/684fa02c7d20b6bbbd80d5472ba21c197381b789))
+
+
+### Documentation
+
+* **auth:** take nest-server 12.10.1, the security release on top of 12.10.0 ([b64b5c7](https://github.com/lenneTech/nuxt-base-starter/commit/b64b5c7c59d2391da0e9a51b7d35d9aa8c582116))
+
+
 ### [4.0.3](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.2...v4.0.3) (2026-11-19)
 
 
