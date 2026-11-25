@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.6](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.5...v4.0.6) (2026-11-25)
+
+
+### Highlights for adopters
+
+* **The login page offers only the sign-in methods the API reports.** nest-server 12.11.0 reports `emailAndPassword` in `/iam/features`.
+  * With `emailAndPassword: false`, an API that signs in through providers alone, the page shows only the provider buttons: no form, no "Passwort vergessen?", no "Registrieren". `/auth/register` sends visitors to the login.
+  * `passkey: false` hides the passkey button. With no method left, the page says "Anmeldung nicht möglich".
+  * An API without the field keeps the form. The page reads the features during SSR, so nothing appears or disappears after load.
+  * The redirect away from `/auth/register` now replaces the history entry, so "Back" no longer lands on it again.
+
+  Follow the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.6/migration-guides/4.0.6-sign-in-methods-from-features.md).
+* **nuxt-extensions 4.0.6.** After a page load, the JWT mode sends the stored JWT from the first request on. A user whose API session is gone is signed out instead of shown as signed in. A project only needs `"@lenne.tech/nuxt-extensions": "4.0.6"` and `pnpm install`.
+* **Nuxt 4.7.0.** Nuxt no longer installs DevTools; `nuxt dev` offers them through an onboarding script. To keep them, install `@nuxt/devtools@3.4.4` with the version spelled out: 4.2.x fails `pnpm peers check`. Run `pnpm dedupe` after the update. See the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.6/migration-guides/4.0.6-nuxt-4.7-and-session-after-reload.md).
+* **Held on purpose:**
+  * better-auth 1.7.19, in step with nest-server-starter 12.11.2
+  * TypeScript 6.0.3
+  * `@vueuse/nuxt` 14.4.0
+
+
+### Features
+
+* **auth:** the login page offers only the sign-in methods /iam/features reports ([97518cb](https://github.com/lenneTech/nuxt-base-starter/commit/97518cbcfc90d2bbb324265fbd7c95005e2a7a6e))
+
+
+### Bug Fixes
+
+* **deps:** nuxt-extensions 4.0.6, nuxt 4.7.0, @iconify-json/lucide 1.2.159 and oxfmt 0.80.0 ([c5bd583](https://github.com/lenneTech/nuxt-base-starter/commit/c5bd583e284fe734bf673bd1df554ce1f3fa7109))
+
+
 ### [4.0.5](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.4...v4.0.5) (2026-11-24)
 
 
