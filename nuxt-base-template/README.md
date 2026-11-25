@@ -189,6 +189,14 @@ API's config (nest-server; from 12.3.0 it closes sign-up through social provider
 `GET /iam/features` then reports `signUpEnabled: false`, the login page hides its "Registrieren"
 link, and `/auth/register` sends visitors to the login, so the page can stay.
 
+**Sign-in through providers alone (SSO only).** Switch e-mail and password off in the API
+(`betterAuth.emailAndPassword.enabled: false`, nest-server 12.11.0+) and configure a provider (below).
+`GET /iam/features` then reports `emailAndPassword: false`, and the login page shows only the provider
+buttons: no form, no "Passwort vergessen?", no "Registrieren"; `/auth/register` sends visitors to the
+login. The passkey button follows `passkey`, which 12.11.0 switches off with the form unless the API
+keeps it. With no method left, the page shows a hint. An older API does not report the field, and the
+form stays.
+
 Set `NUXT_PUBLIC_SITE_URL` on every deployed stage — it is the origin the reset and
 verification links are built from (see [Environment Variables](#environment-variables)).
 Unset, the app falls back to the browser's origin and logs a console warning; that is

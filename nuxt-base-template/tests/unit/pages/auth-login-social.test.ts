@@ -17,6 +17,12 @@
  *   browser hydrates the same markup, and the form appears as soon as the page knows no attempt will
  *   run (a mark, blocked storage, the provider not listed, `/iam/features` failed, the timeout).
  * - The return from the provider through the back/forward cache frees the buttons and the form.
+ * - The sign-in methods `/iam/features` reports: without `emailAndPassword` (an API before nest-server
+ *   12.11.0) the form stays; with `emailAndPassword: false` the form, "Passwort vergessen?" and
+ *   "Registrieren" go, `passkey: false` takes the passkey button, and a page left with no method says
+ *   so. With the features the server fetched, its HTML already shows the right methods. That the server
+ *   fetches them at all (`import.meta.server`, never true here) is checked against a real API by
+ *   `tests/e2e/auth-sign-in-methods.spec.ts`.
  *
  * What the request on the wire looks like is pinned in nuxt-extensions (`better-auth-contract`:
  * `POST /iam/sign-in/social` with the caller's fields intact); `tests/e2e/auth-social-sign-in.spec.ts`
@@ -37,7 +43,24 @@
  * hydration (a mismatch, above all) lands in `warnings`.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { computed, createApp, createSSRApp, defineComponent, h, nextTick, onMounted, onUnmounted, reactive, ref, watch, type App, type Component, type Ref } from 'vue';
+import {
+  computed,
+  createApp,
+  createSSRApp,
+  defineComponent,
+  h,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  Suspense,
+  watch,
+  type App,
+  type Component,
+  type PropType,
+  type Ref,
+} from 'vue';
 import { renderToString } from 'vue/server-renderer';
 
 import LoginPage from '~/pages/auth/login.vue';
@@ -55,8 +78,13 @@ interface MountOptions {
   socialAnswer?: unknown;
   /** The query the page is opened with. */
   query?: Record<string, unknown>;
-  /** `/iam/features` as `useLtAuth().features` holds it; changeable after mount. */
+  /** `/iam/features` as `useLtAuth().features` holds it: the browser's answer; changeable after mount. */
   features?: Record<string, unknown>;
+  /**
+   * What `/iam/features` answered the server (`login-server-features`), as the payload brings it to the
+   * browser; changeable after mount through `serverState`.
+   */
+  serverFeatures?: Record<string, unknown>;
   /** What `signIn.email` answers. */
   emailAnswer?: unknown;
   /** What `authenticateWithPasskey()` answers. */
@@ -99,6 +127,16 @@ async function mountLogin(options: MountOptions = {}) {
         });
       }),
   );
+  // `useState` as Nuxt's: one value per key, shared by the "server" render and the "browser", as the payload
+  // shares it. The page's own server request (`import.meta.server`) never runs here; `serverFeatures` stands
+  // for its answer.
+  const states = new Map<string, Ref<unknown>>([['login-server-features', ref(options.serverFeatures ?? null)]]);
+  const useState = <T>(key: string, init: () => T): Ref<T> => {
+    if (!states.has(key)) {
+      states.set(key, ref(init()));
+    }
+    return states.get(key) as Ref<T>;
+  };
   const route = reactive({ hash: '', path: '/auth/login', query: { ...options.query } as Record<string, unknown> });
   const replace = vi.fn(async (to: { query: Record<string, unknown> }) => {
     route.query = to.query;
@@ -113,6 +151,12 @@ async function mountLogin(options: MountOptions = {}) {
   vi.stubGlobal('onMounted', onMounted);
   vi.stubGlobal('onUnmounted', onUnmounted);
   vi.stubGlobal('useHead', vi.fn());
+  vi.stubGlobal('useState', useState);
+  vi.stubGlobal('getLtApiBase', () => 'http://api.test/iam');
+  vi.stubGlobal(
+    '$fetch',
+    vi.fn(async () => Promise.reject(new Error('no request in a unit test'))),
+  );
   vi.stubGlobal('definePageMeta', vi.fn());
   vi.stubGlobal('navigateTo', navigateTo);
   vi.stubGlobal('useRoute', () => route);
@@ -166,16 +210,23 @@ async function mountLogin(options: MountOptions = {}) {
             h('button', { 'data-icon': props.icon, 'data-loading': props.loading ? 'true' : undefined, disabled: props.disabled }, slots.default?.()),
       }),
     );
+    // As Nuxt UI's: the form, and the hint of the password field in it, only while there are fields.
     app.component(
       'UAuthForm',
       defineComponent({
         emits: ['submit'],
-        setup(_, { emit, slots }) {
+        props: { fields: { default: () => [], type: Array as PropType<Array<{ name: string }>> } },
+        setup(props, { emit, slots }) {
           submits.push(async (data) => {
             emit('submit', { data });
             await settle();
           });
-          return () => h('form', [slots.title?.(), slots['password-hint']?.(), slots.footer?.()]);
+          return () =>
+            h('div', { 'data-slot': 'root' }, [
+              slots.title?.(),
+              props.fields.length > 0 ? h('form', [props.fields.some((field) => field.name === 'password') ? slots['password-hint']?.() : null]) : null,
+              slots.footer?.(),
+            ]);
         },
       }),
     );
@@ -184,6 +235,9 @@ async function mountLogin(options: MountOptions = {}) {
     return app;
   };
 
+  // The page awaits `/iam/features` during SSR (`import.meta.server`, never true here), which makes its
+  // setup asynchronous: as in Nuxt, it renders inside <Suspense>, which adds no element of its own.
+  const suspended = defineComponent({ render: () => h(Suspense, null, { default: () => h(LoginPage as Component) }) });
   const root = document.createElement('div');
   document.body.append(root);
   let html: string | undefined;
@@ -199,7 +253,7 @@ async function mountLogin(options: MountOptions = {}) {
     vi.stubGlobal('sessionStorage', { getItem: noStorage, removeItem: noStorage, setItem: noStorage });
     vi.stubGlobal('localStorage', { getItem: noStorage, removeItem: noStorage, setItem: noStorage });
     try {
-      html = await renderToString(withStubs(createSSRApp(LoginPage as Component)));
+      html = await renderToString(withStubs(createSSRApp(suspended)));
     } finally {
       vi.stubGlobal('sessionStorage', tabStorage);
       vi.stubGlobal('localStorage', sharedStorage);
@@ -208,11 +262,11 @@ async function mountLogin(options: MountOptions = {}) {
     const hydrationErrors = vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
       warnings.push(args.map(String).join(' '));
     });
-    app = withStubs(createSSRApp(LoginPage as Component));
+    app = withStubs(createSSRApp(suspended));
     app.mount(root);
     hydrationErrors.mockRestore();
   } else {
-    app = withStubs(createApp(LoginPage));
+    app = withStubs(createApp(suspended));
     app.mount(root);
   }
   await settle();
@@ -233,6 +287,8 @@ async function mountLogin(options: MountOptions = {}) {
     replace,
     root,
     route,
+    /** What the server's request for `/iam/features` answered, as the payload carries it. */
+    serverState: states.get('login-server-features') as Ref<null | Record<string, unknown>>,
     social,
     status: () => root.querySelector('[role="status"]'),
     submit: (data: Record<string, string>) => submits.at(-1)!(data),
@@ -242,7 +298,7 @@ async function mountLogin(options: MountOptions = {}) {
       root.remove();
     },
     warnings,
-    wrapper: () => root.querySelector('form')?.parentElement as HTMLElement,
+    wrapper: () => root.querySelector('[data-slot="root"]')?.parentElement as HTMLElement,
   };
 }
 
@@ -250,7 +306,12 @@ async function mountLogin(options: MountOptions = {}) {
 function serverWrapper(html: string | undefined): HTMLElement {
   const parsed = document.createElement('div');
   parsed.innerHTML = html ?? '';
-  return parsed.querySelector('form')?.parentElement as HTMLElement;
+  return parsed.querySelector('[data-slot="root"]')?.parentElement as HTMLElement;
+}
+
+/** Vue's hydration warnings among those a hydrated page collected (a mismatch, above all). */
+function hydrationWarnings(warnings: string[]): string[] {
+  return warnings.filter((warning) => /hydrat/i.test(warning));
 }
 
 beforeEach(() => {
@@ -631,7 +692,6 @@ describe('login page: the first paint with the silent attempt configured', () =>
   // server cannot see: the page decides after mount and shows the form as soon as it knows no attempt
   // will run.
   const CHECKING = 'Anmeldung wird geprüft …';
-  const hydrationWarnings = (warnings: string[]) => warnings.filter((warning) => /hydrat/i.test(warning));
 
   it('renders the checking state on the server, hydrates without a mismatch, and keeps it while the attempt runs', async () => {
     const page = await mountLogin({ silentProvider: 'microsoft', ssr: true });
@@ -761,6 +821,137 @@ describe('login page: the first paint with the silent attempt configured', () =>
     await settle();
     expect(page.wrapper().style.display).toBe('');
     expect(page.social).not.toHaveBeenCalled();
+    page.unmount();
+  });
+});
+
+describe('login page: the sign-in methods /iam/features reports', () => {
+  /** What the page shows, in order: the form and its links, the buttons, the hint. */
+  function methods(page: Awaited<ReturnType<typeof mountLogin>>) {
+    return {
+      buttons: page.buttons().map((candidate) => candidate.textContent?.trim()),
+      form: page.root.querySelector('form') !== null,
+      forgotPassword: page.root.textContent?.includes('Passwort vergessen?') ?? false,
+      hint: page.root.querySelector('[data-alert]')?.textContent ?? null,
+      register: page.root.textContent?.includes('Registrieren') ?? false,
+      separator: page.root.querySelector('hr') !== null,
+    };
+  }
+
+  it('keeps the form and its links while the API does not report emailAndPassword (before nest-server 12.11.0)', async () => {
+    const page = await mountLogin({ features: { passkey: true, signUpEnabled: true, socialProviders: [] } });
+
+    expect(methods(page)).toEqual({ buttons: ['Mit Passkey anmelden'], form: true, forgotPassword: true, hint: null, register: true, separator: true });
+    page.unmount();
+  });
+
+  it('keeps the form and its links before /iam/features answered', async () => {
+    const page = await mountLogin();
+
+    expect(methods(page)).toEqual({ buttons: ['Mit Passkey anmelden'], form: true, forgotPassword: true, hint: null, register: true, separator: true });
+    page.unmount();
+  });
+
+  it('shows only the providers when the API signs in through them alone', async () => {
+    const page = await mountLogin({ features: { emailAndPassword: false, passkey: false, signUpEnabled: true, socialProviders: ['microsoft'], twoFactor: false } });
+
+    expect(methods(page)).toEqual({ buttons: ['Mit Microsoft anmelden'], form: false, forgotPassword: false, hint: null, register: false, separator: false });
+    expect(page.root.querySelector('h1')?.textContent).toBe('Anmelden');
+    page.unmount();
+  });
+
+  it('hides the form when the answer arrives after mount', async () => {
+    const page = await mountLogin();
+
+    page.features.value = { emailAndPassword: false, passkey: false, socialProviders: ['microsoft'] };
+    await settle();
+
+    expect(methods(page)).toEqual({ buttons: ['Mit Microsoft anmelden'], form: false, forgotPassword: false, hint: null, register: false, separator: false });
+    page.unmount();
+  });
+
+  it('keeps the passkey button next to the providers while the API reports passkeys on', async () => {
+    const page = await mountLogin({ features: { emailAndPassword: false, passkey: true, socialProviders: ['microsoft'] } });
+
+    expect(methods(page)).toEqual({
+      buttons: ['Mit Microsoft anmelden', 'Mit Passkey anmelden'],
+      form: false,
+      forgotPassword: false,
+      hint: null,
+      register: false,
+      separator: false,
+    });
+    page.unmount();
+  });
+
+  it('hides the passkey button while the API reports passkeys off, and the separator with it when nothing else follows', async () => {
+    const page = await mountLogin({ features: { emailAndPassword: true, passkey: false, signUpEnabled: true, socialProviders: [] } });
+
+    expect(methods(page)).toEqual({ buttons: [], form: true, forgotPassword: true, hint: null, register: true, separator: false });
+    page.unmount();
+  });
+
+  it('says so when no sign-in method is left, instead of an empty card', async () => {
+    const page = await mountLogin({ features: { emailAndPassword: false, passkey: false, signUpEnabled: true, socialProviders: [] } });
+
+    expect(methods(page)).toEqual({
+      buttons: [],
+      form: false,
+      forgotPassword: false,
+      hint: 'Anmeldung nicht möglichFür diese Anwendung ist derzeit keine Anmeldemethode eingerichtet. Bitte wende dich an die Betreiber der Anwendung.',
+      register: false,
+      separator: false,
+    });
+    page.unmount();
+  });
+
+  it('renders the provider-only page on the server from the features it fetched there, and hydrates without a mismatch', async () => {
+    const page = await mountLogin({ serverFeatures: { emailAndPassword: false, passkey: false, socialProviders: ['microsoft'] }, ssr: true });
+
+    expect(page.html).not.toContain('<form');
+    expect(page.html).not.toContain('Passwort vergessen?');
+    expect(page.html).not.toContain('Registrieren');
+    expect(page.html).toContain('Mit Microsoft anmelden');
+    expect(page.html).not.toContain('Mit Passkey anmelden');
+    expect(hydrationWarnings(page.warnings)).toEqual([]);
+    expect(methods(page)).toEqual({ buttons: ['Mit Microsoft anmelden'], form: false, forgotPassword: false, hint: null, register: false, separator: false });
+    page.unmount();
+  });
+
+  it("follows the browser's answer once it arrives, over the server's", async () => {
+    const page = await mountLogin({ serverFeatures: { emailAndPassword: false, passkey: false, socialProviders: ['microsoft'] }, ssr: true });
+
+    page.features.value = { emailAndPassword: true, passkey: true, signUpEnabled: true, socialProviders: [] };
+    await settle();
+
+    expect(methods(page)).toEqual({ buttons: ['Mit Passkey anmelden'], form: true, forgotPassword: true, hint: null, register: true, separator: true });
+    page.unmount();
+  });
+
+  it("starts the silent attempt from the browser's answer only, not from the server's in the payload", async () => {
+    const page = await mountLogin({ serverFeatures: { socialProviders: ['microsoft'] }, silentProvider: 'microsoft' });
+
+    expect(page.button('Mit Microsoft anmelden')).toBeDefined();
+    expect(page.social).not.toHaveBeenCalled();
+    expect(page.fetchFeatures).toHaveBeenCalledTimes(1);
+
+    page.features.value = { socialProviders: ['microsoft'] };
+    await settle();
+    expect(page.social).toHaveBeenCalledTimes(1);
+    expect(page.social.mock.calls[0]?.[0]).toMatchObject({ additionalParams: { prompt: 'none' }, provider: 'microsoft' });
+    page.unmount();
+  });
+
+  it('renders the form on the server when /iam/features fails there, and hides it once the browser learns otherwise', async () => {
+    const page = await mountLogin({ ssr: true });
+
+    expect(page.html).toContain('<form');
+    expect(page.html).toContain('Passwort vergessen?');
+    expect(hydrationWarnings(page.warnings)).toEqual([]);
+
+    page.features.value = { emailAndPassword: false, passkey: false, socialProviders: ['microsoft'] };
+    await settle();
+    expect(methods(page).form).toBe(false);
     page.unmount();
   });
 });

@@ -66,15 +66,57 @@ const redirectTarget = computed(() => safeRedirectTarget(route.query.redirect));
  */
 const redirectQuery = computed(() => (typeof route.query.redirect === 'string' ? { redirect: redirectTarget.value } : {}));
 
-/** One button per provider the API lists in `/iam/features` (see `app/utils/social-sign-in.ts`). */
-const socialProviders = computed(() => socialProvidersOf(features.value));
-const socialButtons = computed(() => socialProviders.value.map((id) => ({ id, ...socialProviderDisplay(id) })));
-
-/** The provider for the silent attempt: `NUXT_PUBLIC_AUTH_SILENT_PROVIDER`, while the API lists it. */
-const silentProvider = computed(() => silentSignInProvider(config.public.authSilentProvider, socialProviders.value));
-
-/** True once `/iam/features` has answered: it starts empty on the client and fills with the answer. */
+/** True once `/iam/features` has answered in the browser: it starts empty on the client and fills with the answer. */
 const featuresArrived = computed(() => Object.keys(features.value ?? {}).length > 0);
+
+/**
+ * What `/iam/features` answered the server, for the first render: `useLtAuth()` fetches the features on the
+ * client only, so without it a provider-only API would get the form in the server HTML, and it would vanish
+ * after load (the provider buttons, the other way round, would appear). The state reaches the browser in
+ * the payload, so its first render matches the server's. `null` when the request failed: the page renders as
+ * before.
+ *
+ * Kept apart from `useLtAuth().features` on purpose. Stored there (`fetchFeatures()`), it would also mark
+ * the features as fetched, and the browser would never ask again: the page would then rely on an answer
+ * the server got, and the silent attempt and `tests/e2e/auth-social-sign-in.spec.ts`, which answers
+ * `/iam/features` in the browser, would no longer see the browser's answer. A top-level `await`, as in
+ * `register.vue`; in `onServerPrefetch` a call after the first `await` runs without the Nuxt instance, and
+ * `nuxt dev` logs NUXT_E1001 on every server render (measured 2026-11-25).
+ */
+const serverFeatures = useState<null | Record<string, unknown>>('login-server-features', () => null);
+if (import.meta.server) {
+  try {
+    serverFeatures.value = await $fetch<Record<string, unknown>>(`${getLtApiBase()}/features`);
+  } catch {
+    serverFeatures.value = null;
+  }
+}
+
+/** The features the sign-in methods follow: the browser's answer once it is there, the server's until then. */
+const signInFeatures = computed<Record<string, unknown>>(() => (featuresArrived.value ? features.value : (serverFeatures.value ?? {})));
+
+/** One button per provider the API lists in `/iam/features` (see `app/utils/social-sign-in.ts`). */
+const socialButtons = computed(() => socialProvidersOf(signInFeatures.value).map((id) => ({ id, ...socialProviderDisplay(id) })));
+
+/**
+ * The provider for the silent attempt: `NUXT_PUBLIC_AUTH_SILENT_PROVIDER`, while the API lists it. From the
+ * browser's answer only: the attempt is decided after mount (see `silentPhase`).
+ */
+const silentProvider = computed(() => silentSignInProvider(config.public.authSilentProvider, socialProvidersOf(features.value)));
+
+/**
+ * Sign-in with e-mail and password: off only when the API says so (`emailAndPassword: false`, nest-server
+ * 12.11.0+, an API that signs in through providers alone). Without the field, from an older API or before
+ * `/iam/features` answered, the form stays. "Passwort vergessen?" and "Registrieren" go with it: both lead to
+ * pages that only work with a password.
+ */
+const passwordSignIn = computed(() => signInFeatures.value.emailAndPassword !== false);
+
+/** The passkey button, unless the API reports passkeys off (as nest-server 12.11.0+ does for provider-only sign-in). */
+const passkeySignIn = computed(() => signInFeatures.value.passkey !== false);
+
+/** Nothing left to sign in with: the page says so instead of showing an empty card. */
+const noSignInMethod = computed(() => !passwordSignIn.value && !passkeySignIn.value && socialButtons.value.length === 0);
 
 // ============================================================================
 // Page Meta
@@ -476,11 +518,12 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
         :description="socialError.description"
         class="mb-4"
       />
+      <!-- Without fields, UAuthForm renders no form and no submit button: header and footer stay. -->
       <UAuthForm
         :schema="schema"
         title="Anmelden"
         icon="i-lucide-user"
-        :fields="fields"
+        :fields="passwordSignIn ? fields : []"
         :loading="loading"
         :submit="{
           label: 'Anmelden',
@@ -498,7 +541,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
         <template #footer>
           <div class="flex flex-col gap-4">
-            <USeparator label="oder" />
+            <USeparator v-if="passwordSignIn && (passkeySignIn || socialButtons.length > 0)" label="oder" />
 
             <UButton
               v-for="provider in socialButtons"
@@ -514,9 +557,20 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
               Mit {{ provider.label }} anmelden
             </UButton>
 
-            <UButton block color="neutral" variant="outline" icon="i-lucide-key" :loading="passkeyLoading" @click="onPasskeyLogin"> Mit Passkey anmelden </UButton>
+            <UButton v-if="passkeySignIn" block color="neutral" variant="outline" icon="i-lucide-key" :loading="passkeyLoading" @click="onPasskeyLogin">
+              Mit Passkey anmelden
+            </UButton>
 
-            <p v-if="features.signUpEnabled !== false" class="text-center text-sm text-muted">
+            <UAlert
+              v-if="noSignInMethod"
+              color="warning"
+              variant="subtle"
+              icon="i-lucide-circle-alert"
+              title="Anmeldung nicht möglich"
+              description="Für diese Anwendung ist derzeit keine Anmeldemethode eingerichtet. Bitte wende dich an die Betreiber der Anwendung."
+            />
+
+            <p v-if="passwordSignIn && signInFeatures.signUpEnabled !== false" class="text-center text-sm text-muted">
               Noch kein Konto?
               <ULink to="/auth/register" class="text-primary font-medium">Registrieren</ULink>
             </p>

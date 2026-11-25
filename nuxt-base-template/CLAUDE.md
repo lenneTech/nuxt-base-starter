@@ -461,6 +461,40 @@ a plain request. A project without self sign-up sets
 covers social providers too). `GET /iam/features` then reports `signUpEnabled: false`: `login.vue`
 hides its "Registrieren" link and `register.vue` sends the visitor to the login, so the page can stay.
 
+**The login page offers the methods `/iam/features` reports.** Only an explicit `false` takes a method
+away; a missing field (an older API, or no answer yet) keeps it.
+
+| Field                     | `false` on `login.vue`                                                                 |
+| ------------------------- | -------------------------------------------------------------------------------------- |
+| `emailAndPassword`        | no form, no "Passwort vergessen?", no "Registrieren"; `register.vue` goes to the login |
+| `passkey`                 | no passkey button                                                                      |
+| `signUpEnabled`           | no "Registrieren"; `register.vue` goes to the login                                    |
+| `socialProviders` (empty) | no provider button                                                                     |
+
+nest-server reports `emailAndPassword` from 12.11.0 on (`betterAuth.emailAndPassword.enabled: false`,
+sign-in through providers alone) and then also reports `passkey: false` and `twoFactor: false`, unless
+the API keeps a factor deliberately. When no method is left, the page shows "Anmeldung nicht möglich"
+instead of an empty card. The page fetches the features during SSR into a state of its own (`login-server-features`), so the
+server HTML already shows the right methods, the provider buttons included, and the payload gives the
+browser's first render the same answer. Once the browser's own answer (`useLtAuth().features`) arrives,
+the page follows it; a failed request on the server renders the page as before. Three choices that look
+arbitrary and are not:
+
+- **Not `useLtAuth().fetchFeatures()` on the server**, as `register.vue` does. It marks the features as
+  fetched, and the browser never asks again. The page would then follow an answer the server got, the
+  silent attempt included, and `tests/e2e/auth-social-sign-in.spec.ts`, which answers `/iam/features`
+  in the browser, fails against a running API (measured: 2 of 4 tests red, green with the state of
+  its own).
+- **The silent attempt follows the browser's answer only.** It is decided after mount anyway.
+- **A top-level `await`, not `onServerPrefetch`.** In `onServerPrefetch` a call after the first `await`
+  runs without the Nuxt instance, and `nuxt dev` logs `NUXT_E1001` on every server render of the page.
+  The `await` makes the setup asynchronous, so the unit test mounts the page inside `<Suspense>`, as
+  Nuxt does.
+
+`tests/unit/pages/auth-login-social.test.ts` ("the sign-in methods /iam/features reports") pins the
+page; `tests/e2e/auth-sign-in-methods.spec.ts` runs it against a real API, as it ships and, with
+`E2E_SIGN_IN_CASE=providers-only`, signing in through a provider alone.
+
 ### Configurable cookie names (optional)
 
 The auth cookies default to `lt-auth-state` and `lt-jwt-token`. Projects that need to coexist with another lenne.tech app on the same domain can override them in `nuxt.config.ts`:

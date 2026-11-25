@@ -65,19 +65,32 @@ const passkeyLoading = ref<boolean>(false);
 // Registration is disabled in the API, never here: `betterAuth.emailAndPassword.disableSignUp: true`
 // makes `/iam/features` report `signUpEnabled: false`. Deleting this page instead leaves
 // `POST /iam/sign-up/email` open to anybody with a plain request (README, "No self sign-up?").
+//
+// The same goes for an API that signs in through providers alone (`emailAndPassword: false`, nest-server
+// 12.11.0+): this page is an e-mail and password form, so it has nothing to offer there. Where sign-up is
+// open, the account comes with the first sign-in through a provider on the login page.
+//
+// Two sources, not one getter returning an array: Vue compares each source by value, so the reaction runs
+// again only when a flag changes. A getter's new array differs every time, and a second answer from
+// `/iam/features` with the same values would show a second toast and start a second navigation.
 watch(
-  () => features.value.signUpEnabled,
-  (val) => {
+  [() => features.value.signUpEnabled, () => features.value.emailAndPassword],
+  ([signUpEnabled, emailAndPassword]) => {
     if (import.meta.server) {
       return;
     }
-    if (val === false) {
+    if (signUpEnabled === false || emailAndPassword === false) {
       toast.add({
         color: 'warning',
-        description: 'Die Registrierung ist derzeit deaktiviert.',
+        description:
+          signUpEnabled === false
+            ? 'Die Registrierung ist derzeit deaktiviert.'
+            : 'Eine Registrierung mit E-Mail und Passwort ist hier nicht möglich. Bitte melde dich über die Anmeldeseite an.',
         title: 'Registrierung nicht verfügbar',
       });
-      navigateTo('/auth/login');
+      // `replace`: this page has nothing to show, so it must not stay in the history. Pushed, "Back"
+      // returned here, the page sent the visitor to the login again, and the way back never came.
+      navigateTo('/auth/login', { replace: true });
     }
   },
   { immediate: true },

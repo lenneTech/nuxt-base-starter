@@ -76,6 +76,15 @@ nest-server 12.3.0 this covers social providers too). `GET /iam/features` then r
 `signUpEnabled: false`: `login.vue` hides its "Registrieren" link and `register.vue` sends the
 visitor to the login.
 
+**Sign-in through providers alone.** With `betterAuth.emailAndPassword.enabled: false` (nest-server
+12.11.0+), `GET /iam/features` reports `emailAndPassword: false`, and with it `passkey: false` and
+`twoFactor: false` unless the API switches them on deliberately. `login.vue` then shows no form, no
+"Passwort vergessen?" and no "Registrieren", only the provider buttons, and the passkey button only while
+`passkey` is not `false`. When no method is left, it says so instead of showing an empty card.
+`register.vue` sends the visitor to the login; with sign-up open, the account comes with the first sign-in
+through a provider. An API before 12.11.0 does not report the field, and the form stays. The login page
+fetches `/iam/features` during SSR, so the form neither shows up briefly nor disappears after load.
+
 ## Usage
 
 ### Basic Authentication

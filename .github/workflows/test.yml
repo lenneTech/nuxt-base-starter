@@ -223,6 +223,43 @@ jobs:
           timeout 30 bash -c 'while curl -sf http://localhost:3000/meta > /dev/null; do sleep 1; done'
           echo "API stopped"
 
+      # An API that signs in through a provider alone (nest-server 12.11.0+): `/iam/features` reports
+      # `emailAndPassword: false` and `passkey: false`, and the login page has to show the provider
+      # button and nothing else, already in the server HTML. The provider needs only an id and a
+      # secret to be listed; the spec never starts the round trip, so throwaway values do. The HTTP
+      # init stays closed, so the still empty database is left alone and no page goes to the setup.
+      # `E2E_SIGN_IN_CASE` makes the spec fail instead of skipping when the API offers e-mail and
+      # password after all. Against the API of the suite below it checks that the form stays.
+      - name: Start API signing in through a provider alone
+        env:
+          NSC__SYSTEM_SETUP__HTTP_INIT: 'false'
+          NSC__BETTER_AUTH__EMAIL_AND_PASSWORD__ENABLED: 'false'
+          NSC__BETTER_AUTH__SOCIAL_PROVIDERS__GITHUB__CLIENT_ID: ci-e2e-throwaway-client-id
+          NSC__BETTER_AUTH__SOCIAL_PROVIDERS__GITHUB__CLIENT_SECRET: ci-e2e-throwaway-client-secret
+        run: |
+          setsid bash -c 'cd api && exec pnpm run start:e2e:dist' > "$GITHUB_WORKSPACE/api-e2e-providers.log" 2>&1 &
+          echo $! > /tmp/api-providers.pid
+          timeout 180 bash -c '
+            until curl -sf http://localhost:3000/meta > /dev/null; do
+              kill -0 "$(cat /tmp/api-providers.pid)" 2>/dev/null || {
+                echo "::error::API process died during boot"; tail -n 60 "$GITHUB_WORKSPACE/api-e2e-providers.log"; exit 1;
+              }
+              sleep 2
+            done'
+          echo "API is up, signing in through a provider alone"
+
+      - name: Login page with a provider as the only way in
+        working-directory: nuxt-base-template
+        env:
+          E2E_SIGN_IN_CASE: providers-only
+        run: pnpm exec playwright test tests/e2e/auth-sign-in-methods.spec.ts
+
+      - name: Stop the API signing in through a provider alone
+        run: |
+          kill -- "-$(cat /tmp/api-providers.pid)"
+          timeout 30 bash -c 'while curl -sf http://localhost:3000/meta > /dev/null; do sleep 1; done'
+          echo "API stopped"
+
       - name: Start API and wait for readiness
         run: |
           (cd api && pnpm run start:e2e:dist > "$NEST_SERVER_LOG" 2>&1) &
