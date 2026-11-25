@@ -162,6 +162,14 @@ onlyBuiltDependencies:
 # @nuxt/ui target raised to 4.13.0 with the app's own dependency. Five entries now.
 # Starter 4.0.5 maintenance (2026-11-24): @nuxt/ui target raised to 4.13.1 with the app's own
 # dependency; the other four entries unchanged. Five entries.
+# Re-run 2026-11-25 (starter 4.0.6 maintenance, nuxt 4.7.0, pnpm 11.29.0), same method plus one fresh
+# resolve per entry: no change. Each of the five entries reopens its own advisory on its own (zod
+# high, @nuxt/ui, three js-yaml highs, postcss-selector-parser, minimatch), the resolve without any
+# override reopens exactly those seven and brings unhead 2.1.19 back next to 3.5.2, every target is
+# the newest release in its major and past the release-age gate, and the resolve without any override
+# puts no overridden package above the version its entry delivers. bug.lt 1.6.10,
+# json-schema-ref-parser 1.4.4, @tailwindcss/typography 0.5.20 and archiver 8.0.0 are still the newest
+# releases with the same pins. Five entries.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So

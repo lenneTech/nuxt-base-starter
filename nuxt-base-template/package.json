@@ -58,7 +58,7 @@
   "dependencies": {
     "@better-auth/passkey": "1.7.19",
     "@lenne.tech/bug.lt": "1.6.10",
-    "@lenne.tech/nuxt-extensions": "4.0.5",
+    "@lenne.tech/nuxt-extensions": "4.0.6",
     "@nuxt/ui": "4.13.1",
     "@pinia/nuxt": "1.0.3",
     "@plausible-analytics/tracker": "0.4.7",
@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@hey-api/openapi-ts": "0.99.0",
-    "@iconify-json/lucide": "1.2.158",
+    "@iconify-json/lucide": "1.2.159",
     "@nuxt/test-utils": "4.4.0",
     "@nuxtjs/plausible": "4.1.0",
     "@nuxtjs/seo": "6.1.0",
@@ -85,7 +85,7 @@
     "happy-dom": "21.0.4",
     "lint-staged": "17.6.2",
     "mongodb": "7.9.1",
-    "nuxt": "4.6.4",
+    "nuxt": "4.7.0",
     "oxfmt": "0.80.0",
     "oxlint": "1.95.0",
     "oxlint-tsgolint": "7.0.2008",
