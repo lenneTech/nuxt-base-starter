@@ -15,8 +15,8 @@ import { API_BASE, FRONTEND_BASE, parseFeatures, releaseSystemSetupClaim, resetT
  * offers, and the server HTML shows it already.
  *
  * - `emailAndPassword: false` (nest-server 12.11.0+, an API that signs in through providers alone): no
- *   form, no "Passwort vergessen?", no "Registrieren"; `/auth/register` sends the visitor to the login.
- *   Without the field (an older API) the form stays.
+ *   form, no "Passwort vergessen?", no "Registrieren"; `/auth/register` and `/auth/forgot-password` send
+ *   the visitor to the login. Without the field (an older API) the form stays.
  * - `passkey: false`: no passkey button. 12.11.0 reports it for provider-only sign-in by default.
  * - One button per provider in `socialProviders`, and a hint when no method is left at all.
  *
@@ -155,6 +155,22 @@ test.describe('Sign-in methods follow /iam/features', () => {
 
     // The redirect replaces the history entry: "Back" leaves the auth pages instead of returning to
     // /auth/register, which would send the visitor to the login again, with one more toast each time.
+    await page.goBack();
+    await expect(page).toHaveURL(`${FRONTEND_BASE}/`);
+  });
+
+  test('with e-mail and password off, the forgot-password page sends the visitor to the login and says why', async ({ page, request }) => {
+    test.skip(features.emailAndPassword !== false, 'E-mail and password sign-in is on in the current config');
+
+    // There is no password to reset: the login page hides the link, a bookmark still lands here.
+    const res = await request.get(`${FRONTEND_BASE}/auth/forgot-password`, { maxRedirects: 0 });
+    expect(res.status(), 'the server must not redirect').toBe(200);
+
+    await gotoAndWaitForHydration(page, '/');
+    await page.goto('/auth/forgot-password');
+    await expect(page.getByText('Passwort zurücksetzen nicht verfügbar').first()).toBeVisible();
+    await expect(page).toHaveURL(/\/auth\/login$/);
+
     await page.goBack();
     await expect(page).toHaveURL(`${FRONTEND_BASE}/`);
   });

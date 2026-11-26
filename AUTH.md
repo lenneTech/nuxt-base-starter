@@ -81,9 +81,25 @@ visitor to the login.
 `twoFactor: false` unless the API switches them on deliberately. `login.vue` then shows no form, no
 "Passwort vergessen?" and no "Registrieren", only the provider buttons, and the passkey button only while
 `passkey` is not `false`. When no method is left, it says so instead of showing an empty card.
-`register.vue` sends the visitor to the login; with sign-up open, the account comes with the first sign-in
-through a provider. An API before 12.11.0 does not report the field, and the form stays. The login page
-fetches `/iam/features` during SSR, so the form neither shows up briefly nor disappears after load.
+`register.vue` and `forgot-password.vue` send the visitor to the login; with sign-up open, the account
+comes with the first sign-in through a provider. An API before 12.11.0 does not report the field, and the
+form stays. The login page fetches `/iam/features` during SSR, so the form neither shows up briefly nor
+disappears after load.
+
+The other pages follow the same answer (since 4.0.7). `/app/settings/security` shows two-factor
+authentication only while `twoFactor` is not `false` and passkeys only while `passkey` is not `false`,
+with a hint where the second factor lives when neither is left. `account_not_linked` after a provider
+sign-in no longer asks to sign in "wie bisher", since there is no password, but points at the provider
+used before or the administration. `/auth/setup` still creates the first admin with a password, because
+`POST /system-setup/init` wants one, and says that the admin signs in through a provider whose account
+carries the same address. Better Auth 1.7 links the two on the first sign-in only when the provider
+reports the address as verified (GitHub, Google); the setup marks the admin's own address verified.
+Microsoft Entra ID reports it only with the optional ID token claim `verified_primary_email` (Entra app
+registration, "Token configuration"), so an API that signs in through Microsoft alone adds that claim.
+Do not list the provider in `betterAuth.options.account.accountLinking.trustedProviders` instead: Better
+Auth then links whatever address the provider names, verified or not, and an Entra tenant admin who sets
+a user's `mail` to the admin's address signs in as the admin ("nOAuth"; Microsoft warns about apps that
+identify users by the e-mail claim).
 
 ## Usage
 

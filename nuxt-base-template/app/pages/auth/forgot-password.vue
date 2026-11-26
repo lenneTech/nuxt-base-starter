@@ -14,7 +14,38 @@ const authClient = useLtAuthClient();
 // Composables
 // ============================================================================
 const config = useRuntimeConfig();
+const toast = useToast();
+const { features, fetchFeatures } = useLtAuth();
 const { translateError } = useLtErrorTranslation();
+
+// An API that signs in through providers alone (`/iam/features` reports `emailAndPassword: false`,
+// nest-server 12.11.0+) has no password to reset: `POST /iam/request-password-reset` refuses, and the form
+// would fail for everybody. The login page hides "Passwort vergessen?" there; a bookmark or an old link
+// still lands here, so the page sends the visitor to the login, as `register.vue` does.
+//
+// The flags are fetched during SSR, as on `register.vue`, so the payload carries them and the browser acts
+// on them at once. The redirect itself never runs on the server: a server-side navigateTo answers with a
+// bare 302 that carries no payload, and the toast saying why would never reach the browser.
+if (import.meta.server) {
+  await fetchFeatures();
+}
+
+watch(
+  () => features.value.emailAndPassword,
+  (emailAndPassword) => {
+    if (import.meta.server || emailAndPassword !== false) {
+      return;
+    }
+    toast.add({
+      color: 'warning',
+      description: 'Diese Anwendung nutzt keine Anmeldung mit Passwort. Bitte melde dich über die Anmeldeseite an.',
+      title: 'Passwort zurücksetzen nicht verfügbar',
+    });
+    // `replace`: the page has nothing to show here, so it must not stay in the history (see `register.vue`).
+    navigateTo('/auth/login', { replace: true });
+  },
+  { immediate: true },
+);
 
 // ============================================================================
 // Page Meta

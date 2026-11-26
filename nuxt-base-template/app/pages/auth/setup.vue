@@ -13,6 +13,7 @@ import * as v from 'valibot';
 const toast = useToast();
 const { httpInitEnabled, httpInitTokenRequired, initSetup, needsSetup } = useSystemSetup();
 const { translateError } = useLtErrorTranslation();
+const { features } = useLtAuth();
 
 // ============================================================================
 // Page Meta
@@ -50,6 +51,20 @@ const view = computed<'checking' | 'closed' | 'done' | 'form'>(() => {
   }
   return 'checking';
 });
+
+/**
+ * The API signs in through providers alone (`/iam/features` reports `emailAndPassword: false`, nest-server
+ * 12.11.0+). `POST /system-setup/init` still wants a password, and nobody can sign in with it there: the
+ * admin signs in through a provider whose account carries the same address, and Better Auth links that
+ * account to the admin on the first sign-in only when the provider reports the address as verified (the
+ * setup marks the admin's own address verified). GitHub does; Microsoft Entra ID only with the optional ID
+ * token claim `verified_primary_email`. Otherwise the sign-in ends with `account_not_linked`, so the form
+ * says so up front. Never point at `account.accountLinking.trustedProviders` instead: it makes Better Auth
+ * link whatever address the provider names, verified or not, and an Entra tenant admin who sets a user's
+ * `mail` to the admin's address signs in as the admin ("nOAuth").
+ * The flags arrive in the browser after the first paint; the hint then appears above the form.
+ */
+const providersOnly = computed<boolean>(() => features.value.emailAndPassword === false);
 
 const baseFields: AuthFormField[] = [
   {
@@ -178,6 +193,16 @@ async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
 
       <template #description>
         <p class="text-sm text-muted">Erstelle den ersten Administrator-Account, um das System zu starten.</p>
+        <UAlert v-if="providersOnly" color="info" variant="subtle" icon="i-lucide-info" title="Anmeldung nur über einen Anbieter" class="mt-4 text-left">
+          <template #description>
+            <p>Gib die E-Mail-Adresse an, die das Konto des Administrators beim Anbieter hat. Das Passwort verlangt die Einrichtung, zum Anmelden dient es nicht.</p>
+            <!-- wrap-anywhere: the claim name has no break point and is wide on a phone (see the closed view below). -->
+            <p class="mt-2 wrap-anywhere">
+              Die API verbindet beide Konten bei der ersten Anmeldung, wenn der Anbieter die Adresse als bestätigt meldet. GitHub tut das, Microsoft Entra ID mit dem optionalen
+              Claim <code>verified_primary_email</code> in der App-Registrierung.
+            </p>
+          </template>
+        </UAlert>
       </template>
 
       <template #footer>

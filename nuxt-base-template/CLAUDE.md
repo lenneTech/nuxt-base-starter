@@ -494,6 +494,37 @@ arbitrary and are not:
 `tests/unit/pages/auth-login-social.test.ts` ("the sign-in methods /iam/features reports") pins the
 page; `tests/e2e/auth-sign-in-methods.spec.ts` runs it against a real API, as it ships and, with
 `E2E_SIGN_IN_CASE=providers-only`, signing in through a provider alone.
+**The other pages follow the same answer (since 4.0.7),** again only on an explicit `false`:
+
+| Page                                     | Field              | With `false`                                                                                                                     |
+| ---------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `forgot-password.vue`                    | `emailAndPassword` | goes to the login with a toast, replacing the history entry, as `register.vue`                                                   |
+| `app/settings/security.vue`              | `twoFactor`        | no 2FA section                                                                                                                   |
+| `app/settings/security.vue`              | `passkey`          | no passkey section, and no `list-user-passkeys` request; with neither section left, a hint where the factors live                |
+| `setup.vue`                              | `emailAndPassword` | the form stays (`POST /system-setup/init` wants a password) with a hint: the admin signs in through a provider with that address |
+| `login.vue`, `?error=account_not_linked` | `emailAndPassword` | points at the provider used before or the administration instead of "wie bisher" (`socialSignInError(code, { passwordSignIn })`) |
+
+`forgot-password.vue` and `security.vue` fetch the features during SSR, as `register.vue` does: neither
+has a silent attempt, so the reason `login.vue` keeps a state of its own does not apply. `setup.vue`
+reads the browser's answer, and its hint appears after the first paint.
+
+The setup hint is the part that needs the API's help. Better Auth 1.7 links a provider account to an
+existing user with the same address on the first sign-in only when the provider reports the address as
+verified, and the user's own address is verified, which the system setup sets (`link-account.mjs`).
+GitHub reports the verified flag of the address, Microsoft Entra ID only with the optional ID token claim
+`verified_primary_email`, which the hint names. Otherwise the admin's first sign-in ends with
+`account_not_linked`. Never recommend `account.accountLinking.trustedProviders` (nest-server:
+`betterAuth.options.account.accountLinking.trustedProviders`) to get there: it skips the provider's check,
+so Better Auth links whatever address the provider names, and an Entra tenant admin who sets a user's
+`mail` to the admin's address signs in as the admin ("nOAuth"). `auth-setup.test.ts` fails when the hint
+names it.
+
+Tests: `tests/unit/pages/settings-security-features.test.ts`, the provider cases in
+`tests/unit/pages/auth-setup.test.ts`, `auth-login-social.test.ts` and
+`tests/unit/utils/social-sign-in.test.ts`; `tests/e2e/auth-sign-in-methods.spec.ts` covers
+`forgot-password.vue` with `E2E_SIGN_IN_CASE=providers-only`. The security page cannot run against a
+provider-only API in E2E: nobody signs in there without a real provider round trip.
+
 
 ### Configurable cookie names (optional)
 
@@ -698,13 +729,13 @@ project an origin of its own.
 **`?error=` is read once, mapped, and removed from the URL.** The code goes through
 `socialSignInError()`:
 
-| Code                                                                                       | Message                                                           |
-| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-| `login_required`, `interaction_required`, `consent_required`, `account_selection_required` | none: the silent attempt would have needed a page at the provider |
-| `access_denied`, `signup_disabled`, `unauthorized_client`                                  | "Kein Zugang": the account is not enabled for this application    |
-| `account_not_linked`                                                                       | an account with this address signs in another way                 |
-| `state_mismatch`, `state_not_found`, `please_restart_the_process`                          | the sign-in took too long or was interrupted, start it again      |
-| anything else (`email_not_verified`, `internal_server_error`, `session_missing`, …)        | generic text, naming the code only when it looks like one         |
+| Code                                                                                       | Message                                                                                                                     |
+| ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `login_required`, `interaction_required`, `consent_required`, `account_selection_required` | none: the silent attempt would have needed a page at the provider                                                           |
+| `access_denied`, `signup_disabled`, `unauthorized_client`                                  | "Kein Zugang": the account is not enabled for this application                                                              |
+| `account_not_linked`                                                                       | an account with this address signs in another way (without a password on the API: sign in through the provider used before) |
+| `state_mismatch`, `state_not_found`, `please_restart_the_process`                          | the sign-in took too long or was interrupted, start it again                                                                |
+| anything else (`email_not_verified`, `internal_server_error`, `session_missing`, …)        | generic text, naming the code only when it looks like one                                                                   |
 
 With `prompt=none` a provider answers the four codes of the first row instead of showing its sign-in,
 a prompt, its consent screen or its account picker (OpenID Connect Core 1.0, 3.1.2.6).

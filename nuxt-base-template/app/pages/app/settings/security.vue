@@ -24,9 +24,28 @@ interface Passkey {
 // ============================================================================
 const toast = useToast();
 const overlay = useOverlay();
-const { is2FAEnabled, registerPasskey, setUser, user } = useLtAuth();
+const { features, fetchFeatures, is2FAEnabled, registerPasskey, setUser, user } = useLtAuth();
 const authClient = useLtAuthClient();
 const { translateError } = useLtErrorTranslation();
+
+// Which sections the API supports: `/iam/features` reports `twoFactor: false` and `passkey: false` when the
+// plugin is off, as nest-server 12.11.0+ does for an API that signs in through providers alone
+// (`emailAndPassword: false`). The endpoints behind them answer 404 there, so "2FA aktivieren" and
+// "Passkey hinzufügen" would fail on every click. Only an explicit `false` hides a section: without the
+// field (an older API) it stays. Fetched during SSR, as on `register.vue`, so the server HTML already
+// leaves the sections out and the browser does not take them away after the first paint.
+if (import.meta.server) {
+  await fetchFeatures();
+}
+
+/** Two-factor authentication, unless the API reports it off. */
+const twoFactorAvailable = computed<boolean>(() => features.value.twoFactor !== false);
+
+/** Passkeys, unless the API reports them off. */
+const passkeyAvailable = computed<boolean>(() => features.value.passkey !== false);
+
+/** Sign-in through providers alone: the provider's account holds the second factor, not this one. */
+const providersOnly = computed<boolean>(() => features.value.emailAndPassword === false);
 
 // ============================================================================
 // Variables
@@ -62,7 +81,10 @@ type TotpSchema = InferOutput<typeof totpSchema>;
 // Lifecycle Hooks
 // ============================================================================
 onMounted(async () => {
-  await loadPasskeys();
+  // Without passkeys on the API, `list-user-passkeys` answers 404 and would only log an error.
+  if (passkeyAvailable.value) {
+    await loadPasskeys();
+  }
 });
 
 async function addPasskey(): Promise<void> {
@@ -294,8 +316,22 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
       <p class="text-muted">Verwalte deine Sicherheitseinstellungen</p>
     </div>
 
+    <!-- Neither factor on the API: say so instead of leaving the page with the account card alone. -->
+    <UAlert
+      v-if="!twoFactorAvailable && !passkeyAvailable"
+      color="neutral"
+      variant="subtle"
+      icon="i-lucide-info"
+      title="Keine weiteren Anmeldefaktoren"
+      :description="
+        providersOnly
+          ? 'Du meldest dich über einen externen Anbieter an. Zwei-Faktor-Authentifizierung und weitere Schutzmaßnahmen richtest du in deinem Konto bei diesem Anbieter ein.'
+          : 'Zwei-Faktor-Authentifizierung und Passkeys sind für diese Anwendung nicht eingerichtet.'
+      "
+    />
+
     <!-- 2FA Section -->
-    <UCard>
+    <UCard v-if="twoFactorAvailable">
       <template #header>
         <div class="flex items-center gap-3">
           <UIcon name="i-lucide-shield-check" class="size-6 text-primary" />
@@ -391,7 +427,7 @@ async function verifyTotp(payload: FormSubmitEvent<TotpSchema>): Promise<void> {
     </UCard>
 
     <!-- Passkeys Section -->
-    <UCard>
+    <UCard v-if="passkeyAvailable">
       <template #header>
         <div class="flex items-center gap-3">
           <UIcon name="i-lucide-fingerprint" class="size-6 text-primary" />

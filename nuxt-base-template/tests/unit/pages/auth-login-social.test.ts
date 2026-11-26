@@ -918,6 +918,24 @@ describe('login page: the sign-in methods /iam/features reports', () => {
     page.unmount();
   });
 
+  it('words account_not_linked for providers alone when the API has no password, on the server and in the browser', async () => {
+    const providersOnly = { emailAndPassword: false, passkey: false, socialProviders: ['microsoft'] };
+    const page = await mountLogin({ query: { error: 'account_not_linked' }, serverFeatures: providersOnly, ssr: true });
+
+    expect(page.html).toContain('Bitte melde dich über den Anbieter an, den du bisher genutzt hast');
+    expect(page.html).not.toContain('wie bisher an');
+    expect(hydrationWarnings(page.warnings)).toEqual([]);
+
+    // The browser's own answer keeps the wording; an API with a password brings the original text back.
+    page.features.value = providersOnly;
+    await settle();
+    expect(page.root.querySelector('[data-alert]')?.textContent).toContain('den du bisher genutzt hast');
+    page.features.value = { emailAndPassword: true, socialProviders: ['microsoft'] };
+    await settle();
+    expect(page.root.querySelector('[data-alert]')?.textContent).toContain('Bitte melde dich wie bisher an');
+    page.unmount();
+  });
+
   it("follows the browser's answer once it arrives, over the server's", async () => {
     const page = await mountLogin({ serverFeatures: { emailAndPassword: false, passkey: false, socialProviders: ['microsoft'] }, ssr: true });
 

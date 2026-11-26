@@ -144,7 +144,10 @@ const socialLoading = ref<null | string>(null);
  * stays until the user starts a new sign-in. Only the code is mapped. `error_description` never
  * gets here: `sign-in-error-text.global.ts` redirects it out of the URL before the page renders.
  */
-const socialError = ref<null | SocialSignInError>(socialSignInError(route.query.error));
+const socialErrorCode = ref<unknown>(route.query.error);
+
+/** The message for that code, worded for the sign-in methods the API offers (`account_not_linked` differs without a password). */
+const socialError = computed<null | SocialSignInError>(() => socialSignInError(socialErrorCode.value, { passwordSignIn: passwordSignIn.value }));
 
 /** Reached with an `error`: the silent attempt never starts then, or it would loop. */
 const arrivedWithError = hasSignInError(route.query);
@@ -198,7 +201,7 @@ function socialSignInParams(provider: string, prompt: 'none' | 'select_account')
  * provider. On success the browser leaves for the provider, so the button keeps spinning.
  */
 async function onSocialSignIn(provider: string): Promise<void> {
-  socialError.value = null;
+  socialErrorCode.value = null;
   socialLoading.value = provider;
 
   try {
@@ -334,7 +337,7 @@ type Schema = InferOutput<typeof schema>;
  * Uses authenticateWithPasskey from composable which supports JWT mode (challengeId)
  */
 async function onPasskeyLogin(): Promise<void> {
-  socialError.value = null;
+  socialErrorCode.value = null;
   passkeyLoading.value = true;
 
   try {
@@ -406,7 +409,7 @@ onMounted(() => {
 onMounted(() => {
   window.addEventListener('pageshow', onPageShow);
 
-  // The code is in `socialError` now, so it leaves the URL too: a reload must not bring the message
+  // The code is in `socialErrorCode` now, so it leaves the URL too: a reload must not bring the message
   // back. `sign-in-error-text.global.ts` removed `error_description` before the page rendered;
   // `redirect` and every other parameter stay.
   if (arrivedWithError) {
@@ -428,7 +431,7 @@ onUnmounted(() => {
 // Functions
 // ============================================================================
 async function onSubmit(payload: FormSubmitEvent<Schema>): Promise<void> {
-  socialError.value = null;
+  socialErrorCode.value = null;
   loading.value = true;
 
   try {

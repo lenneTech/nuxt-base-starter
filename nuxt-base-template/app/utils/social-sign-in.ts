@@ -247,11 +247,27 @@ const REFUSED: SocialSignInError = {
 
 /**
  * Better Auth found an account with the provider's e-mail address that signs in another way (a local
- * account with a password, for example) and links the two only for trusted providers. Measured with a
- * local account and a Microsoft account of the same address.
+ * account with a password, for example) and did not link the two. Better Auth 1.7 links them only when
+ * the provider reports the address as verified (or is listed in `account.accountLinking.trustedProviders`,
+ * which skips that check and is unsafe for a provider whose addresses a tenant admin can set, such as
+ * Microsoft Entra ID), and the local account is verified itself (`requireLocalEmailVerified`, on by
+ * default). Measured with a local account and a Microsoft account of the same address.
  */
 const NOT_LINKED: SocialSignInError = {
   description: 'Für diese E-Mail-Adresse gibt es bereits ein Konto mit einer anderen Anmeldeart. Bitte melde dich wie bisher an oder wende dich an die Administration.',
+  title: 'Anmeldung nicht möglich',
+};
+
+/**
+ * The same refusal on an API that signs in through providers alone (`/iam/features` reports
+ * `emailAndPassword: false`). "Wie bisher" would point at a way in that does not exist there: the other
+ * account belongs to another provider, or it was created with a password nobody can use here (the first
+ * admin from `/auth/setup`, or an account from before the switch). Only another provider or the
+ * administration help then.
+ */
+const NOT_LINKED_PROVIDERS_ONLY: SocialSignInError = {
+  description:
+    'Für diese E-Mail-Adresse gibt es bereits ein Konto, das nicht mit diesem Anbieter verbunden ist. Bitte melde dich über den Anbieter an, den du bisher genutzt hast, oder wende dich an die Administration.',
   title: 'Anmeldung nicht möglich',
 };
 
@@ -283,6 +299,12 @@ const MESSAGES: Record<string, SocialSignInError> = {
  */
 const CODE_SHAPE = /^[A-Za-z0-9_]{1,64}$/;
 
+/** What the login page knows about the API when it maps a code. */
+export interface SocialSignInErrorContext {
+  /** False when `/iam/features` reports `emailAndPassword: false`; anything else keeps the texts that mention a password. */
+  passwordSignIn?: boolean;
+}
+
 /**
  * The message for the `error` query value the login page was reached with, or null for none.
  *
@@ -290,7 +312,7 @@ const CODE_SHAPE = /^[A-Za-z0-9_]{1,64}$/;
  * any other query value: anybody can write a link to the login page with a text of their choice,
  * and the page would show it in its own voice.
  */
-export function socialSignInError(code: unknown): null | SocialSignInError {
+export function socialSignInError(code: unknown, context: SocialSignInErrorContext = {}): null | SocialSignInError {
   if (code === undefined || code === null || code === '') {
     return null;
   }
@@ -298,6 +320,9 @@ export function socialSignInError(code: unknown): null | SocialSignInError {
   const known = value.toLowerCase();
   if (SILENT_MISS.has(known)) {
     return null;
+  }
+  if (known === 'account_not_linked' && context.passwordSignIn === false) {
+    return NOT_LINKED_PROVIDERS_ONLY;
   }
   if (Object.hasOwn(MESSAGES, known)) {
     return MESSAGES[known] ?? null;

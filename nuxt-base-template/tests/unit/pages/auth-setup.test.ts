@@ -56,7 +56,11 @@ async function settle(): Promise<void> {
   await nextTick();
 }
 
-async function mountPage(initial: Status, initSetup: (params: Record<string, unknown>, status: { value: Status }) => Promise<void> = async () => {}) {
+async function mountPage(
+  initial: Status,
+  initSetup: (params: Record<string, unknown>, status: { value: Status }) => Promise<void> = async () => {},
+  features: Record<string, unknown> = {},
+) {
   const status = ref<Status>({ ...initial });
   const toasts: Array<{ color: string; description: string }> = [];
   const errors: unknown[] = [];
@@ -78,6 +82,7 @@ async function mountPage(initial: Status, initSetup: (params: Record<string, unk
       return message.startsWith('#LTNS_0053') ? 'Ersteinrichtung gesperrt' : message.startsWith('#LTNS_0054') ? 'Setup-Token falsch' : message;
     },
   }));
+  vi.stubGlobal('useLtAuth', () => ({ features: ref(features) }));
   vi.stubGlobal('useSystemSetup', () => ({
     checkSetupStatus: vi.fn(async () => status.value.needsSetup === true),
     httpInitEnabled: computed(() => status.value.httpInitEnabled),
@@ -168,6 +173,29 @@ afterEach(() => {
 });
 
 describe('setup page', () => {
+  it('says how the admin signs in when the API signs in through providers alone', async () => {
+    // nest-server 12.11.0+ with `betterAuth.emailAndPassword.enabled: false`: the init still wants a
+    // password, the admin signs in through a provider whose account carries the same address.
+    const page = await mountPage(OPEN, undefined, { emailAndPassword: false, socialProviders: ['github'] });
+
+    expect(page.form()).toBeDefined();
+    expect(page.text()).toContain('Anmeldung nur über einen Anbieter');
+    expect(page.text()).toContain('Das Passwort verlangt die Einrichtung, zum Anmelden dient es nicht.');
+    expect(page.text()).toContain('verified_primary_email');
+    // Never the provider trust list: it links addresses the provider has not verified (nOAuth).
+    expect(page.text()).not.toContain('trustedProviders');
+    page.unmount();
+  });
+
+  it('shows no provider hint while the API keeps e-mail and password, or does not say', async () => {
+    for (const features of [{ emailAndPassword: true }, {}]) {
+      const page = await mountPage(OPEN, undefined, features);
+      expect(page.form()).toBeDefined();
+      expect(page.text()).not.toContain('Anmeldung nur über einen Anbieter');
+      page.unmount();
+    }
+  });
+
   it('shows the form while the API takes the first admin over HTTP, without a token field', async () => {
     const page = await mountPage(OPEN);
 
