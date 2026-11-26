@@ -363,7 +363,6 @@ NUXT_LINEAR_API_KEY=              # Bug reporting
 NUXT_LINEAR_TEAM_NAME=            # Bug reporting
 NUXT_LINEAR_PROJECT_NAME=         # Bug reporting
 NUXT_API_SCHEMA=../api/schema.gql # OpenAPI schema path
-NUXT_PUBLIC_STORAGE_PREFIX=base-dev      # Local storage prefix
 NUXT_PUBLIC_AUTH_SILENT_PROVIDER=        # Social provider id for the silent sign-in on the login page (e.g. microsoft); empty = off
 ```
 

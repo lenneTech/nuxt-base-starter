@@ -33,8 +33,11 @@ describe('.env.example — lt dev keys', () => {
     expect(content).toMatch(/NUXT_PUBLIC_API_URL=http:\/\/localhost:3000/);
   });
 
-  it('documents NUXT_PUBLIC_STORAGE_PREFIX (cross-project namespacing)', () => {
-    expect(content).toMatch(/NUXT_PUBLIC_STORAGE_PREFIX=/);
+  // Nothing reads it: no `runtimeConfig.public` key receives it, and neither this template nor
+  // nuxt-extensions has a storage namespace. Documented here up to 4.0.6, it promised separation
+  // between projects that never happened (CLAUDE.md, "No project namespace in the keys").
+  it('does not offer NUXT_PUBLIC_STORAGE_PREFIX, which nothing reads', () => {
+    expect(content).not.toMatch(/NUXT_PUBLIC_STORAGE_PREFIX/);
   });
 
   it('documents NUXT_PUBLIC_API_PROXY (set to true for classic local dev)', () => {

@@ -145,7 +145,6 @@ NODE_ENV=development
 
 # Optional
 NUXT_PUBLIC_WEB_PUSH_KEY=          # Web push notifications
-NUXT_PUBLIC_STORAGE_PREFIX=base-dev # Local storage prefix
 LINEAR_API_KEY=                    # Bug reporting
 LINEAR_TEAM_NAME=                  # Bug reporting
 LINEAR_PROJECT_NAME=               # Bug reporting

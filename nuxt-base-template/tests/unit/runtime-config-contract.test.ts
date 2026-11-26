@@ -27,11 +27,7 @@ const configFile = join(templateRoot, 'nuxt.config.ts');
  * Each entry needs a reason — an unexplained exception here would re-open the hole
  * this test exists to close.
  */
-const MODULE_OWNED: Record<string, string> = {
-  // Declared by @lenne.tech/nuxt-extensions, which registers its own
-  // `runtimeConfig.public.ltExtensions` block. Nothing for this file to declare.
-  NUXT_PUBLIC_STORAGE_PREFIX: '@lenne.tech/nuxt-extensions owns this key',
-};
+const MODULE_OWNED: Record<string, string> = {};
 
 /** `NUXT_PUBLIC_SITE_URL` -> `siteUrl` */
 function envNameToConfigKey(envName: string): string {

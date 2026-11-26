@@ -236,7 +236,6 @@ First run in a fresh project: just `lt dev init` then `lt dev up`. (`lt dev migr
 - `NUXT_API_URL` — SSR API URL and the Vite dev proxy target (when active) — `https://api.<slug>.localhost`. Also the variable `generate-types` reads, but only from the **shell environment** — see the DEV-2802 section above.
 - `NUXT_PUBLIC_API_URL` — client-side API URL — `https://api.<slug>.localhost`
 - `NUXT_PUBLIC_SITE_URL` — the public origin of the app. Used by Playwright (`baseURL`, `webServer.url`) — `https://<slug>.localhost` — **and, in production, by two runtime consumers**: the SEO site config (canonical/OG/sitemap) and `runtimeConfig.public.siteUrl`, which builds the absolute auth redirect URLs that go into password-reset and verification mails. Never `NUXT_SITE_URL`: that reaches the SEO config but not `runtimeConfig.public.siteUrl`. See the `appUrl` section below.
-- `NUXT_PUBLIC_STORAGE_PREFIX` — LocalStorage namespace (prevents key collisions across parallel projects) — `<slug>`
 - `NUXT_PUBLIC_API_PROXY` — always `false` under `lt dev up` because Caddy + cookie-domain make the vite-proxy obsolete
 
 Without `lt dev up`, the template falls back to the defaults (port 3001, API on `localhost:3000`, `NUXT_PUBLIC_API_PROXY=true` for same-origin cookies in classic mode). All env vars are optional — **except for `generate-types`**, which has no default at all and fails rather than guess a port (DEV-2802, section above).
@@ -494,6 +493,7 @@ arbitrary and are not:
 `tests/unit/pages/auth-login-social.test.ts` ("the sign-in methods /iam/features reports") pins the
 page; `tests/e2e/auth-sign-in-methods.spec.ts` runs it against a real API, as it ships and, with
 `E2E_SIGN_IN_CASE=providers-only`, signing in through a provider alone.
+
 **The other pages follow the same answer (since 4.0.7),** again only on an explicit `false`:
 
 | Page                                     | Field              | With `false`                                                                                                                     |
@@ -524,7 +524,6 @@ Tests: `tests/unit/pages/settings-security-features.test.ts`, the provider cases
 `tests/unit/utils/social-sign-in.test.ts`; `tests/e2e/auth-sign-in-methods.spec.ts` covers
 `forgot-password.vue` with `E2E_SIGN_IN_CASE=providers-only`. The security page cannot run against a
 provider-only API in E2E: nobody signs in there without a real provider round trip.
-
 
 ### Configurable cookie names (optional)
 
@@ -720,9 +719,10 @@ stop the next one or remember the sign-out. A new sign-out call site must set th
 (`socialSignInMarks.markSignedOut()`; `tests/unit/utils/social-sign-in.test.ts` fails otherwise), and
 a new way to sign in should call `socialSignInMarks.clear()` where it knows it succeeded.
 
-No project namespace in the keys: both stores are per origin, and `NUXT_PUBLIC_STORAGE_PREFIX` has no
-effect (no `runtimeConfig.public` key receives it, and no runtime code of this template or of
-nuxt-extensions 4.0.2 reads it; the library mentions it only in comments). Two projects that run one after the other on the same
+No project namespace in the keys: both stores are per origin. `NUXT_PUBLIC_STORAGE_PREFIX`, which this
+template documented up to 4.0.6 and the lt CLI may still write, has no effect (no `runtimeConfig.public`
+key receives it, and no runtime code of this template or of nuxt-extensions reads it; the library mentions
+it only in comments), so `.env.example` no longer carries it (`tests/unit/lt-dev-env.test.ts`). Two projects that run one after the other on the same
 origin (`localhost:3001`) share the marks, as they share the auth cookies; `lt dev up` gives each
 project an origin of its own.
 
