@@ -99,7 +99,11 @@ registration, "Token configuration"), so an API that signs in through Microsoft 
 Do not list the provider in `betterAuth.options.account.accountLinking.trustedProviders` instead: Better
 Auth then links whatever address the provider names, verified or not, and an Entra tenant admin who sets
 a user's `mail` to the admin's address signs in as the admin ("nOAuth"; Microsoft warns about apps that
-identify users by the e-mail claim).
+identify users by the e-mail claim). `emailVerified: true` from a provider's `mapProfileToUser` opens the
+same gap: Better Auth spreads that result over the provider's own check (`microsoft-entra-id.mjs`,
+better-auth 1.7). The password the setup asks for is a dormant credential: it does nothing while e-mail
+and password are off and signs the admin in once they are switched on, so take a long random value and do
+not keep it (nest-server's better-auth README, "The first administrator").
 
 ## Usage
 

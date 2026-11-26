@@ -517,7 +517,8 @@ GitHub reports the verified flag of the address, Microsoft Entra ID only with th
 `betterAuth.options.account.accountLinking.trustedProviders`) to get there: it skips the provider's check,
 so Better Auth links whatever address the provider names, and an Entra tenant admin who sets a user's
 `mail` to the admin's address signs in as the admin ("nOAuth"). `auth-setup.test.ts` fails when the hint
-names it.
+names it. The same holds for `emailVerified: true` from a provider's `mapProfileToUser`: Better Auth spreads
+that result over its own check (`microsoft-entra-id.mjs`, better-auth 1.7), so it is the same takeover.
 
 Tests: `tests/unit/pages/settings-security-features.test.ts`, the provider cases in
 `tests/unit/pages/auth-setup.test.ts`, `auth-login-social.test.ts` and
@@ -720,7 +721,7 @@ stop the next one or remember the sign-out. A new sign-out call site must set th
 a new way to sign in should call `socialSignInMarks.clear()` where it knows it succeeded.
 
 No project namespace in the keys: both stores are per origin. `NUXT_PUBLIC_STORAGE_PREFIX`, which this
-template documented up to 4.0.6 and the lt CLI may still write, has no effect (no `runtimeConfig.public`
+template documented up to 4.0.6 and the lt CLI exported up to 1.59.x, has no effect (no `runtimeConfig.public`
 key receives it, and no runtime code of this template or of nuxt-extensions reads it; the library mentions
 it only in comments), so `.env.example` no longer carries it (`tests/unit/lt-dev-env.test.ts`). Two projects that run one after the other on the same
 origin (`localhost:3001`) share the marks, as they share the auth cookies; `lt dev up` gives each
