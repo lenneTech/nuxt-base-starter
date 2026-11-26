@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.8](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.7...v4.0.8) (2026-11-26)
+
+
+### Highlights for adopters
+
+* **Nothing to migrate.** nuxt-extensions 4.0.8 changes no runtime code. A project only needs `"@lenne.tech/nuxt-extensions": "4.0.8"` and `pnpm install`.
+* **Dependencies refreshed:** `@types/node` 26.6.10, the lockfile freshly resolved. All five overrides are re-proven and stay.
+* **Sign-in through providers alone:** besides `trustedProviders`, returning `emailVerified: true` from a provider's `mapProfileToUser` also lets Better Auth link unverified addresses, which is the same account takeover. The password the setup asks for becomes a working credential once e-mail and password are switched on, so take a long random value and do not keep it. See `AUTH.md`.
+* **Held on purpose:**
+  * better-auth 1.7.19, in step with nest-server-starter
+  * TypeScript 6.0.3
+  * vue-tsc 3.3.14
+  * pnpm 11.29.0
+
+
+### Bug Fixes
+
+* **deps:** @lenne.tech/nuxt-extensions 4.0.8 and @types/node 26.6.10 ([7102011](https://github.com/lenneTech/nuxt-base-starter/commit/7102011197293512bc53fa135156c44a74914d1a))
+
+
+### Documentation
+
+* **auth:** mapProfileToUser's emailVerified opens the same takeover as trustedProviders ([f2eff95](https://github.com/lenneTech/nuxt-base-starter/commit/f2eff952015ce6155f8d65a5bab0b06b87f36bdb))
+
+
 ### [4.0.7](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.6...v4.0.7) (2026-11-26)
 
 
