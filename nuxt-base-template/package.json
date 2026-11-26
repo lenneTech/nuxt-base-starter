@@ -58,7 +58,7 @@
   "dependencies": {
     "@better-auth/passkey": "1.7.19",
     "@lenne.tech/bug.lt": "1.6.10",
-    "@lenne.tech/nuxt-extensions": "4.0.6",
+    "@lenne.tech/nuxt-extensions": "4.0.7",
     "@nuxt/ui": "4.13.1",
     "@pinia/nuxt": "1.0.3",
     "@plausible-analytics/tracker": "0.4.7",
