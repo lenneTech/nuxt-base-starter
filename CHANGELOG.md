@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.7](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.6...v4.0.7) (2026-11-26)
+
+
+### Highlights for adopters
+
+* **nuxt-extensions 4.0.7.** It fixes a regression of 4.0.6: a session the API ended left the visitor on the page, shown signed out, with every request failing and no redirect. The next protected request now leads to `/auth/login?redirect=<page>` again. It hit apps in cookie mode, above all against an API without JWT. A project only needs `"@lenne.tech/nuxt-extensions": "4.0.7"` and `pnpm install`. See the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.7/migration-guides/4.0.7-redirect-after-ended-session.md).
+* **More pages follow `/iam/features` when the API signs in through providers alone.**
+  * `/app/settings/security` shows 2FA and passkeys only while the API supports them.
+  * `/auth/forgot-password` sends visitors to the login.
+  * `account_not_linked` no longer asks to sign in with a password that does not exist.
+  * `/auth/setup` says how the first admin signs in. Microsoft Entra ID needs the optional claim `verified_primary_email`. Never `trustedProviders`, which would let an Entra tenant admin take over accounts.
+
+  See the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.7/migration-guides/4.0.7-provider-only-pages.md).
+* **`check` survives a taken port.** The server-start step starts again on new ports after `EADDRINUSE`. `NUXT_PUBLIC_STORAGE_PREFIX` leaves `.env.example`, because nothing reads it. See the [guide](https://github.com/lenneTech/nuxt-base-starter/blob/v4.0.7/migration-guides/4.0.7-server-start-retry-and-storage-prefix.md).
+
+
+### Bug Fixes
+
+* **auth:** security, forgot-password, setup and the not-linked message follow /iam/features ([06eabeb](https://github.com/lenneTech/nuxt-base-starter/commit/06eabeb78088777bcdfb610f8ad5d03e18a9acb3))
+* **check:** start the server again after EADDRINUSE; drop the unused NUXT_PUBLIC_STORAGE_PREFIX ([359d5e5](https://github.com/lenneTech/nuxt-base-starter/commit/359d5e59511e800df25d7681652080b81d40abbe))
+* **deps:** @lenne.tech/nuxt-extensions 4.0.7 ([52da2d8](https://github.com/lenneTech/nuxt-base-starter/commit/52da2d82ec61c6c4f671bd61f4d757b200ad77a6))
+
+
+### Tests
+
+* **e2e:** a session the API ended leads to the login, checked without JWT and in the JWT mode ([92f8ea3](https://github.com/lenneTech/nuxt-base-starter/commit/92f8ea361df283f6fe933abf640ba37e73c69529))
+
+
 ### [4.0.6](https://github.com/lenneTech/nuxt-base-starter/compare/v4.0.5...v4.0.6) (2026-11-25)
 
 
