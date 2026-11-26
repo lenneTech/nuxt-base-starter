@@ -298,6 +298,88 @@ jobs:
         working-directory: nuxt-base-template
         run: pnpm run test:e2e
 
+      # A session the API ended, against an API without JWT: there the app stays in cookie mode,
+      # `validateSession()` signs the cached user out on load, and nuxt-extensions 4.0.6 then ignored
+      # the next 401 and left the visitor on the page (fixed in 4.0.7). With JWT on, as in the suite
+      # above, the app keeps a JWT and that state never occurs. This API runs next to the suite's API,
+      # on :3002 and on the same database, so its admin exists and nothing above has to stop;
+      # its own log carries the verification token of the user the spec registers.
+      - name: Start API without JWT on :3002
+        env:
+          PORT: '3002'
+          BASE_URL: http://localhost:3002
+          NSC__BETTER_AUTH__JWT__ENABLED: 'false'
+        run: |
+          setsid bash -c 'cd api && exec pnpm run start:e2e:dist' > "$GITHUB_WORKSPACE/api-e2e-nojwt.log" 2>&1 &
+          echo $! > /tmp/api-nojwt.pid
+          timeout 180 bash -c '
+            until curl -sf http://localhost:3002/meta > /dev/null; do
+              kill -0 "$(cat /tmp/api-nojwt.pid)" 2>/dev/null || {
+                echo "::error::API process died during boot"; tail -n 60 "$GITHUB_WORKSPACE/api-e2e-nojwt.log"; exit 1;
+              }
+              sleep 2
+            done'
+          curl -sf http://localhost:3002/iam/features
+          echo
+          echo "API without JWT is up"
+
+      - name: Session ended, API without JWT
+        working-directory: nuxt-base-template
+        env:
+          API_URL: http://localhost:3002
+          NUXT_PUBLIC_API_URL: http://localhost:3002
+          NUXT_API_URL: http://127.0.0.1:3002
+          NEST_SERVER_LOG: ${{ github.workspace }}/api-e2e-nojwt.log
+          E2E_SESSION_CASE: no-jwt
+        run: pnpm exec playwright test tests/e2e/auth-session-ended.spec.ts
+
+      - name: Stop the API without JWT
+        run: |
+          kill -- "-$(cat /tmp/api-nojwt.pid)"
+          timeout 30 bash -c 'while curl -sf http://localhost:3002/meta > /dev/null; do sleep 1; done'
+          echo "API stopped"
+
+      # The JWT mode (`cookies: false` at the top of the nest-server config): the API sets no session
+      # cookie, and the app sends its bearer on every request. The suite above runs in the cookie mode,
+      # as nest-server-starter ships, so a break of the JWT path (a token the app does not renew, a
+      # request without the bearer) never showed here. The whole suite once more against an API in that
+      # mode, on :3003 and the same database, as the API without JWT above. E2E_EXPECT_AUTH_MODE=jwt
+      # makes auth-lifecycle.spec.ts fail when the API signs in with a cookie after all; specs that need
+      # the cookie mode skip on it. Measured locally against nest-server-starter 12.11.2: 70 passed,
+      # 15 skipped.
+      - name: Start API in JWT mode on :3003
+        env:
+          PORT: '3003'
+          BASE_URL: http://localhost:3003
+          NSC__COOKIES: 'false'
+        run: |
+          setsid bash -c 'cd api && exec pnpm run start:e2e:dist' > "$GITHUB_WORKSPACE/api-e2e-jwt.log" 2>&1 &
+          echo $! > /tmp/api-jwt.pid
+          timeout 180 bash -c '
+            until curl -sf http://localhost:3003/meta > /dev/null; do
+              kill -0 "$(cat /tmp/api-jwt.pid)" 2>/dev/null || {
+                echo "::error::API process died during boot"; tail -n 60 "$GITHUB_WORKSPACE/api-e2e-jwt.log"; exit 1;
+              }
+              sleep 2
+            done'
+          echo "API in JWT mode is up"
+
+      - name: Run auth E2E suite in JWT mode
+        working-directory: nuxt-base-template
+        env:
+          API_URL: http://localhost:3003
+          NUXT_PUBLIC_API_URL: http://localhost:3003
+          NUXT_API_URL: http://127.0.0.1:3003
+          NEST_SERVER_LOG: ${{ github.workspace }}/api-e2e-jwt.log
+          E2E_EXPECT_AUTH_MODE: jwt
+        run: pnpm run test:e2e
+
+      - name: Stop the API in JWT mode
+        run: |
+          kill -- "-$(cat /tmp/api-jwt.pid)"
+          timeout 30 bash -c 'while curl -sf http://localhost:3003/meta > /dev/null; do sleep 1; done'
+          echo "API stopped"
+
       # NEVER upload the API log: it carries live bearer credentials — a
       # verification token grants email verification for that account to whoever
       # holds it. The Playwright report is safe and is what a failure needs.

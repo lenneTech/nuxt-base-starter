@@ -54,14 +54,16 @@ found from inside `nuxt-base-template/`.
 
 All optional — each falls back to the classic local default.
 
-| Variable                           | Falls back to                           | Used for                                              |
-| ---------------------------------- | --------------------------------------- | ----------------------------------------------------- |
-| `NEST_SERVER_LOG`                  | the candidate list above                | explicit log location                                 |
-| `NUXT_PUBLIC_API_URL` / `API_URL`  | `http://localhost:3000`                 | API base                                              |
-| `NUXT_API_URL`                     | unset (SSR uses the public API base)    | SSR address check (see below)                         |
-| `NUXT_PUBLIC_SITE_URL` / `APP_URL` | `http://localhost:3001`                 | app base                                              |
-| `NSC__MONGOOSE__URI` / `MONGO_URI` | `mongodb://127.0.0.1/nest-server-local` | test-data reset                                       |
-| `E2E_EXPECT_AUTH_MODE`             | not checked                             | auth mode of the password sign-in (`cookie` or `jwt`) |
+| Variable                           | Falls back to                           | Used for                                                                                                               |
+| ---------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `NEST_SERVER_LOG`                  | the candidate list above                | explicit log location                                                                                                  |
+| `NUXT_PUBLIC_API_URL` / `API_URL`  | `http://localhost:3000`                 | API base                                                                                                               |
+| `NUXT_API_URL`                     | unset (SSR uses the public API base)    | SSR address check (see below)                                                                                          |
+| `NUXT_PUBLIC_SITE_URL` / `APP_URL` | `http://localhost:3001`                 | app base                                                                                                               |
+| `NSC__MONGOOSE__URI` / `MONGO_URI` | `mongodb://127.0.0.1/nest-server-local` | test-data reset                                                                                                        |
+| `E2E_EXPECT_AUTH_MODE`             | not checked                             | auth mode of the password sign-in (`cookie` or `jwt`)                                                                  |
+| `E2E_SIGN_IN_CASE`                 | not checked                             | `providers-only`: `auth-sign-in-methods.spec.ts` fails unless the API reports `emailAndPassword: false` and a provider |
+| `E2E_SESSION_CASE`                 | not checked                             | `no-jwt`: `auth-session-ended.spec.ts` fails unless the API reports `jwt: false`                                       |
 
 Under `lt dev up` / `lt dev test` these are set for you via the `.lt-dev/.env` bridge, so the
 same suite runs unchanged against classic ports, a `lt dev` session, and CI.
@@ -148,6 +150,15 @@ behaviour across the client/server boundary — everything else proves this repo
 consistent, which is exactly the property that stayed green while a better-auth version split
 broke every 2FA activation in every fullstack project. A non-blocking gate without a
 visibility path is worse than no gate: it keeps looking like a net while catching nothing.
+
+The root workflow of the nuxt-base-starter repository runs more API configurations in the same job,
+each on a port of its own and the same database: the HTTP init closed (`E2E_SETUP_CASE=closed`), sign-in
+through a provider alone (`E2E_SIGN_IN_CASE=providers-only`, `auth-sign-in-methods.spec.ts`), an API
+without JWT on :3002 (`E2E_SESSION_CASE=no-jwt`, `auth-session-ended.spec.ts`) and, after the suite in
+the cookie mode, the whole suite once more against an API in the JWT mode on :3003
+(`NSC__COOKIES=false`, `E2E_EXPECT_AUTH_MODE=jwt`). The template's own workflow, which a generated
+project inherits, runs the suite once against the API as it ships: a project tests its own
+configuration.
 
 The job never uploads `$NEST_SERVER_LOG` as an artefact — see the credentials warning above.
 Only the Playwright report is kept, and only on failure.
