@@ -58,7 +58,7 @@
   "dependencies": {
     "@better-auth/passkey": "1.7.19",
     "@lenne.tech/bug.lt": "1.6.10",
-    "@lenne.tech/nuxt-extensions": "4.0.7",
+    "@lenne.tech/nuxt-extensions": "4.0.8",
     "@nuxt/ui": "4.13.1",
     "@pinia/nuxt": "1.0.3",
     "@plausible-analytics/tracker": "0.4.7",
@@ -78,7 +78,7 @@
     "@playwright/test": "1.65.1",
     "@tailwindcss/typography": "0.5.20",
     "@tailwindcss/vite": "4.3.5",
-    "@types/node": "26.6.6",
+    "@types/node": "26.6.10",
     "@types/qrcode": "1.5.6",
     "@vitejs/plugin-vue": "6.0.11",
     "cross-env": "10.1.0",
