@@ -176,6 +176,10 @@ onlyBuiltDependencies:
 # 2.1.19 back, no entry holds a package below the unrestricted resolve, every target is the newest in
 # its major). bug.lt 1.6.10, json-schema-ref-parser 1.4.4, @tailwindcss/typography 0.5.20, archiver
 # 8.0.0 and reka-ui 2.11.0 are still the newest releases. Five entries.
+# Re-run 2026-11-27 (maintenance after starter 4.0.8, nuxt 4.7.0, pnpm 11.29.0), same method plus one
+# fresh resolve per entry: no change, with the same result as on 2026-11-26. bug.lt 1.6.10,
+# json-schema-ref-parser 1.4.4, @tailwindcss/typography 0.5.20, archiver 8.0.0 and reka-ui 2.11.0 are
+# still the newest releases. Five entries.
 #
 # Selector semantics (read in pnpm 11's source): a range key applies whenever it
 # INTERSECTS the range a dependent requests, not only when it contains it. So
