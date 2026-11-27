@@ -350,6 +350,8 @@ export default defineNuxtConfig({
       // MUST be declared for NUXT_PUBLIC_APP_ENV to take effect at runtime; the
       // baked default follows the build (production unless this is a dev build),
       // so an unset variable never unlocks dev-only UI on a production image.
+      // Any value other than `production` also makes the whole site noindex
+      // (server/plugins/site-indexing.ts).
       appEnv,
       appVersion,
       // Client-side — NUXT_PUBLIC_API_URL overrides at runtime

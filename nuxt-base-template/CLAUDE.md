@@ -257,6 +257,27 @@ Scripts that set env vars use `cross-env` rather than a bare `VAR=value` prefix,
 PORT=4011 NUXT_PUBLIC_SITE_URL=https://crm.localhost NUXT_PUBLIC_API_URL=https://api.crm.localhost pnpm dev
 ```
 
+## Deployments outside production are noindex
+
+A stage whose `NUXT_PUBLIC_APP_ENV` is anything but `production` (or unset) answers
+`X-Robots-Tag: noindex, nofollow`, renders `<meta name="robots" content="noindex, nofollow">` and
+serves robots.txt with `Disallow: /`. The rule is the Angular starter's (`!env || env === 'production'`).
+A production stage therefore sets exactly `production` or nothing: `prod` or `live` would take
+the customer's site out of the index without an error anywhere.
+
+nuxt-site-config does not do this by itself. It decides by its own site environment, which
+outside `nuxt dev` is Nuxt's `envName`, and that is `production` for every build. Before this
+plugin a dev stage with `NUXT_PUBLIC_APP_ENV=develop` answered `index, follow` (measured on a deployed
+stage, 2026-11-26). `server/plugins/site-indexing.ts` pushes `indexable: false` from the
+`site-config:init` hook at the runtime priority. The decision is `appEnvBlocksIndexing()` in
+`server/utils/site-indexing.ts`.
+
+A stage that sets `NUXT_SITE_ENV`, `NUXT_SITE_INDEXABLE` or their `NUXT_PUBLIC_` forms decides
+itself, and the plugin stays out of it. Never set them on production unless you mean it:
+`indexable` defaults to `env === 'production'`. `.env.example` sets `NUXT_SITE_ENV=development`
+for the local server only; Docker strips `.env*`. `tests/unit/server/site-indexing.test.ts` pins
+the rule.
+
 ## Standards
 
 | Rule             | Value                                                              |
