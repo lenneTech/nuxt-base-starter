@@ -133,7 +133,13 @@ test.describe('A session the API ended', () => {
 
     await test.step('the next protected request leads to the login, with the way back', async () => {
       await protectedRequestStatus(page, userId!);
-      await expect(page).toHaveURL(`${FRONTEND_BASE}/auth/login?redirect=%2Fapp`, { timeout: 15000 });
+      // The interceptor loads `/auth/login?redirect=%2Fapp`. Once the login page hydrates, vue-router writes the
+      // address in its own spelling, which leaves `/` unencoded: `?redirect=/app`. So compare the parsed target,
+      // not one spelling: the exact string only matched while the poll ran before the hydration, which a slower
+      // CI runner loses (3 of 3 runs red in a generated project, 2026-11-26).
+      await expect(page).toHaveURL((url) => url.origin === new URL(FRONTEND_BASE).origin && url.pathname === '/auth/login' && url.searchParams.get('redirect') === '/app', {
+        timeout: 15000,
+      });
     });
   });
 });
